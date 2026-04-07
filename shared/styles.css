@@ -25,7 +25,7 @@ body{
   color:var(--body);
   min-height:100vh;
   overflow-x:hidden;
-  padding-top:calc(var(--nav-h) + 1.25rem);
+  padding-top:calc(1rem + var(--nav-h) + 1.5rem);
 }
 
 /* ── LOADING ── */
@@ -204,10 +204,10 @@ body{
 
 /* ── PAGE ENTRY ANIMATION ── */
 @keyframes pageIn{
-  from{opacity:0;transform:translateY(14px)}
-  to{opacity:1;transform:translateY(0)}
+  from{opacity:0}
+  to{opacity:1}
 }
-#app{animation:pageIn .35s cubic-bezier(.25,.46,.45,.94) both}
+#app{animation:pageIn .3s ease both}
 
 /* ── BUTTON FEEDBACK ── */
 .btn-primary:focus-visible,.btn-ghost:focus-visible,.auth-btn:focus-visible,.gate-btn:focus-visible{

@@ -11,35 +11,37 @@
 /* ── ADMIN LAYOUT ── */
 .admin-container{max-width:1000px;margin:0 auto;padding:2rem;display:flex;flex-direction:column;gap:2rem}
 .admin-header{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
-.admin-back{font-family:sans-serif;font-size:.85rem;color:var(--muted);text-decoration:none;padding:.45rem .9rem;border:1.5px solid var(--border2);border-radius:var(--radius-sm);transition:all .2s;white-space:nowrap}
+.admin-back{font-family:'Inter',sans-serif;font-size:.82rem;color:var(--muted);text-decoration:none;padding:.4rem .9rem;border:1.5px solid var(--border2);border-radius:100px;transition:all .2s;white-space:nowrap}
 .admin-back:hover{background:var(--bg2);color:var(--body)}
 .admin-title-block{}
 .admin-title{font-family:'Fraunces',serif;font-size:1.9rem;font-weight:600;color:var(--h2);letter-spacing:-.02em}
 .admin-sub{font-family:sans-serif;font-size:.85rem;color:var(--muted);margin-top:.2rem}
 
 /* ── SECTION BLOCKS ── */
-.admin-section{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem}
+.admin-section{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:1.5rem;transition:box-shadow .25s}
+.admin-section:hover{box-shadow:0 4px 20px rgba(40,40,38,.06)}
 .admin-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem}
-.admin-section-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;color:var(--h2);display:flex;align-items:center;gap:.5rem}
-.admin-section-action{font-family:sans-serif;font-size:.8rem;color:var(--primary);cursor:pointer;background:none;border:none;font-weight:600;padding:.3rem .7rem;border-radius:var(--radius-sm);transition:background .2s}
+.admin-section-title{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:600;color:var(--h2);display:flex;align-items:center;gap:.5rem;letter-spacing:-.01em}
+.admin-section-action{font-family:'Inter',sans-serif;font-size:.78rem;color:var(--primary);cursor:pointer;background:none;border:none;font-weight:600;padding:.3rem .75rem;border-radius:100px;transition:background .2s}
 .admin-section-action:hover{background:var(--primary-light)}
 
 /* ── HEALTH CARDS ── */
-.health-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem}
-.hc{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:1rem;transition:border-color .2s;position:relative}
-.hc.ok{border-color:#c8e6c9;background:#f1f8f1}
-.hc.warn{border-color:#ffe082;background:#fffde7}
-.hc.err{border-color:#ffcdd2;background:#fff5f5}
-.hc.checking{border-color:var(--border);background:var(--bg)}
-.hc-top{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem}
-.hc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.health-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.75rem}
+.hc{border:1px solid var(--border);border-left:3px solid var(--border2);border-radius:var(--radius-sm);padding:1rem;transition:box-shadow .2s;background:var(--white);position:relative}
+.hc:hover{box-shadow:var(--shadow)}
+.hc.ok{border-left-color:#4caf50;background:var(--white)}
+.hc.warn{border-left-color:#ffc107;background:var(--white)}
+.hc.err{border-left-color:#e53935;background:var(--white)}
+.hc.checking{border-left-color:var(--border2);background:var(--white)}
+.hc-top{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.hc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .hc-dot.ok{background:#4caf50}
 .hc-dot.warn{background:#ffc107}
 .hc-dot.err{background:#e53935}
 .hc-dot.checking{background:#ccc;animation:pulse 1.2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.hc-name{font-family:sans-serif;font-size:.78rem;font-weight:700;color:var(--h2);text-transform:uppercase;letter-spacing:.05em}
-.hc-msg{font-family:sans-serif;font-size:.78rem;color:var(--muted);line-height:1.4}
+.hc-name{font-family:'Inter',sans-serif;font-size:.75rem;font-weight:700;color:var(--h2);text-transform:uppercase;letter-spacing:.06em}
+.hc-msg{font-family:'Inter',sans-serif;font-size:.78rem;color:var(--muted);line-height:1.5}
 .hc-fix-toggle{font-family:sans-serif;font-size:.72rem;color:var(--primary);cursor:pointer;margin-top:.5rem;font-weight:600;background:none;border:none;padding:0;display:none}
 .hc-fix-toggle.visible{display:inline}
 .hc-fix-body{display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
@@ -129,7 +131,7 @@
 <div id="gate">
   <div class="gate-card">
     <div class="gate-logo">Nancy</div>
-    <div class="gate-sub">CareNBloom Marketing Hub</div>
+    <div class="gate-sub">Care & Bloom Hub</div>
     <div class="gate-label">Enter hub password</div>
     <input class="gate-input" type="password" id="gate-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()"/>
     <div class="gate-error" id="gate-error"></div>
@@ -140,7 +142,7 @@
 <div id="auth-screen">
   <div class="auth-card">
     <div class="auth-logo">Nancy</div>
-    <div class="auth-sub">CareNBloom Marketing Hub</div>
+    <div class="auth-sub">Care & Bloom Hub</div>
     <div class="auth-tabs">
       <div class="auth-tab active" id="signin-tab" onclick="switchAuthTab('signin')">Sign In</div>
       <div class="auth-tab" id="signup-tab" onclick="switchAuthTab('signup')">Join Team</div>
