@@ -420,6 +420,87 @@
         <div class="empty-st">Loading...</div>
       </div>
     </div>
+
+    <!-- ── SOCIAL TOOLS (always visible, all members) ── -->
+    <div class="s-wrap" id="hub-tools-section" style="margin-top:2rem;padding-bottom:3rem">
+      <div class="s-hdr" style="margin-bottom:1.25rem">
+        <div>
+          <div class="s-title" style="font-size:1.1rem">🛠 Social Tools</div>
+          <div class="s-sub">AI-powered tools for content creation — no avatar required</div>
+        </div>
+      </div>
+      <div class="tools-grid">
+
+        <!-- Caption Writer -->
+        <div class="tool-card">
+          <div class="tool-card-hdr">
+            <span class="tool-icon">✍️</span>
+            <div><div class="tool-name">Caption Writer</div><div class="tool-desc">5 ready-to-post captions in the avatar's voice</div></div>
+          </div>
+          <textarea class="tool-input" id="hub-tool-caption-input" placeholder="Describe your post topic or paste your idea..." rows="3"></textarea>
+          <button class="tool-btn" onclick="runHubTool('caption')">Generate Captions</button>
+          <div class="tool-output" id="hub-tool-caption-output"></div>
+        </div>
+
+        <!-- Hashtag Pack -->
+        <div class="tool-card">
+          <div class="tool-card-hdr">
+            <span class="tool-icon">#️⃣</span>
+            <div><div class="tool-name">Hashtag Pack</div><div class="tool-desc">30 hashtags grouped by reach size</div></div>
+          </div>
+          <textarea class="tool-input" id="hub-tool-hashtag-input" placeholder="Describe your niche or post topic..." rows="3"></textarea>
+          <button class="tool-btn" onclick="runHubTool('hashtag')">Generate Hashtags</button>
+          <div class="tool-output" id="hub-tool-hashtag-output"></div>
+        </div>
+
+        <!-- Comment Reply Generator -->
+        <div class="tool-card">
+          <div class="tool-card-hdr">
+            <span class="tool-icon">💬</span>
+            <div><div class="tool-name">Comment Reply Generator</div><div class="tool-desc">3 reply options in the avatar's voice</div></div>
+          </div>
+          <textarea class="tool-input" id="hub-tool-reply-input" placeholder="Paste the comment you want to reply to..." rows="3"></textarea>
+          <button class="tool-btn" onclick="runHubTool('reply')">Generate Replies</button>
+          <div class="tool-output" id="hub-tool-reply-output"></div>
+        </div>
+
+        <!-- Bio Optimizer -->
+        <div class="tool-card">
+          <div class="tool-card-hdr">
+            <span class="tool-icon">⚡</span>
+            <div><div class="tool-name">Bio Optimizer</div><div class="tool-desc">Rewrite & optimize for IG or TikTok</div></div>
+          </div>
+          <select class="tool-select" id="hub-tool-bio-platform"><option value="Instagram">Instagram</option><option value="TikTok">TikTok</option></select>
+          <textarea class="tool-input" id="hub-tool-bio-input" placeholder="Paste current bio here..." rows="3"></textarea>
+          <button class="tool-btn" onclick="runHubTool('bio')">Optimize Bio</button>
+          <div class="tool-output" id="hub-tool-bio-output"></div>
+        </div>
+
+        <!-- Trend Hook Pack -->
+        <div class="tool-card">
+          <div class="tool-card-hdr">
+            <span class="tool-icon">🔥</span>
+            <div><div class="tool-name">Trend Hook Pack</div><div class="tool-desc">10 scroll-stopping hooks for a trending topic</div></div>
+          </div>
+          <textarea class="tool-input" id="hub-tool-hook-input" placeholder="Enter a trending topic or niche..." rows="3"></textarea>
+          <button class="tool-btn" onclick="runHubTool('hook')">Generate Hooks</button>
+          <div class="tool-output" id="hub-tool-hook-output"></div>
+        </div>
+
+        <!-- Content Repurposer -->
+        <div class="tool-card">
+          <div class="tool-card-hdr">
+            <span class="tool-icon">♻️</span>
+            <div><div class="tool-name">Content Repurposer</div><div class="tool-desc">Turn long content into short-form posts</div></div>
+          </div>
+          <select class="tool-select" id="hub-tool-repurpose-platform"><option value="Instagram">Instagram</option><option value="TikTok">TikTok</option><option value="Threads">Threads</option></select>
+          <textarea class="tool-input" id="hub-tool-repurpose-input" placeholder="Paste your long-form content, article, or script..." rows="4"></textarea>
+          <button class="tool-btn" onclick="runHubTool('repurpose')">Repurpose Content</button>
+          <div class="tool-output" id="hub-tool-repurpose-output"></div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <!-- ── AVATAR WORKSPACE ── -->
@@ -1798,22 +1879,33 @@ async function approveToCalendar() {
 // ══════════════════════════════════════
 // TOOLS
 // ══════════════════════════════════════
+// Hub-level tools (main page, no avatar required)
+async function runHubTool(tool) {
+  await _runToolWithPrefix('hub-tool-', tool);
+}
+
+// Avatar workspace tools
 async function runTool(tool) {
+  await _runToolWithPrefix('tool-', tool);
+}
+
+async function _runToolWithPrefix(prefix, tool) {
+  var inputId = prefix + tool + '-input' === prefix + 'bio-input' ? prefix + 'bio-input' : prefix + tool + '-input';
   var inputs = {
-    caption: 'tool-caption-input',
-    hashtag: 'tool-hashtag-input',
-    reply: 'tool-reply-input',
-    bio: 'tool-bio-input',
-    hook: 'tool-hook-input',
-    repurpose: 'tool-repurpose-input'
+    caption: prefix + 'caption-input',
+    hashtag: prefix + 'hashtag-input',
+    reply: prefix + 'reply-input',
+    bio: prefix + 'bio-input',
+    hook: prefix + 'hook-input',
+    repurpose: prefix + 'repurpose-input'
   };
   var outputs = {
-    caption: 'tool-caption-output',
-    hashtag: 'tool-hashtag-output',
-    reply: 'tool-reply-output',
-    bio: 'tool-bio-output',
-    hook: 'tool-hook-output',
-    repurpose: 'tool-repurpose-output'
+    caption: prefix + 'caption-output',
+    hashtag: prefix + 'hashtag-output',
+    reply: prefix + 'reply-output',
+    bio: prefix + 'bio-output',
+    hook: prefix + 'hook-output',
+    repurpose: prefix + 'repurpose-output'
   };
   var inputEl = document.getElementById(inputs[tool]);
   var outputEl = document.getElementById(outputs[tool]);
@@ -1826,18 +1918,20 @@ async function runTool(tool) {
   outputEl.classList.remove('show');
   try {
     var html = '';
+    var bioPlatEl = document.getElementById(prefix + 'bio-platform');
+    var repurposePlatEl = document.getElementById(prefix + 'repurpose-platform');
     if (tool === 'caption') html = await toolCaption(input, ctx);
     else if (tool === 'hashtag') html = await toolHashtag(input, ctx);
     else if (tool === 'reply') html = await toolReply(input, ctx);
-    else if (tool === 'bio') html = await toolBio(input, ctx);
+    else if (tool === 'bio') html = await toolBio(input, ctx, bioPlatEl ? bioPlatEl.value : 'Instagram');
     else if (tool === 'hook') html = await toolHook(input, ctx);
-    else if (tool === 'repurpose') html = await toolRepurpose(input, ctx);
+    else if (tool === 'repurpose') html = await toolRepurpose(input, ctx, repurposePlatEl ? repurposePlatEl.value : 'Instagram');
     outputEl.innerHTML = html;
     outputEl.classList.add('show');
   } catch(e) {
     showToast('Generation failed: ' + (e.message || 'Try again'), 'error');
   }
-  if (btn) { btn.disabled = false; btn.textContent = btn.textContent.replace('Generating...', getBtnLabel(tool)); }
+  if (btn) { btn.disabled = false; btn.textContent = getBtnLabel(tool); }
 }
 
 function getBtnLabel(tool) {
@@ -1910,8 +2004,8 @@ async function toolReply(input, ctx) {
   }).join('');
 }
 
-async function toolBio(input, ctx) {
-  var platform = (document.getElementById('tool-bio-platform') || {}).value || 'Instagram';
+async function toolBio(input, ctx, platform) {
+  platform = platform || 'Instagram';
   var prompt = 'You are an expert social media profile optimizer.\n\n' +
     (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
     'Platform: ' + platform + '\n' +
@@ -1953,8 +2047,8 @@ async function toolHook(input, ctx) {
   }).join('');
 }
 
-async function toolRepurpose(input, ctx) {
-  var platform = (document.getElementById('tool-repurpose-platform') || {}).value || 'Instagram';
+async function toolRepurpose(input, ctx, platform) {
+  platform = platform || 'Instagram';
   var prompt = 'You are a content repurposing expert for social media.\n\n' +
     (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
     'Target platform: ' + platform + '\n' +
