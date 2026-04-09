@@ -491,8 +491,13 @@ async function saveMySlackToken() {
     return;
   }
   try {
-    var res = await fetch('https://slack.com/api/auth.test', {
-      headers: { 'Authorization': 'Bearer ' + token }
+    var res = await fetch(SUPABASE_URL + '/functions/v1/slack', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_KEY
+      },
+      body: JSON.stringify({ method: 'auth.test', params: {}, token: token })
     });
     var data = await res.json();
     if (!data.ok) { showToast('Invalid token: ' + (data.error || 'unknown')); return; }
