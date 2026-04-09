@@ -836,7 +836,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
           <button class="hdr-btn" onclick="openDeliverables()">📦 Deliverables</button>
           <button class="hdr-btn" onclick="openRewards()">🏆 Rewards</button>
           <button class="hdr-btn pink" onclick="openAddTask()">+ Add Task</button>
-          <button class="slack-open-btn" id="slack-open-btn" onclick="openSlackDrawer()">
+          <button class="slack-open-btn" id="slack-open-btn" onclick="openSlackDrawer()" style="display:none">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Slack
             <span class="slack-open-badge" id="slack-open-badge"></span>
@@ -1416,8 +1416,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
     <!-- DATE PICKER ROW -->
     <div class="slack-date-row" id="slack-date-row">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <input type="date" id="slack-date-input" class="slack-date-input" />
-      <span class="slack-date-label" id="slack-date-label">Today</span>
+      <input type="date" id="slack-date-from" class="slack-date-input" />
+      <span style="font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted)">→</span>
+      <input type="date" id="slack-date-to" class="slack-date-input" />
     </div>
     <div id="slack-mentions-strip" class="slack-mentions-strip" style="display:none">
       <div class="slack-strip-label">Mentions &amp; DMs</div>
@@ -1520,6 +1521,8 @@ function initThemeToggle() {
 const SUPABASE_URL = 'https://yiqniylxflulzfghujzw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpcW5peWx4Zmx1bHpmZ2h1anp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzcwMTEsImV4cCI6MjA5MDY1MzAxMX0.ZVT3XwHkBrL1leBaQevew8G4k5syHmT5gYDznPQeAFY';
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8IiG-k3J2lcQR38unRpO2cHyRidAlQTM8FLWCIbHy9JjdvmeB6MrKo_vNVaqsi3Th/exec';
+var GROQ_API_KEY = '';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -3164,6 +3167,13 @@ async function onAuthSuccess(authUser) {
   } catch(e) {}
 
   localStorage.setItem('nancy_user', JSON.stringify(state.currentUser));
+
+  // Load Groq API key from settings
+  try {
+    var gkRes = await db.from('settings').select('value').eq('key', 'groq_api_key').single();
+    if (gkRes.data && gkRes.data.value) GROQ_API_KEY = gkRes.data.value;
+  } catch(e) {}
+
   updateNavUser();
   initThemeToggle();
   document.getElementById('app').style.display = 'flex';
@@ -3199,6 +3209,8 @@ function updateNavUser() {
   if (mobileAdminBtn) {
     mobileAdminBtn.style.display = state.currentUser.role === 'admin' ? 'flex' : 'none';
   }
+  var slackBtn = document.getElementById('slack-open-btn');
+  if (slackBtn) slackBtn.style.display = (state.currentUser && state.currentUser.role === 'admin') ? 'flex' : 'none';
 }
 
 function openUserMenu() {
@@ -3829,56 +3841,39 @@ function closeSlackChannel() {
   if (phBtn) phBtn.style.display = 'none';
 }
 
+function slackInitDatePicker() {
+  var fromInput = document.getElementById('slack-date-from');
+  var toInput = document.getElementById('slack-date-to');
+  if (!fromInput || !toInput) return;
+  var today = new Date();
+  var todayStr = today.toISOString().slice(0, 10);
+  toInput.value = todayStr;
+  toInput.max = todayStr;
+  // Default from = 7 days ago
+  var weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  fromInput.value = weekAgo.toISOString().slice(0, 10);
+  fromInput.max = todayStr;
+}
+
 function slackGetSelectedOldest() {
-  var input = document.getElementById('slack-date-input');
-  if (!input || !input.value) {
-    // Default: start of today in local time
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today.getTime() / 1000;
+  var fromInput = document.getElementById('slack-date-from');
+  if (!fromInput || !fromInput.value) {
+    var weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    weekAgo.setHours(0, 0, 0, 0);
+    return weekAgo.getTime() / 1000;
   }
-  // Parse the date picker value as local midnight
-  var parts = input.value.split('-');
+  var parts = fromInput.value.split('-');
   var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0);
   return d.getTime() / 1000;
 }
 
-function slackInitDatePicker() {
-  var input = document.getElementById('slack-date-input');
-  if (!input) return;
-  var today = new Date();
-  var yyyy = today.getFullYear();
-  var mm = String(today.getMonth() + 1).padStart(2, '0');
-  var dd = String(today.getDate()).padStart(2, '0');
-  var todayStr = yyyy + '-' + mm + '-' + dd;
-  input.max = todayStr;
-  // Default to 7 days ago so there's always content on first open
-  var weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-  var wy = weekAgo.getFullYear();
-  var wm = String(weekAgo.getMonth() + 1).padStart(2, '0');
-  var wd = String(weekAgo.getDate()).padStart(2, '0');
-  input.value = wy + '-' + wm + '-' + wd;
-  updateSlackDateLabel();
-  input.addEventListener('change', updateSlackDateLabel);
-}
-
-function updateSlackDateLabel() {
-  var input = document.getElementById('slack-date-input');
-  var label = document.getElementById('slack-date-label');
-  if (!input || !label) return;
-  var today = new Date();
-  var yyyy = today.getFullYear();
-  var mm = String(today.getMonth() + 1).padStart(2, '0');
-  var dd = String(today.getDate()).padStart(2, '0');
-  var todayStr = yyyy + '-' + mm + '-' + dd;
-  if (input.value === todayStr) {
-    label.textContent = 'Today';
-  } else if (input.value) {
-    var d = new Date(input.value + 'T00:00:00');
-    label.textContent = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  } else {
-    label.textContent = '';
-  }
+function slackGetSelectedLatest() {
+  var toInput = document.getElementById('slack-date-to');
+  if (!toInput || !toInput.value) return undefined;
+  var parts = toInput.value.split('-');
+  // End of the "to" day (23:59:59)
+  var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 0);
+  return d.getTime() / 1000;
 }
 
 async function slackLoadMessages(channelId) {
@@ -3886,15 +3881,14 @@ async function slackLoadMessages(channelId) {
   if (!token) return;
 
   var oldest = slackGetSelectedOldest();
+  var latest = slackGetSelectedLatest();
 
   document.getElementById('slack-messages').innerHTML = '<div class="slack-empty">Loading...</div>';
 
   try {
-    var data = await slackAPI(token, 'conversations.history', {
-      channel: channelId,
-      oldest: oldest,
-      limit: 100
-    });
+    var apiParams = { channel: channelId, oldest: oldest, limit: 100 };
+    if (latest) apiParams.latest = latest;
+    var data = await slackAPI(token, 'conversations.history', apiParams);
     if (!data.ok) throw new Error(data.error || 'conversations.history failed');
 
     slackState.messages = (data.messages || []).reverse(); // oldest first
@@ -4025,7 +4019,10 @@ async function slackPullAll() {
     for (var i = 0; i < channelsToCheck.length; i++) {
       var ch = channelsToCheck[i];
       try {
-        var data = await slackAPI(token, 'conversations.history', { channel: ch.id, oldest: oldest, limit: 50 });
+        var pullLatest = slackGetSelectedLatest();
+        var pullParams = { channel: ch.id, oldest: oldest, limit: 50 };
+        if (pullLatest) pullParams.latest = pullLatest;
+        var data = await slackAPI(token, 'conversations.history', pullParams);
         if (!data.ok) continue;
         var msgs = (data.messages || []).filter(function(m){ return m.type === 'message' && !m.subtype; });
         msgs.forEach(function(msg) {
@@ -4040,7 +4037,10 @@ async function slackPullAll() {
     for (var j = 0; j < Math.min(slackState.dms.length, 8); j++) {
       var dm = slackState.dms[j];
       try {
-        var dmData = await slackAPI(token, 'conversations.history', { channel: dm.id, oldest: oldest, limit: 20 });
+        var dmLatest = slackGetSelectedLatest();
+        var dmParams = { channel: dm.id, oldest: oldest, limit: 20 };
+        if (dmLatest) dmParams.latest = dmLatest;
+        var dmData = await slackAPI(token, 'conversations.history', dmParams);
         if (!dmData.ok) continue;
         var dmName = slackState.userCache[dm.user] || dm.user || 'DM';
         (dmData.messages || []).forEach(function(msg) {
