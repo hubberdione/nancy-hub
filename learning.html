@@ -29,7 +29,7 @@
 .lh-card-glow{position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;opacity:.06;transition:opacity .3s;pointer-events:none}
 .lh-card:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,.28)}
 .lh-card:hover .lh-card-glow{opacity:.13}
-.lh-card-icon{font-size:2.6rem;margin-bottom:1rem;display:block;line-height:1}
+.lh-card-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;background:color-mix(in srgb,var(--lhc,var(--primary)) 12%,transparent);color:var(--lhc,var(--primary));flex-shrink:0}
 .lh-card-title{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:600;color:var(--h2);margin-bottom:.4rem;letter-spacing:-.02em}
 .lh-card-desc{font-family:'Inter',sans-serif;font-size:.85rem;color:var(--muted);line-height:1.65;margin-bottom:1.25rem;flex:1}
 .lh-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
@@ -47,11 +47,12 @@
 .lh-sec-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:2rem}
 .lh-sec-title{font-family:'Fraunces',serif;font-size:1.75rem;font-weight:600;color:var(--h2);letter-spacing:-.03em;margin-bottom:.25rem}
 .lh-sec-sub{font-family:'Inter',sans-serif;font-size:.85rem;color:var(--muted)}
+.lh-sec-icon{display:flex;align-items:center;gap:.75rem}
 
 .doc-list{display:flex;flex-direction:column;gap:.75rem}
 .doc-item{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.25rem 1.5rem;display:flex;align-items:flex-start;gap:1rem;transition:border-color .2s,box-shadow .2s}
 .doc-item:hover{border-color:var(--border2);box-shadow:0 4px 20px rgba(0,0,0,.15)}
-.doc-icon{font-size:1.4rem;flex-shrink:0;width:46px;height:46px;background:var(--bg2);border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)}
+.doc-icon{flex-shrink:0;width:44px;height:44px;background:var(--bg2);border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);color:var(--muted)}
 .doc-body{flex:1;min-width:0;cursor:pointer}
 .doc-ttl{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:600;color:var(--h2);margin-bottom:.3rem;letter-spacing:-.01em}
 .doc-desc{font-family:'Inter',sans-serif;font-size:.82rem;color:var(--muted);line-height:1.55;margin-bottom:.6rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -63,34 +64,42 @@
 .doc-act-btn:hover{background:var(--bg2);color:var(--body);border-color:var(--border2)}
 .doc-act-btn.del:hover{background:rgba(229,57,53,.08);color:#e53935;border-color:rgba(229,57,53,.3)}
 .doc-empty{text-align:center;padding:5rem 2rem}
-.doc-empty-ico{font-size:3.5rem;display:block;margin-bottom:1rem}
+.doc-empty-ico{width:56px;height:56px;background:var(--bg2);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;color:var(--muted);border:1px solid var(--border)}
 .doc-empty-ttl{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:600;color:var(--h2);margin-bottom:.4rem}
 .doc-empty-sub{font-family:'Inter',sans-serif;font-size:.85rem;color:var(--muted);margin-bottom:1.5rem}
 
 .brand-soon{text-align:center;padding:5rem 2rem;max-width:520px;margin:0 auto}
-.brand-soon-ico{font-size:4rem;display:block;margin-bottom:1.25rem}
+.brand-soon-ico{width:72px;height:72px;background:var(--bg2);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;color:#f7b731;border:1px solid var(--border)}
 .brand-soon-ttl{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:600;color:var(--h2);margin-bottom:.5rem;letter-spacing:-.02em}
 .brand-soon-sub{font-family:'Inter',sans-serif;font-size:.88rem;color:var(--muted);line-height:1.7}
 
+/* Gems */
+.gems-section-hdr{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap}
+.gems-section-lbl{font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.gems-divider{height:1px;background:var(--border);margin:2.5rem 0}
 .gem-cats{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2rem}
 .gem-cat-btn{font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.45rem 1rem;border-radius:100px;border:1.5px solid var(--border2);background:none;color:var(--muted);cursor:pointer;transition:all .2s}
 .gem-cat-btn.active{background:#8854d0;color:white;border-color:#8854d0}
 .gem-cat-btn:hover:not(.active){background:var(--bg2);color:var(--body)}
 .gem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
-.gem-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.25rem;transition:border-color .2s,box-shadow .2s;display:flex;flex-direction:column}
+.gem-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.25rem;transition:border-color .2s,box-shadow .2s;display:flex;flex-direction:column;border-left:3px solid var(--gc,#8854d0)}
 .gem-card:hover{border-color:var(--border2);box-shadow:0 4px 24px rgba(0,0,0,.15)}
 .gem-top{display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.75rem}
-.gem-icon{font-size:1.6rem;flex-shrink:0;line-height:1}
+.gem-init{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;color:white;flex-shrink:0;letter-spacing:.02em}
 .gem-cat-bdg{font-family:'Inter',sans-serif;font-size:.63rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gc,#8854d0);background:rgba(136,84,208,.1);border:1px solid rgba(136,84,208,.2);border-radius:100px;padding:2px 8px;margin-bottom:.3rem;display:inline-block}
 .gem-ttl{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--h2);letter-spacing:-.01em}
 .gem-excerpt{font-family:'Inter',sans-serif;font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:.75rem;flex:1}
 .gem-body{font-family:'Inter',sans-serif;font-size:.83rem;color:var(--body);line-height:1.75;display:none;border-top:1px solid var(--border);padding-top:.85rem;margin-top:.85rem;white-space:pre-wrap}
 .gem-body.open{display:block;animation:lhFadeIn .2s ease}
-.gem-foot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:auto}
+.gem-foot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:auto;padding-top:.5rem}
 .gem-expand{font-family:'Inter',sans-serif;font-size:.78rem;font-weight:600;color:#8854d0;background:none;border:none;cursor:pointer;padding:0;transition:opacity .15s}
 .gem-expand:hover{opacity:.7}
 .gem-link{font-family:'Inter',sans-serif;font-size:.78rem;color:var(--muted);text-decoration:none;transition:color .15s}
 .gem-link:hover{color:#8854d0}
+.gem-acts{display:flex;gap:.25rem;flex-shrink:0}
+.gem-act-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:.2rem .5rem;font-family:'Inter',sans-serif;font-size:.7rem;color:var(--muted);cursor:pointer;transition:all .15s}
+.gem-act-btn:hover{background:var(--bg2);color:var(--body)}
+.gem-act-btn.del:hover{color:#e53935;border-color:rgba(229,57,53,.3)}
 
 .link-rows{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.5rem}
 .link-row{display:flex;gap:.4rem;align-items:center}
@@ -100,7 +109,7 @@
 .file-drop{border:2px dashed var(--border2);border-radius:12px;padding:1.75rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2);position:relative}
 .file-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .file-drop:hover,.file-drop.dragover{border-color:var(--primary);background:var(--primary-light)}
-.file-drop-ico{font-size:2rem;display:block;margin-bottom:.4rem;pointer-events:none}
+.file-drop-ico{display:flex;justify-content:center;margin-bottom:.6rem;color:var(--muted);pointer-events:none}
 .file-drop-txt{font-family:'Inter',sans-serif;font-size:.82rem;color:var(--muted);pointer-events:none}
 .file-drop-txt strong{color:var(--primary)}
 .file-prev-row{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
@@ -119,7 +128,6 @@
 .vdoc-files{display:flex;flex-direction:column;gap:.4rem}
 .vdoc-file-link{display:flex;align-items:center;gap:.5rem;padding:.55rem .85rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--body);text-decoration:none;transition:all .15s}
 .vdoc-file-link:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
-.vdoc-vid{width:100%;aspect-ratio:16/9;border-radius:10px;border:1px solid var(--border);margin-bottom:.5rem}
 
 .lh-results{margin-top:.25rem}
 .lh-res-grp{font-family:'Inter',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:1.25rem 0 .6rem}
@@ -205,12 +213,14 @@
       <div class="lh-top">
         <div>
           <div class="lh-title">Learning Hub</div>
-          <div class="lh-sub">SOPs, training, AI knowledge & brand resources</div>
+          <div class="lh-sub">SOPs, training, AI knowledge &amp; brand resources</div>
         </div>
         <div class="lh-search-wrap">
           <svg class="lh-search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input class="lh-search-input" id="lh-search" type="text" placeholder="Search across all resources..." oninput="onSearchInput(this.value)" onkeydown="if(event.key==='Escape')clearSearch()"/>
-          <button class="lh-search-clear" id="lh-search-clear" onclick="clearSearch()" title="Clear">✕</button>
+          <button class="lh-search-clear" id="lh-search-clear" onclick="clearSearch()" title="Clear">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       </div>
 
@@ -221,8 +231,10 @@
 
           <div class="lh-card" style="--lhc:#2d7dd2" onclick="openSection('sop')">
             <div class="lh-card-glow" style="background:#2d7dd2"></div>
-            <span class="lh-card-icon">📋</span>
-            <div class="lh-card-title">SOPs & Playbooks</div>
+            <div class="lh-card-icon-wrap">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>
+            </div>
+            <div class="lh-card-title">SOPs &amp; Playbooks</div>
             <div class="lh-card-desc">Standard operating procedures, step-by-step guides, and operational playbooks. Add photos, videos, links, and documents.</div>
             <div class="lh-card-foot">
               <span class="lh-card-count" id="sop-count">Loading...</span>
@@ -232,7 +244,9 @@
 
           <div class="lh-card" style="--lhc:#3bb273" onclick="openSection('training')">
             <div class="lh-card-glow" style="background:#3bb273"></div>
-            <span class="lh-card-icon">🎓</span>
+            <div class="lh-card-icon-wrap">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
             <div class="lh-card-title">Training Modules</div>
             <div class="lh-card-desc">Onboarding docs, skill-building resources, and team training with videos, slides, and interactive content.</div>
             <div class="lh-card-foot">
@@ -243,7 +257,9 @@
 
           <div class="lh-card" style="--lhc:#f7b731" onclick="openSection('brand')">
             <div class="lh-card-glow" style="background:#f7b731"></div>
-            <span class="lh-card-icon">🎨</span>
+            <div class="lh-card-icon-wrap">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
             <div class="lh-card-title">Brand Guidelines</div>
             <div class="lh-card-desc">Visual identity, tone of voice, logo usage, colour palettes, and brand rules — all in one place.</div>
             <div class="lh-card-foot">
@@ -254,11 +270,13 @@
 
           <div class="lh-card" style="--lhc:#8854d0" onclick="openSection('gems')">
             <div class="lh-card-glow" style="background:#8854d0"></div>
-            <span class="lh-card-icon">💎</span>
+            <div class="lh-card-icon-wrap">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 18 3 22 9 12 22 2 9 6 3"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="12" y1="22" x2="6" y2="9"/><line x1="12" y1="22" x2="18" y2="9"/></svg>
+            </div>
             <div class="lh-card-title">AI Gems</div>
             <div class="lh-card-desc">Curated AI knowledge — Claude prompting, Groq, ChatGPT, content workflows, and power-user tips pre-loaded for the team.</div>
             <div class="lh-card-foot">
-              <span class="lh-card-count" id="gems-count">20 gems</span>
+              <span class="lh-card-count" id="gems-count">Loading...</span>
               <button class="lh-card-btn" onclick="event.stopPropagation();openSection('gems')">Explore →</button>
             </div>
           </div>
@@ -299,28 +317,71 @@
     <div class="form-field"><label class="form-label">Description</label><input class="form-input" id="doc-desc" type="text" placeholder="One-line summary..."/></div>
     <div class="form-field"><label class="form-label">Content / Notes</label><textarea class="form-textarea" id="doc-content" rows="5" placeholder="Write the full procedure or notes here..."></textarea></div>
     <div class="form-field"><label class="form-label">Tags <span style="font-weight:400;color:var(--muted)">(comma-separated)</span></label><input class="form-input" id="doc-tags" type="text" placeholder="e.g. onboarding, intake, CRM"/></div>
-
     <div class="form-field">
       <label class="form-label">Attachments <span style="font-weight:400;color:var(--muted)">(images, videos, PDFs, docs)</span></label>
       <div class="file-drop" id="file-drop" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
         <input type="file" id="file-input" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" onchange="handleFileSelect(event)"/>
-        <span class="file-drop-ico">📎</span>
-        <div class="file-drop-txt"><strong>Click to upload</strong> or drag & drop<br><span style="font-size:.75rem">Images, videos, PDFs, Docs, Excel, PPT</span></div>
+        <div class="file-drop-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <div class="file-drop-txt"><strong>Click to upload</strong> or drag &amp; drop<br><span style="font-size:.75rem">Images, videos, PDFs, Docs, Excel, PPT</span></div>
       </div>
       <div class="file-prev-row" id="file-prev-row"></div>
     </div>
-
     <div class="form-field">
-      <label class="form-label">Links & URLs</label>
+      <label class="form-label">Links &amp; URLs</label>
       <div class="link-rows" id="link-rows"></div>
       <button class="btn-ghost" style="font-size:.78rem;padding:.38rem .85rem" onclick="addLinkRow()">+ Add Link</button>
     </div>
-
     <div class="modal-footer">
       <div id="doc-upload-status" style="font-family:'Inter',sans-serif;font-size:.78rem;color:var(--muted);flex:1"></div>
       <button class="btn-danger" id="btn-delete-doc" style="display:none;margin-right:auto" onclick="deleteDocConfirm()">Delete</button>
       <button class="btn-ghost" onclick="closeModal('modal-doc')">Cancel</button>
       <button class="btn-primary" id="save-doc-btn" onclick="saveDoc()">Save Resource</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT GEM MODAL -->
+<div class="modal-overlay" id="modal-gem" onclick="closeModalOutside(event,'modal-gem')">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="gem-modal-title">Add Gem</div>
+      <button class="modal-close" onclick="closeModal('modal-gem')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <input type="hidden" id="gem-edit-id"/>
+    <div class="form-field"><label class="form-label">Title <span style="color:#e53935">*</span></label><input class="form-input" id="gem-title" type="text" placeholder="e.g. How to Use Perplexity for Research"/></div>
+    <div class="form-field">
+      <label class="form-label">Category</label>
+      <input class="form-input" id="gem-category" type="text" placeholder="e.g. Claude, Prompting, AI Tools, Research..." list="gem-cat-list"/>
+      <datalist id="gem-cat-list">
+        <option value="Claude"/>
+        <option value="Prompting"/>
+        <option value="AI Tools"/>
+        <option value="Content AI"/>
+        <option value="Research"/>
+        <option value="Workflows"/>
+      </datalist>
+    </div>
+    <div class="form-field"><label class="form-label">Short Summary <span style="font-weight:400;color:var(--muted)">(one line)</span></label><input class="form-input" id="gem-excerpt" type="text" placeholder="What's the key takeaway?"/></div>
+    <div class="form-field"><label class="form-label">Content / Notes</label><textarea class="form-textarea" id="gem-content" rows="6" placeholder="Paste research, write notes, summarise a doc or video..."></textarea></div>
+    <div class="form-field">
+      <label class="form-label">Attachments <span style="font-weight:400;color:var(--muted)">(docs, PDFs, videos you're turning into a gem)</span></label>
+      <div class="file-drop" id="gem-file-drop" ondragover="handleGemDragOver(event)" ondragleave="handleGemDragLeave(event)" ondrop="handleGemDrop(event)">
+        <input type="file" id="gem-file-input" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.mp4,.mov" onchange="handleGemFileSelect(event)"/>
+        <div class="file-drop-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <div class="file-drop-txt"><strong>Click to upload</strong> or drag &amp; drop<br><span style="font-size:.75rem">Turn any doc or video into a gem</span></div>
+      </div>
+      <div class="file-prev-row" id="gem-file-prev-row"></div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Source Links</label>
+      <div class="link-rows" id="gem-link-rows"></div>
+      <button class="btn-ghost" style="font-size:.78rem;padding:.38rem .85rem" onclick="addGemLinkRow()">+ Add Link</button>
+    </div>
+    <div class="modal-footer">
+      <div id="gem-upload-status" style="font-family:'Inter',sans-serif;font-size:.78rem;color:var(--muted);flex:1"></div>
+      <button class="btn-danger" id="btn-delete-gem" style="display:none;margin-right:auto" onclick="deleteGemConfirm()">Delete</button>
+      <button class="btn-ghost" onclick="closeModal('modal-gem')">Cancel</button>
+      <button class="btn-primary" id="save-gem-btn" onclick="saveGem()">Save Gem</button>
     </div>
   </div>
 </div>
@@ -347,111 +408,127 @@ const CURRENT_PAGE = 'learning';
 var lhState = {
   section: null,
   docs: [],
+  customGems: [],
   editDocId: null,
+  editGemId: null,
   viewDocId: null,
   pendingFiles: [],
   existingAttachments: [],
+  gemPendingFiles: [],
+  gemExistingAttachments: [],
   linkCount: 0,
+  gemLinkCount: 0,
   searchActive: false
 };
 
 var SECTIONS = {
-  sop:      { label:'SOPs & Playbooks',  icon:'📋', col:'#2d7dd2', desc:'Standard procedures and operational guides' },
-  training: { label:'Training Modules',  icon:'🎓', col:'#3bb273', desc:'Onboarding and skill-building resources' },
-  brand:    { label:'Brand Guidelines',  icon:'🎨', col:'#f7b731', desc:'Visual identity and tone of voice' }
+  sop:      { label:'SOPs & Playbooks',  col:'#2d7dd2', desc:'Standard procedures and operational guides' },
+  training: { label:'Training Modules',  col:'#3bb273', desc:'Onboarding and skill-building resources' },
+  brand:    { label:'Brand Guidelines',  col:'#f7b731', desc:'Visual identity and tone of voice' }
 };
 
+var CAT_COLORS = {
+  'Claude':     '#7c3aed',
+  'Prompting':  '#2d7dd2',
+  'AI Tools':   '#f59e0b',
+  'Content AI': '#e11d48'
+};
+
+function catColor(cat) {
+  return CAT_COLORS[cat] || '#8854d0';
+}
+
+function catInit(cat) {
+  if (!cat) return 'G';
+  var words = cat.trim().split(/\s+/);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return cat.substring(0, 2).toUpperCase();
+}
+
 var GEMS = [
-  // CLAUDE
-  { id:'c1', cat:'Claude', icon:'🤖', col:'#7c3aed', title:'What is Claude?',
+  { id:'c1', cat:'Claude', col:'#7c3aed', title:'What is Claude?',
     excerpt:"Anthropic's AI assistant — built for long-form work, research, and thoughtful reasoning.",
-    body:"Claude is an AI assistant made by Anthropic. It's especially strong at:\n• Long-form writing (reports, emails, scripts, SOPs)\n• Analysis and research summaries\n• Coding and debugging\n• Following nuanced instructions\n\nAccess Claude at: claude.ai\nUse the API via: console.anthropic.com\n\nClaude models:\n• Claude 4.5 Sonnet — best balance of speed and quality\n• Claude 4.6 Opus — most powerful, slower\n• Claude 4.5 Haiku — fastest, lightweight tasks",
+    body:"Claude is an AI assistant made by Anthropic. It's especially strong at:\n• Long-form writing (reports, emails, scripts, SOPs)\n• Analysis and research summaries\n• Coding and debugging\n• Following nuanced instructions\n\nAccess Claude at: claude.ai\nUse the API via: console.anthropic.com\n\nClaude models:\n• Claude Sonnet — best balance of speed and quality\n• Claude Opus — most powerful, slower\n• Claude Haiku — fastest, lightweight tasks",
     link:'https://claude.ai', linkLabel:'Open Claude' },
-  { id:'c2', cat:'Claude', icon:'✍️', col:'#7c3aed', title:'How to Write Great Prompts',
+  { id:'c2', cat:'Claude', col:'#7c3aed', title:'How to Write Great Prompts',
     excerpt:'The 4 ingredients every strong Claude prompt should have.',
-    body:'A great prompt has four parts:\n\n1. ROLE — Tell Claude who it is\n   "You are an expert social media manager for a wellness brand."\n\n2. CONTEXT — Give relevant background\n   "Our audience is women 25–40 interested in holistic health."\n\n3. INSTRUCTION — Be specific about the task\n   "Write 3 Instagram captions for a post about morning routines."\n\n4. FORMAT — Specify the output\n   "Each caption should be under 150 words with 3 relevant hashtags."\n\n💡 Tip: If you don\'t like the output, don\'t start over. Just add: "Good, but make it more [casual/concise/energetic]."',
+    body:'A great prompt has four parts:\n\n1. ROLE — Tell Claude who it is\n   "You are an expert social media manager for a wellness brand."\n\n2. CONTEXT — Give relevant background\n   "Our audience is women 25–40 interested in holistic health."\n\n3. INSTRUCTION — Be specific about the task\n   "Write 3 Instagram captions for a post about morning routines."\n\n4. FORMAT — Specify the output\n   "Each caption should be under 150 words with 3 relevant hashtags."\n\nTip: If you don\'t like the output, don\'t start over. Just add: "Good, but make it more [casual/concise/energetic]."',
     link:'https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview', linkLabel:'Prompting Guide' },
-  { id:'c3', cat:'Claude', icon:'🗂️', col:'#7c3aed', title:'Claude Projects',
+  { id:'c3', cat:'Claude', col:'#7c3aed', title:'Claude Projects',
     excerpt:'Give Claude persistent memory and custom instructions for an ongoing project.',
-    body:"Claude Projects let you:\n• Upload files Claude remembers across all conversations\n• Set custom instructions that always apply\n• Keep context without re-explaining every time\n\nPerfect for:\n• Brand voice documents\n• SOP uploads\n• Recurring tasks\n\nHow to use:\n1. Go to claude.ai → New Project\n2. Add a Project Instruction (like a permanent system prompt)\n3. Upload relevant files (PDFs, docs, etc.)\n4. All chats in that project remember this context\n\n💡 One project per role or client — don't mix contexts.",
+    body:"Claude Projects let you:\n• Upload files Claude remembers across all conversations\n• Set custom instructions that always apply\n• Keep context without re-explaining every time\n\nPerfect for:\n• Brand voice documents\n• SOP uploads\n• Recurring tasks\n\nHow to use:\n1. Go to claude.ai → New Project\n2. Add a Project Instruction (like a permanent system prompt)\n3. Upload relevant files (PDFs, docs, etc.)\n4. All chats in that project remember this context\n\nOne project per role or client — don't mix contexts.",
     link:'https://claude.ai', linkLabel:'Try Claude Projects' },
-  { id:'c4', cat:'Claude', icon:'🎛️', col:'#7c3aed', title:'System Prompts 101',
+  { id:'c4', cat:'Claude', col:'#7c3aed', title:'System Prompts 101',
     excerpt:'The hidden instruction that shapes everything Claude says — how to write them well.',
-    body:'A system prompt is a set of rules given to Claude before any conversation starts.\n\nWhat to put in a system prompt:\n• Role definition: "You are a customer service agent for Care & Bloom."\n• Tone rules: "Always be warm, professional, never use slang."\n• What NOT to do: "Never promise specific results. Never mention competitors."\n• Output format: "Always reply in bullet points unless asked otherwise."\n• Knowledge: "Our return policy is 30 days, no receipt needed."\n\n💡 Test your system prompt by trying to "break" it — ask off-topic questions and see if Claude stays in role.',
+    body:'A system prompt is a set of rules given to Claude before any conversation starts.\n\nWhat to put in a system prompt:\n• Role definition: "You are a customer service agent for Care & Bloom."\n• Tone rules: "Always be warm, professional, never use slang."\n• What NOT to do: "Never promise specific results. Never mention competitors."\n• Output format: "Always reply in bullet points unless asked otherwise."\n• Knowledge: "Our return policy is 30 days, no receipt needed."\n\nTest your system prompt by trying to "break" it — ask off-topic questions and see if Claude stays in role.',
     link:'https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/system-prompts', linkLabel:'System Prompt Docs' },
-  { id:'c5', cat:'Claude', icon:'🔌', col:'#7c3aed', title:'Claude API Basics',
+  { id:'c5', cat:'Claude', col:'#7c3aed', title:'Claude API Basics',
     excerpt:'Connect Claude to your own apps and automations via the Anthropic API.',
-    body:'The Claude API lets you build Claude into your own tools.\n\nEndpoint: POST https://api.anthropic.com/v1/messages\n\nBasic request:\n{\n  "model": "claude-sonnet-4-6",\n  "max_tokens": 1024,\n  "messages": [\n    {"role": "user", "content": "Your prompt here"}\n  ]\n}\n\nGet your API key: console.anthropic.com\n\n💡 For internal tools on a budget, use Groq (free tier) with LLaMA — same API format, much cheaper.',
+    body:'The Claude API lets you build Claude into your own tools.\n\nEndpoint: POST https://api.anthropic.com/v1/messages\n\nBasic request:\n{\n  "model": "claude-sonnet-4-6",\n  "max_tokens": 1024,\n  "messages": [\n    {"role": "user", "content": "Your prompt here"}\n  ]\n}\n\nGet your API key: console.anthropic.com\n\nFor internal tools on a budget, use Groq (free tier) with LLaMA — same API format, much cheaper.',
     link:'https://console.anthropic.com', linkLabel:'Get API Key' },
-  { id:'c6', cat:'Claude', icon:'🧩', col:'#7c3aed', title:'Claude Artifacts',
+  { id:'c6', cat:'Claude', col:'#7c3aed', title:'Claude Artifacts',
     excerpt:'When Claude generates code, docs, or visualisations, they live in side-panel "artifacts" you can edit and reuse.',
-    body:'Artifacts are Claude\'s way of separating "talk" from "deliverables". When you ask Claude to:\n• Write code\n• Draft a document\n• Create an SVG diagram\n• Build a small interactive HTML page\n\n…it puts the output in a panel beside the chat. You can:\n• Edit and re-run\n• Copy the whole thing\n• Ask Claude to iterate on just the artifact\n• Download it\n\nGreat for:\n→ SOPs you\'ll save and reuse\n→ Code snippets for your tools\n→ Long-form drafts you\'ll edit later\n\n💡 Just say "make this into an artifact" if Claude doesn\'t do it automatically.',
+    body:'Artifacts are Claude\'s way of separating "talk" from "deliverables". When you ask Claude to:\n• Write code\n• Draft a document\n• Create an SVG diagram\n• Build a small interactive HTML page\n\n…it puts the output in a panel beside the chat. You can:\n• Edit and re-run\n• Copy the whole thing\n• Ask Claude to iterate on just the artifact\n• Download it\n\nGreat for:\n→ SOPs you\'ll save and reuse\n→ Code snippets for your tools\n→ Long-form drafts you\'ll edit later',
     link:null },
-
-  // PROMPTING
-  { id:'p1', cat:'Prompting', icon:'🧠', col:'#2d7dd2', title:'The RICO Prompt Formula',
+  { id:'p1', cat:'Prompting', col:'#2d7dd2', title:'The RICO Prompt Formula',
     excerpt:'Role → Instruction → Context → Output. The cleanest formula for consistent AI results.',
-    body:'RICO stands for:\n\nR — Role: "You are a social media strategist specialising in health brands."\n\nI — Instruction: "Write 5 Instagram hook lines for a post about burnout recovery."\n\nC — Context: "Our audience is working mums aged 28–42. We use a calm, empowering tone. Avoid hustle culture language."\n\nO — Output format: "Each hook should be 1 sentence, max 12 words, written as a bold statement or question."\n\n💡 Save your best RICO prompts in AI Studio instructions!',
+    body:'RICO stands for:\n\nR — Role: "You are a social media strategist specialising in health brands."\n\nI — Instruction: "Write 5 Instagram hook lines for a post about burnout recovery."\n\nC — Context: "Our audience is working mums aged 28–42. We use a calm, empowering tone. Avoid hustle culture language."\n\nO — Output format: "Each hook should be 1 sentence, max 12 words, written as a bold statement or question."',
     link:null },
-  { id:'p2', cat:'Prompting', icon:'🔗', col:'#2d7dd2', title:'Chain-of-Thought Prompting',
+  { id:'p2', cat:'Prompting', col:'#2d7dd2', title:'Chain-of-Thought Prompting',
     excerpt:'Ask AI to reason step by step — dramatically improves accuracy on complex tasks.',
-    body:'Chain-of-thought (CoT) prompting tells the AI to show its reasoning before giving an answer.\n\nHow to trigger it:\n• "Think step by step before answering."\n• "Reason through this carefully."\n• "Break this down into steps, then give your final answer."\n\nWhen to use:\n✅ Complex decisions\n✅ Math or logic problems\n✅ Multi-step processes\n✅ Evaluating pros and cons\n\n💡 CoT is built into Claude by default for complex queries, but explicitly asking makes the output more structured.',
+    body:'Chain-of-thought (CoT) prompting tells the AI to show its reasoning before giving an answer.\n\nHow to trigger it:\n• "Think step by step before answering."\n• "Reason through this carefully."\n• "Break this down into steps, then give your final answer."\n\nWhen to use:\n• Complex decisions\n• Math or logic problems\n• Multi-step processes\n• Evaluating pros and cons',
     link:null },
-  { id:'p3', cat:'Prompting', icon:'📌', col:'#2d7dd2', title:'Few-Shot Prompting',
+  { id:'p3', cat:'Prompting', col:'#2d7dd2', title:'Few-Shot Prompting',
     excerpt:'Show the AI 2–3 examples of what "good" looks like before asking it to do the task.',
-    body:'Few-shot prompting = giving examples before the request.\n\nWhy it works: AI matches patterns. Show it examples of the right style, tone, and format, and it replicates them.\n\nTemplate:\n"Here are 3 examples of captions we love:\n[Example 1]\n[Example 2]\n[Example 3]\n\nNow write a caption for [topic] in the same style."\n\n💡 Pro tip: Pick examples from your actual top-performing posts. The AI will lean into what already works for your audience.',
+    body:'Few-shot prompting = giving examples before the request.\n\nWhy it works: AI matches patterns. Show it examples of the right style, tone, and format, and it replicates them.\n\nTemplate:\n"Here are 3 examples of captions we love:\n[Example 1]\n[Example 2]\n[Example 3]\n\nNow write a caption for [topic] in the same style."\n\nPro tip: Pick examples from your actual top-performing posts. The AI will lean into what already works.',
     link:null },
-  { id:'p4', cat:'Prompting', icon:'🔄', col:'#2d7dd2', title:'Iterative Prompting',
+  { id:'p4', cat:'Prompting', col:'#2d7dd2', title:'Iterative Prompting',
     excerpt:'Never expect perfection on the first try. Refine outputs with smart follow-ups.',
-    body:'Iterative prompting is the skill of refining AI output through conversation.\n\nUseful follow-up phrases:\n• "Good start. Make it more [concise / punchy / warm / formal]."\n• "Keep the structure but rewrite the tone to sound less corporate."\n• "Option 2 is closest — give me 3 more variations on that direction."\n• "Cut it to 3 sentences max."\n• "The hook is weak. Try 5 different opening lines."\n\n💡 Save the best outputs. Great AI output compounds.',
+    body:'Iterative prompting is the skill of refining AI output through conversation.\n\nUseful follow-up phrases:\n• "Good start. Make it more [concise / punchy / warm / formal]."\n• "Keep the structure but rewrite the tone to sound less corporate."\n• "Option 2 is closest — give me 3 more variations on that direction."\n• "Cut it to 3 sentences max."\n• "The hook is weak. Try 5 different opening lines."',
     link:null },
-  { id:'p5', cat:'Prompting', icon:'🚫', col:'#2d7dd2', title:'Negative Instructions',
+  { id:'p5', cat:'Prompting', col:'#2d7dd2', title:'Negative Instructions',
     excerpt:'Telling AI what NOT to do is just as important as telling it what to do.',
-    body:'Negative instructions prevent common AI mistakes before they happen.\n\nCommon ones to add:\n• "Do not use corporate jargon."\n• "Do not start with \'Certainly!\' or \'Absolutely!\'"\n• "Do not add emojis unless I ask."\n• "Do not make up statistics or cite uncertain sources."\n• "Do not repeat the prompt back to me."\n\nFor brand voice:\n• "Avoid words like: empowering, transform, journey, hustle, grind."\n• "Never use passive voice."\n\n💡 Build a "Do Not Do" list for your brand and paste it into system prompts.',
+    body:'Negative instructions prevent common AI mistakes before they happen.\n\nCommon ones to add:\n• "Do not use corporate jargon."\n• "Do not start with \'Certainly!\' or \'Absolutely!\'"\n• "Do not add emojis unless I ask."\n• "Do not make up statistics or cite uncertain sources."\n• "Do not repeat the prompt back to me."\n\nFor brand voice:\n• "Avoid words like: empowering, transform, journey, hustle, grind."\n• "Never use passive voice."',
     link:null },
-
-  // AI TOOLS
-  { id:'t1', cat:'AI Tools', icon:'⚡', col:'#f59e0b', title:'Groq — Fastest Free LLM API',
+  { id:'t1', cat:'AI Tools', col:'#f59e0b', title:'Groq — Fastest Free LLM API',
     excerpt:'OpenAI-compatible API with LLaMA models. Free tier. Great for internal tools.',
-    body:"Groq runs LLaMA models at extreme speed — often 10x faster than OpenAI.\n\nWhy we use Groq in Nancy Hub:\n✅ Free tier (generous limits)\n✅ OpenAI-compatible API\n✅ Fast responses for tools\n✅ No billing required\n\nModel we use: llama-3.3-70b-versatile\n\nAPI endpoint: https://api.groq.com/openai/v1/chat/completions\n\nOther great Groq models:\n• llama-3.1-8b-instant — ultra fast\n• mixtral-8x7b-32768 — long documents\n• gemma2-9b-it — Google's small model\n\nGet your key: console.groq.com/keys",
+    body:"Groq runs LLaMA models at extreme speed — often 10x faster than OpenAI.\n\nWhy we use Groq in Nancy Hub:\n• Free tier (generous limits)\n• OpenAI-compatible API\n• Fast responses for tools\n• No billing required\n\nModel we use: llama-3.3-70b-versatile\n\nAPI endpoint: https://api.groq.com/openai/v1/chat/completions\n\nOther great Groq models:\n• llama-3.1-8b-instant — ultra fast\n• mixtral-8x7b-32768 — long documents\n• gemma2-9b-it — Google's small model",
     link:'https://console.groq.com/keys', linkLabel:'Get Groq Key' },
-  { id:'t2', cat:'AI Tools', icon:'🔍', col:'#f59e0b', title:'Perplexity — AI-Powered Search',
+  { id:'t2', cat:'AI Tools', col:'#f59e0b', title:'Perplexity — AI-Powered Search',
     excerpt:'Ask research questions and get sourced answers. Better than Google for complex queries.',
-    body:'Perplexity is an AI search engine that gives you sourced, summarised answers.\n\nBest for:\n• Market research\n• Competitor research\n• Fact-checking\n• Quick industry overviews\n\nUsage tips:\n• Ask follow-ups in the same thread — it keeps context\n• Use "Focus" mode to search only academic papers\n• Save "Collections" for ongoing research\n\nFree vs Pro:\n• Free: good for general searches\n• Pro ($20/mo): GPT-4, Claude, Gemini access + file uploads\n\n💡 Use Perplexity for research, then Claude to write/analyse the findings.',
+    body:'Perplexity is an AI search engine that gives you sourced, summarised answers.\n\nBest for:\n• Market research\n• Competitor research\n• Fact-checking\n• Quick industry overviews\n\nUsage tips:\n• Ask follow-ups in the same thread — it keeps context\n• Use "Focus" mode to search only academic papers\n• Save "Collections" for ongoing research\n\nFree vs Pro:\n• Free: good for general searches\n• Pro ($20/mo): GPT-4, Claude, Gemini access + file uploads',
     link:'https://perplexity.ai', linkLabel:'Open Perplexity' },
-  { id:'t3', cat:'AI Tools', icon:'🆚', col:'#f59e0b', title:'Claude vs ChatGPT',
+  { id:'t3', cat:'AI Tools', col:'#f59e0b', title:'Claude vs ChatGPT',
     excerpt:'Both are great but have different strengths. Know which to reach for.',
-    body:'CLAUDE is better for:\n✅ Long documents (100k+ tokens of context)\n✅ Following nuanced instructions precisely\n✅ Writing that needs a consistent tone\n✅ Careful, measured reasoning\n✅ Avoiding hallucinations\n✅ Code and technical writing\n\nCHATGPT is better for:\n✅ Image generation (DALL-E built in)\n✅ Web browsing\n✅ Code interpreter / data analysis\n✅ Voice mode on mobile\n✅ Plugins and GPT Store\n\nFor our daily work:\n→ Writing, research, SOPs, captions → Claude\n→ Images, current news, data files → ChatGPT\n→ Fast internal tools (free) → Groq + LLaMA',
+    body:'CLAUDE is better for:\n• Long documents (100k+ tokens of context)\n• Following nuanced instructions precisely\n• Writing that needs a consistent tone\n• Careful, measured reasoning\n• Avoiding hallucinations\n• Code and technical writing\n\nCHATGPT is better for:\n• Image generation (DALL-E built in)\n• Web browsing\n• Code interpreter / data analysis\n• Voice mode on mobile\n• Plugins and GPT Store\n\nFor our daily work:\n→ Writing, research, SOPs, captions → Claude\n→ Images, current news, data files → ChatGPT',
     link:null },
-  { id:'t4', cat:'AI Tools', icon:'🖼️', col:'#f59e0b', title:'Midjourney for AI Images',
+  { id:'t4', cat:'AI Tools', col:'#f59e0b', title:'Midjourney for AI Images',
     excerpt:'The best AI image generator. Runs in Discord. Here\'s how to get good results.',
-    body:'Midjourney generates stunning images from text prompts. Runs inside Discord.\n\nBasic prompt structure:\n[subject], [style], [lighting], [camera], [mood]\n\nExample:\n"Young woman meditating on a rooftop at sunrise, soft natural lighting, golden hour, film photography, warm tones, serene --ar 4:5 --v 6"\n\nUseful parameters:\n• --ar 16:9 → landscape\n• --ar 4:5 → portrait (Instagram feed)\n• --ar 9:16 → vertical (Stories, TikTok)\n• --v 6 → latest model\n• --style raw → photorealistic\n\nStyle keywords:\n• editorial photography, cinematic, documentary\n• flat lay, overhead, close-up\n• pastel aesthetic, dark academia, minimalist\n\n💡 Save winning prompts in your Avatar\'s Custom Prompts field!',
+    body:'Midjourney generates stunning images from text prompts. Runs inside Discord.\n\nBasic prompt structure:\n[subject], [style], [lighting], [camera], [mood]\n\nExample:\n"Young woman meditating on a rooftop at sunrise, soft natural lighting, golden hour, film photography, warm tones, serene --ar 4:5 --v 6"\n\nUseful parameters:\n• --ar 16:9 → landscape\n• --ar 4:5 → portrait (Instagram feed)\n• --ar 9:16 → vertical (Stories, TikTok)\n• --v 6 → latest model\n• --style raw → photorealistic',
     link:'https://midjourney.com', linkLabel:'Open Midjourney' },
-  { id:'t5', cat:'AI Tools', icon:'🔧', col:'#f59e0b', title:'AI Workflow Stack',
+  { id:'t5', cat:'AI Tools', col:'#f59e0b', title:'AI Workflow Stack',
     excerpt:'The tools that work best together for content creation and ops.',
-    body:'Our recommended stack for a content/wellness brand:\n\nRESEARCH:\n→ Perplexity AI — sourced research, trends\n\nWRITING & STRATEGY:\n→ Claude — SOPs, captions, scripts, emails\n→ ChatGPT — when you need browsing or DALL-E\n\nIMAGES:\n→ Midjourney — editorial, brand photos\n→ Adobe Firefly — licensed-safe stock\n\nVIDEO:\n→ CapCut — editing, auto-captions\n→ Descript — transcript-based editing\n→ HeyGen — AI avatar videos\n\nAUTOMATION:\n→ Make / Zapier — connect apps\n\nINTERNAL TOOLS:\n→ Nancy Hub — your custom AI workspace ✨\n\n💡 Don\'t use all of these. Pick 1–2 per category and master them.',
+    body:'Our recommended stack for a content/wellness brand:\n\nRESEARCH:\n→ Perplexity AI — sourced research, trends\n\nWRITING & STRATEGY:\n→ Claude — SOPs, captions, scripts, emails\n→ ChatGPT — when you need browsing or DALL-E\n\nIMAGES:\n→ Midjourney — editorial, brand photos\n→ Adobe Firefly — licensed-safe stock\n\nVIDEO:\n→ CapCut — editing, auto-captions\n→ Descript — transcript-based editing\n→ HeyGen — AI avatar videos\n\nAUTOMATION:\n→ Make / Zapier — connect apps',
     link:null },
-
-  // CONTENT AI
-  { id:'ca1', cat:'Content AI', icon:'📸', col:'#e11d48', title:'AI for Social Captions',
+  { id:'ca1', cat:'Content AI', col:'#e11d48', title:'AI for Social Captions',
     excerpt:'How to prompt AI for captions that actually sound like you — not like a robot.',
-    body:'The secret: give AI your voice, not just the topic.\n\nWeak: "Write an Instagram caption about self-care."\nStrong: "Write an Instagram caption about taking a quiet Sunday morning for yourself. Audience: working women 28–40. Tone: calm and real, like talking to a friend. No motivational poster language. End with a soft question. Under 100 words."\n\nMake it sound like you:\n1. Paste 3 captions you love as style examples\n2. Describe your tone in adjectives ("warm, direct, slightly witty")\n3. List words you HATE in AI captions ("ignite, embark, journey, hustle")\n\nIn Nancy Hub → Social Hub → Avatar profile stores all this automatically.\n\n💡 Always edit the output. AI drafts, you refine.',
+    body:'The secret: give AI your voice, not just the topic.\n\nWeak: "Write an Instagram caption about self-care."\nStrong: "Write an Instagram caption about taking a quiet Sunday morning for yourself. Audience: working women 28–40. Tone: calm and real, like talking to a friend. No motivational poster language. End with a soft question. Under 100 words."\n\nMake it sound like you:\n1. Paste 3 captions you love as style examples\n2. Describe your tone in adjectives ("warm, direct, slightly witty")\n3. List words you hate in AI captions ("ignite, embark, journey, hustle")',
     link:null },
-  { id:'ca2', cat:'Content AI', icon:'#️⃣', col:'#e11d48', title:'AI Hashtag Research',
+  { id:'ca2', cat:'Content AI', col:'#e11d48', title:'AI Hashtag Research',
     excerpt:'Use AI to find niche hashtag clusters — not just the obvious ones.',
-    body:"Don't ask AI for \"hashtags for wellness\" — you'll get generic junk.\n\nInstead, prompt like this:\n\"Give me 30 Instagram hashtags for [very specific topic + audience]. Group into: 3 mega (1M+), 10 mid-size (100k–500k), 10 niche (10k–100k), 7 micro (under 10k).\"\n\nWhy this works:\n• Forces diversity of hashtag sizes\n• Micro hashtags = less competition = more visibility\n• Niche hashtags reach the right people\n\nIn Nancy Hub → Social Hub → AI Studio → Hashtag Generator (Step 4) auto-reads your script and hook.\n\n💡 Build hashtag banks per content pillar. Save in your avatar's assets.",
+    body:"Prompt like this:\n\"Give me 30 Instagram hashtags for [very specific topic + audience]. Group into: 3 mega (1M+), 10 mid-size (100k–500k), 10 niche (10k–100k), 7 micro (under 10k).\"\n\nWhy this works:\n• Forces diversity of hashtag sizes\n• Micro hashtags = less competition = more visibility\n• Niche hashtags reach the right people\n\nBuild hashtag banks per content pillar. Save in your avatar's assets.",
     link:null },
-  { id:'ca3', cat:'Content AI', icon:'📧', col:'#e11d48', title:'AI for Email Drafts',
+  { id:'ca3', cat:'Content AI', col:'#e11d48', title:'AI for Email Drafts',
     excerpt:'AIDA + AI = emails that actually get read and responded to.',
-    body:'AIDA = Attention → Interest → Desire → Action\n\nPrompt template:\n"Write a professional email using AIDA.\n\nAttention: [Hook — surprising fact, question, or bold statement]\nInterest: [Why this matters to the recipient]\nDesire: [What they get / the benefit]\nAction: [Clear single CTA]\n\nContext: [Who you are, who you\'re emailing, what you want]\nTone: [warm and professional]\nLength: Under 150 words."\n\nBonus prompts:\n• "Rewrite to sound less salesy."\n• "Give me 3 subject line options."\n• "Make the CTA more urgent without being pushy."\n\n💡 Build a swipe file of emails that got great responses.',
+    body:'AIDA = Attention → Interest → Desire → Action\n\nPrompt template:\n"Write a professional email using AIDA.\n\nAttention: [Hook — surprising fact, question, or bold statement]\nInterest: [Why this matters to the recipient]\nDesire: [What they get / the benefit]\nAction: [Clear single CTA]\n\nContext: [Who you are, who you\'re emailing, what you want]\nTone: [warm and professional]\nLength: Under 150 words."\n\nBonus prompts:\n• "Rewrite to sound less salesy."\n• "Give me 3 subject line options."\n• "Make the CTA more urgent without being pushy."',
     link:null },
-  { id:'ca4', cat:'Content AI', icon:'♻️', col:'#e11d48', title:'AI Content Repurposing',
+  { id:'ca4', cat:'Content AI', col:'#e11d48', title:'AI Content Repurposing',
     excerpt:'Turn one piece of content into 10 different formats with AI.',
-    body:'Start with: a long-form piece (blog, podcast, video)\n\nThen ask AI to turn it into:\n1. 5 Instagram captions (different angles)\n2. 3 Twitter/X threads\n3. 1 LinkedIn post\n4. 5 short-form video hooks\n5. 3 email newsletter paragraphs\n6. 1 Pinterest description\n7. 5 Story slide scripts\n8. 3 reel scripts (15–30 sec)\n9. FAQ section\n10. 1 quote graphic text\n\nPrompt:\n"I have this content: [paste]\nRepurpose it into [format] for [platform]. Audience: [describe]. Tone: [describe]. Keep the core message but adapt to the platform."\n\nUse Nancy Hub\'s Content Repurposer in Social Hub → Social Tools!',
+    body:'Start with: a long-form piece (blog, podcast, video)\n\nThen ask AI to turn it into:\n1. 5 Instagram captions (different angles)\n2. 3 Twitter/X threads\n3. 1 LinkedIn post\n4. 5 short-form video hooks\n5. 3 email newsletter paragraphs\n6. 1 Pinterest description\n7. 5 Story slide scripts\n8. 3 reel scripts (15–30 sec)\n9. FAQ section\n10. 1 quote graphic text\n\nPrompt:\n"I have this content: [paste]\nRepurpose it into [format] for [platform]. Audience: [describe]. Tone: [describe]."',
     link:null },
-  { id:'ca5', cat:'Content AI', icon:'🪝', col:'#e11d48', title:'AI Hook Writing',
+  { id:'ca5', cat:'Content AI', col:'#e11d48', title:'AI Hook Writing',
     excerpt:'Hooks make or break content. Generate 10 with AI, then choose your best.',
-    body:'The hook is the first 1–3 seconds. It determines if anyone keeps watching.\n\nHook formulas AI can generate:\n• Bold statement: "Nobody tells you this about [topic]."\n• Question: "What would you do if [scenario]?"\n• Story open: "I made a huge mistake last year."\n• Stat: "90% of people [behaviour]. Here\'s why."\n• Contrast: "I used to [old way]. Now I do [new way]."\n• Counterintuitive: "Stop trying to [common advice]."\n\nPrompt:\n"Write 10 hook lines for a [format] about [topic]. Audience: [describe]. Mix formats: bold statements, questions, stories. Under 10 words each. No corporate language."\n\nIn Nancy Hub → Social Hub → AI Studio Step 1.\n\n💡 Always generate 10, pick top 3, A/B test them.',
+    body:'The hook is the first 1–3 seconds. It determines if anyone keeps watching.\n\nHook formulas:\n• Bold statement: "Nobody tells you this about [topic]."\n• Question: "What would you do if [scenario]?"\n• Story open: "I made a huge mistake last year."\n• Stat: "90% of people [behaviour]. Here\'s why."\n• Contrast: "I used to [old way]. Now I do [new way]."\n• Counterintuitive: "Stop trying to [common advice]."\n\nPrompt:\n"Write 10 hook lines for a [format] about [topic]. Audience: [describe]. Mix formats: bold statements, questions, stories. Under 10 words each."',
     link:null }
 ];
 
@@ -463,15 +540,20 @@ async function loadCounts() {
     var docs = res.data || [];
     var sopC = docs.filter(function(r){ return r.section === 'sop'; }).length;
     var trainC = docs.filter(function(r){ return r.section === 'training'; }).length;
+    var gemC = docs.filter(function(r){ return r.section === 'gem'; }).length;
     var el1 = document.getElementById('sop-count');
     var el2 = document.getElementById('training-count');
+    var el3 = document.getElementById('gems-count');
     if (el1) el1.textContent = sopC + ' document' + (sopC !== 1 ? 's' : '');
     if (el2) el2.textContent = trainC + ' module' + (trainC !== 1 ? 's' : '');
+    if (el3) el3.textContent = GEMS.length + ' basics · ' + gemC + ' team';
   } catch(e) {
     var el1 = document.getElementById('sop-count');
     var el2 = document.getElementById('training-count');
+    var el3 = document.getElementById('gems-count');
     if (el1) el1.textContent = '0 documents';
     if (el2) el2.textContent = '0 modules';
+    if (el3) el3.textContent = GEMS.length + ' basics';
   }
 }
 
@@ -505,14 +587,43 @@ function backToHome() {
   document.getElementById('lh-gems').innerHTML = '';
 }
 
+// SVG icons for doc types
+function docTypeSVG(type) {
+  if (type === 'image') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+  if (type === 'video') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>';
+  if (type === 'pdf') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>';
+  if (type === 'sheet') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>';
+  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+}
+
+function getDocIconSVG(title, attachments) {
+  var t = (title || '').toLowerCase();
+  if (attachments && attachments.some(function(a){ return a.type && a.type.indexOf('video/') === 0; })) return docTypeSVG('video');
+  if (attachments && attachments.some(function(a){ return a.type && a.type.indexOf('image/') === 0; })) return docTypeSVG('image');
+  if (t.includes('video') || t.includes('tutorial')) return docTypeSVG('video');
+  if (t.includes('report') || t.includes('spreadsheet') || t.includes('tracker')) return docTypeSVG('sheet');
+  return docTypeSVG('doc');
+}
+
+function getFileSVG(type, name) {
+  var t = (type || '').toLowerCase();
+  var n = (name || '').toLowerCase();
+  if (t.indexOf('image/') === 0 || /\.(jpg|jpeg|png|gif|webp|svg)$/.test(n)) return docTypeSVG('image');
+  if (t.indexOf('video/') === 0 || /\.(mp4|mov|avi|webm)$/.test(n)) return docTypeSVG('video');
+  if (t === 'application/pdf' || n.indexOf('.pdf') >= 0) return docTypeSVG('pdf');
+  if (/\.(xls|xlsx|csv)$/.test(n)) return docTypeSVG('sheet');
+  return docTypeSVG('doc');
+}
+
 async function loadDocs(section) {
   var cfg = SECTIONS[section];
   var canEdit = hubState.currentUser && hubState.currentUser.role === 'admin';
+  var col = cfg.col;
 
   var el = document.getElementById('lh-section');
   el.innerHTML = '<div class="lh-back"><button class="lh-back-btn" onclick="backToHome()">← Back</button></div>'
     + '<div class="lh-sec-hdr">'
-    + '<div><div class="lh-sec-title">' + cfg.icon + ' ' + cfg.label + '</div><div class="lh-sec-sub">' + cfg.desc + '</div></div>'
+    + '<div><div class="lh-sec-title">' + esc(cfg.label) + '</div><div class="lh-sec-sub">' + esc(cfg.desc) + '</div></div>'
     + (canEdit ? '<button class="btn-primary" onclick="openAddDocModal()">+ Add Resource</button>' : '')
     + '</div>'
     + '<div class="doc-list" id="doc-list-inner"><div style="text-align:center;padding:3rem;color:var(--muted);font-family:Inter,sans-serif;font-size:.85rem">Loading...</div></div>';
@@ -524,7 +635,7 @@ async function loadDocs(section) {
     renderDocList(lhState.docs, canEdit);
     loadCounts();
   } catch(e) {
-    document.getElementById('doc-list-inner').innerHTML = '<div class="doc-empty"><span class="doc-empty-ico">⚠️</span><div class="doc-empty-ttl">Could not load</div><div class="doc-empty-sub">' + esc(e.message) + '</div></div>';
+    document.getElementById('doc-list-inner').innerHTML = '<div class="doc-empty"><div class="doc-empty-ico">' + docTypeSVG('doc') + '</div><div class="doc-empty-ttl">Could not load</div><div class="doc-empty-sub">' + esc(e.message) + '</div></div>';
   }
 }
 
@@ -533,7 +644,7 @@ function renderDocList(docs, canEdit) {
   if (!listEl) return;
   if (!docs || !docs.length) {
     listEl.innerHTML = '<div class="doc-empty">'
-      + '<span class="doc-empty-ico">📭</span>'
+      + '<div class="doc-empty-ico">' + docTypeSVG('doc') + '</div>'
       + '<div class="doc-empty-ttl">No resources yet</div>'
       + '<div class="doc-empty-sub">Add your first resource to get started.</div>'
       + (canEdit ? '<button class="btn-primary" onclick="openAddDocModal()">+ Add First Resource</button>' : '')
@@ -546,17 +657,16 @@ function renderDocList(docs, canEdit) {
     var attachments = doc.attachments || [];
     var links = doc.links || [];
     var tags = doc.tags ? doc.tags.split(',').map(function(t){ return t.trim(); }).filter(Boolean) : [];
-    var icon = getDocIcon(doc.title, attachments);
 
     html += '<div class="doc-item">';
-    html += '<div class="doc-icon">' + icon + '</div>';
+    html += '<div class="doc-icon">' + getDocIconSVG(doc.title, attachments) + '</div>';
     html += '<div class="doc-body" onclick="viewDoc(\'' + esc(doc.id) + '\')">';
     html += '<div class="doc-ttl">' + esc(doc.title) + '</div>';
     if (doc.description) html += '<div class="doc-desc">' + esc(doc.description) + '</div>';
     html += '<div class="doc-meta">';
     tags.forEach(function(t){ html += '<span class="doc-tag">' + esc(t) + '</span>'; });
-    if (attachments.length) html += '<span class="doc-badge">📎 ' + attachments.length + ' file' + (attachments.length > 1 ? 's' : '') + '</span>';
-    if (links.length) html += '<span class="doc-badge">🔗 ' + links.length + ' link' + (links.length > 1 ? 's' : '') + '</span>';
+    if (attachments.length) html += '<span class="doc-badge">' + attachments.length + ' file' + (attachments.length > 1 ? 's' : '') + '</span>';
+    if (links.length) html += '<span class="doc-badge">' + links.length + ' link' + (links.length > 1 ? 's' : '') + '</span>';
     html += '</div></div>';
     if (canEdit) {
       html += '<div class="doc-acts">'
@@ -567,21 +677,6 @@ function renderDocList(docs, canEdit) {
     html += '</div>';
   });
   listEl.innerHTML = html;
-}
-
-function getDocIcon(title, attachments) {
-  if (!title) return '📄';
-  var t = title.toLowerCase();
-  if (t.includes('video') || t.includes('tutorial')) return '🎬';
-  if (t.includes('onboard') || t.includes('welcome')) return '👋';
-  if (t.includes('sop') || t.includes('process')) return '⚙️';
-  if (t.includes('policy') || t.includes('rule') || t.includes('guideline')) return '📜';
-  if (t.includes('brand') || t.includes('design')) return '🎨';
-  if (t.includes('email') || t.includes('template')) return '📧';
-  if (t.includes('social') || t.includes('instagram') || t.includes('tiktok')) return '📱';
-  if (attachments && attachments.some(function(a){ return a.type && a.type.indexOf('image/') === 0; })) return '🖼️';
-  if (attachments && attachments.some(function(a){ return a.type && a.type.indexOf('video/') === 0; })) return '🎬';
-  return '📄';
 }
 
 function viewDoc(docId) {
@@ -605,31 +700,31 @@ function viewDoc(docId) {
   if (doc.content) html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">Content</div><div class="vdoc-content">' + esc(doc.content) + '</div></div>';
 
   if (images.length) {
-    html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">📸 Images (' + images.length + ')</div><div class="vdoc-img-grid">';
+    html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">Images (' + images.length + ')</div><div class="vdoc-img-grid">';
     images.forEach(function(a){
       html += '<a href="' + esc(a.url) + '" target="_blank"><img class="vdoc-img" src="' + esc(a.url) + '" alt="' + esc(a.name) + '" loading="lazy"/></a>';
     });
     html += '</div></div>';
   }
   if (videos.length) {
-    html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">🎬 Videos (' + videos.length + ')</div>';
+    html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">Videos (' + videos.length + ')</div><div class="vdoc-files">';
     videos.forEach(function(a){
-      html += '<a class="vdoc-file-link" href="' + esc(a.url) + '" target="_blank">🎬 ' + esc(a.name) + '</a>';
+      html += '<a class="vdoc-file-link" href="' + esc(a.url) + '" target="_blank">' + docTypeSVG('video') + ' ' + esc(a.name) + '</a>';
     });
-    html += '</div>';
+    html += '</div></div>';
   }
   if (others.length) {
-    html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">📎 Files (' + others.length + ')</div><div class="vdoc-files">';
+    html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">Files (' + others.length + ')</div><div class="vdoc-files">';
     others.forEach(function(a){
-      html += '<a class="vdoc-file-link" href="' + esc(a.url) + '" target="_blank">' + getFileIcon(a.type, a.name) + ' ' + esc(a.name) + '</a>';
+      html += '<a class="vdoc-file-link" href="' + esc(a.url) + '" target="_blank">' + getFileSVG(a.type, a.name) + ' ' + esc(a.name) + '</a>';
     });
     html += '</div></div>';
   }
   if (links.length) {
-    html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">🔗 Links (' + links.length + ')</div><div class="vdoc-files">';
+    html += '<div class="vdoc-sec"><div class="vdoc-sec-lbl">Links (' + links.length + ')</div><div class="vdoc-files">';
     links.forEach(function(lk){
       var label = lk.label || lk.url;
-      html += '<a class="vdoc-file-link" href="' + esc(lk.url) + '" target="_blank" style="color:var(--primary)">🔗 ' + esc(label) + '</a>';
+      html += '<a class="vdoc-file-link" href="' + esc(lk.url) + '" target="_blank" style="color:var(--primary)">' + esc(label) + '</a>';
     });
     html += '</div></div>';
   }
@@ -643,18 +738,6 @@ function viewDoc(docId) {
 function editDocFromView() {
   closeModal('modal-view-doc');
   if (lhState.viewDocId) openEditDocModal(lhState.viewDocId);
-}
-
-function getFileIcon(type, name) {
-  var t = (type || '').toLowerCase();
-  var n = (name || '').toLowerCase();
-  if (t.indexOf('image/') === 0 || /\.(jpg|jpeg|png|gif|webp|svg)$/.test(n)) return '🖼️';
-  if (t.indexOf('video/') === 0 || /\.(mp4|mov|avi|webm)$/.test(n)) return '🎬';
-  if (t === 'application/pdf' || n.indexOf('.pdf') >= 0) return '📕';
-  if (/\.(doc|docx)$/.test(n)) return '📝';
-  if (/\.(xls|xlsx|csv)$/.test(n)) return '📊';
-  if (/\.(ppt|pptx)$/.test(n)) return '📊';
-  return '📄';
 }
 
 function openAddDocModal() {
@@ -687,11 +770,9 @@ function openEditDocModal(docId) {
   }
   var doc = lhState.docs.find(function(d){ return d.id === docId; });
   if (!doc) return;
-
   lhState.editDocId = docId;
   lhState.pendingFiles = [];
   lhState.existingAttachments = doc.attachments ? JSON.parse(JSON.stringify(doc.attachments)) : [];
-
   document.getElementById('doc-modal-title').textContent = 'Edit Resource';
   document.getElementById('doc-edit-id').value = docId;
   document.getElementById('doc-edit-section').value = doc.section;
@@ -701,17 +782,11 @@ function openEditDocModal(docId) {
   document.getElementById('doc-tags').value = doc.tags || '';
   document.getElementById('doc-upload-status').textContent = '';
   document.getElementById('btn-delete-doc').style.display = 'block';
-
   renderFilePreviews();
-
   document.getElementById('link-rows').innerHTML = '';
   lhState.linkCount = 0;
   var links = doc.links || [];
-  if (links.length === 0) {
-    addLinkRow();
-  } else {
-    links.forEach(function(lk){ addLinkRow(lk.label, lk.url); });
-  }
+  if (links.length === 0) { addLinkRow(); } else { links.forEach(function(lk){ addLinkRow(lk.label, lk.url); }); }
   openModal('modal-doc');
 }
 
@@ -719,47 +794,40 @@ function renderFilePreviews() {
   var row = document.getElementById('file-prev-row');
   var html = '';
   lhState.existingAttachments.forEach(function(a, i) {
-    html += '<div class="file-prev-chip">' + getFileIcon(a.type, a.name) + ' ' + esc(a.name)
-      + ' <button class="file-prev-rm" onclick="removeExistingFile(' + i + ')">✕</button></div>';
+    html += '<div class="file-prev-chip">' + getFileSVG(a.type, a.name) + ' ' + esc(a.name)
+      + ' <button class="file-prev-rm" onclick="removeExistingFile(' + i + ')">×</button></div>';
   });
   lhState.pendingFiles.forEach(function(pf, i) {
-    html += '<div class="file-prev-chip">📎 ' + esc(pf.name)
-      + ' <button class="file-prev-rm" onclick="removePendingFile(' + i + ')">✕</button></div>';
+    html += '<div class="file-prev-chip">' + esc(pf.name)
+      + ' <button class="file-prev-rm" onclick="removePendingFile(' + i + ')">×</button></div>';
   });
   row.innerHTML = html;
 }
 
 function removeExistingFile(idx) { lhState.existingAttachments.splice(idx, 1); renderFilePreviews(); }
 function removePendingFile(idx) { lhState.pendingFiles.splice(idx, 1); renderFilePreviews(); }
-
 function handleDragOver(e) { e.preventDefault(); document.getElementById('file-drop').classList.add('dragover'); }
 function handleDragLeave() { document.getElementById('file-drop').classList.remove('dragover'); }
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('file-drop').classList.remove('dragover');
-  addFilesToPending(e.dataTransfer.files);
-}
+function handleDrop(e) { e.preventDefault(); document.getElementById('file-drop').classList.remove('dragover'); addFilesToPending(e.dataTransfer.files); }
 function handleFileSelect(e) { addFilesToPending(e.target.files); e.target.value = ''; }
 function addFilesToPending(files) {
-  for (var i = 0; i < files.length; i++) {
-    lhState.pendingFiles.push({ file: files[i], name: files[i].name });
-  }
+  for (var i = 0; i < files.length; i++) { lhState.pendingFiles.push({ file: files[i], name: files[i].name }); }
   renderFilePreviews();
 }
 
-async function uploadPendingFiles(docId) {
+async function uploadPendingFiles(docId, pendingFiles, bucket) {
   var uploaded = [];
-  for (var i = 0; i < lhState.pendingFiles.length; i++) {
-    var pf = lhState.pendingFiles[i];
-    var statusEl = document.getElementById('doc-upload-status');
-    if (statusEl) statusEl.textContent = 'Uploading ' + (i+1) + '/' + lhState.pendingFiles.length + '…';
+  bucket = bucket || 'learning-files';
+  for (var i = 0; i < pendingFiles.length; i++) {
+    var pf = pendingFiles[i];
+    var statusEl = document.getElementById('doc-upload-status') || document.getElementById('gem-upload-status');
+    if (statusEl) statusEl.textContent = 'Uploading ' + (i+1) + '/' + pendingFiles.length + '...';
     try {
-      var ext = pf.name.split('.').pop();
       var safeName = pf.name.replace(/[^a-zA-Z0-9._-]/g,'_');
       var path = docId + '/' + Date.now() + '_' + i + '_' + safeName;
-      var res = await db.storage.from('learning-files').upload(path, pf.file, { cacheControl:'3600', upsert:false });
+      var res = await db.storage.from(bucket).upload(path, pf.file, { cacheControl:'3600', upsert:false });
       if (res.error) throw res.error;
-      var urlRes = db.storage.from('learning-files').getPublicUrl(path);
+      var urlRes = db.storage.from(bucket).getPublicUrl(path);
       uploaded.push({ name: pf.name, url: urlRes.data.publicUrl, type: pf.file.type, size: pf.file.size });
     } catch(e) {
       showToast('Upload failed for ' + pf.name + ': ' + e.message, 'error');
@@ -771,21 +839,21 @@ async function uploadPendingFiles(docId) {
 function addLinkRow(label, url) {
   var idx = lhState.linkCount++;
   var row = document.createElement('div');
-  row.className = 'link-row';
-  row.id = 'link-row-' + idx;
+  row.className = 'link-row'; row.id = 'link-row-' + idx;
   row.innerHTML = '<input class="form-input" id="link-label-' + idx + '" type="text" placeholder="Label" value="' + esc(label || '') + '" style="max-width:180px"/>'
     + '<input class="form-input" id="link-url-' + idx + '" type="url" placeholder="https://..." value="' + esc(url || '') + '"/>'
-    + '<button class="link-rm" onclick="removeLinkRow(' + idx + ')">✕</button>';
+    + '<button class="link-rm" onclick="removeLinkRow(' + idx + ')">×</button>';
   document.getElementById('link-rows').appendChild(row);
 }
 function removeLinkRow(idx) { var r = document.getElementById('link-row-' + idx); if (r) r.remove(); }
 
-function collectLinks() {
+function collectLinks(prefix) {
+  prefix = prefix || '';
   var links = [];
-  document.querySelectorAll('#link-rows .link-row').forEach(function(row) {
-    var id = row.id.replace('link-row-','');
-    var url = (document.getElementById('link-url-' + id) || {}).value || '';
-    var label = (document.getElementById('link-label-' + id) || {}).value || '';
+  document.querySelectorAll('#' + prefix + 'link-rows .link-row').forEach(function(row) {
+    var id = row.id.replace(prefix + 'link-row-','');
+    var url = (document.getElementById(prefix + 'link-url-' + id) || {}).value || '';
+    var label = (document.getElementById(prefix + 'link-label-' + id) || {}).value || '';
     if (url.trim()) links.push({ label: label.trim() || url.trim(), url: url.trim() });
   });
   return links;
@@ -794,39 +862,27 @@ function collectLinks() {
 async function saveDoc() {
   var title = (document.getElementById('doc-title').value || '').trim();
   if (!title) { showToast('Title is required', 'error'); document.getElementById('doc-title').focus(); return; }
-
   var btn = document.getElementById('save-doc-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-
+  btn.disabled = true; btn.textContent = 'Saving...';
   var section = document.getElementById('doc-edit-section').value || lhState.section;
   var docId = lhState.editDocId || crypto.randomUUID();
-  var links = collectLinks();
-
-  var newUploads = [];
-  if (lhState.pendingFiles.length) newUploads = await uploadPendingFiles(docId);
+  var links = collectLinks('');
+  var newUploads = lhState.pendingFiles.length ? await uploadPendingFiles(docId, lhState.pendingFiles, 'learning-files') : [];
   var allAttachments = lhState.existingAttachments.concat(newUploads);
-
   var payload = {
-    id: docId,
-    section: section,
-    title: title,
+    id: docId, section: section, title: title,
     description: (document.getElementById('doc-desc').value || '').trim(),
     content: (document.getElementById('doc-content').value || '').trim(),
     tags: (document.getElementById('doc-tags').value || '').trim(),
-    attachments: allAttachments,
-    links: links,
+    attachments: allAttachments, links: links,
     created_by: hubState.currentUser ? hubState.currentUser.id : '',
     updated_at: Date.now()
   };
   if (!lhState.editDocId) payload.created_at = Date.now();
-
   try {
-    var res;
-    if (lhState.editDocId) {
-      res = await db.from('learning_docs').update(payload).eq('id', docId);
-    } else {
-      res = await db.from('learning_docs').insert(payload);
-    }
+    var res = lhState.editDocId
+      ? await db.from('learning_docs').update(payload).eq('id', docId)
+      : await db.from('learning_docs').insert(payload);
     if (res.error) throw res.error;
     showToast(lhState.editDocId ? 'Resource updated' : 'Resource added', 'success');
     closeModal('modal-doc');
@@ -867,40 +923,89 @@ function renderBrandSoon() {
   var el = document.getElementById('lh-section');
   el.innerHTML = '<div class="lh-back"><button class="lh-back-btn" onclick="backToHome()">← Back</button></div>'
     + '<div class="brand-soon">'
-    + '<span class="brand-soon-ico">🎨</span>'
+    + '<div class="brand-soon-ico"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>'
     + '<div class="brand-soon-ttl">Brand Guidelines</div>'
     + '<div class="brand-soon-sub">Colours, fonts, logo usage, tone of voice, and visual identity rules — all in one place. We\'ll build this out together once the foundation is ready.</div>'
     + '</div>';
 }
 
-function renderGems(activeCat) {
+// ── GEMS ────────────────────────────────────────────────
+
+function gemCardHTML(g, isCustom) {
+  var col = catColor(g.cat || '');
+  var init = catInit(g.cat || '');
+  var badgeBg = col + '18';
+  var badgeBorder = col + '35';
+  var html = '<div class="gem-card" id="gem-' + g.id + '" style="--gc:' + col + '">'
+    + '<div class="gem-top">'
+    + '<div class="gem-init" style="background:' + col + '">' + esc(init) + '</div>'
+    + '<div><div class="gem-cat-bdg" style="color:' + col + ';background:' + badgeBg + ';border-color:' + badgeBorder + '">' + esc(g.cat || 'General') + '</div>'
+    + '<div class="gem-ttl">' + esc(g.title) + '</div></div>'
+    + '</div>'
+    + '<div class="gem-excerpt">' + esc(g.excerpt || g.description || '') + '</div>'
+    + '<div class="gem-body" id="gem-body-' + g.id + '">' + esc(g.body || g.content || '') + '</div>'
+    + '<div class="gem-foot">'
+    + '<button class="gem-expand" id="gem-btn-' + g.id + '" onclick="toggleGem(\'' + g.id + '\')">Read more ↓</button>';
+  if (g.link) html += '<a class="gem-link" href="' + esc(g.link) + '" target="_blank">' + esc(g.linkLabel || 'Learn more') + '</a>';
+  if (g.links && g.links.length) html += '<a class="gem-link" href="' + esc(g.links[0].url) + '" target="_blank">' + esc(g.links[0].label || 'Source') + '</a>';
+  if (isCustom && hubState.currentUser && hubState.currentUser.role === 'admin') {
+    html += '<div class="gem-acts"><button class="gem-act-btn" onclick="openEditGemModal(\'' + esc(g.id) + '\')">Edit</button><button class="gem-act-btn del" onclick="deleteGemById(\'' + esc(g.id) + '\',\'' + esc((g.title||'').replace(/'/g,"\\'")) + '\')">Delete</button></div>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+async function renderGems(activeCat) {
+  var canEdit = hubState.currentUser && hubState.currentUser.role === 'admin';
   var cats = ['All', 'Claude', 'Prompting', 'AI Tools', 'Content AI'];
-  var filtered = activeCat === 'All' ? GEMS : GEMS.filter(function(g){ return g.cat === activeCat; });
+  var filteredBasics = activeCat === 'All' ? GEMS : GEMS.filter(function(g){ return g.cat === activeCat; });
 
   var catBtns = cats.map(function(c){
     return '<button class="gem-cat-btn' + (c === activeCat ? ' active' : '') + '" onclick="renderGems(\'' + c + '\')">' + c + '</button>';
   }).join('');
 
-  var gemsHtml = filtered.map(function(g){
-    return '<div class="gem-card" id="gem-' + g.id + '">'
-      + '<div class="gem-top">'
-      + '<div class="gem-icon">' + g.icon + '</div>'
-      + '<div><div class="gem-cat-bdg" style="--gc:' + g.col + ';color:' + g.col + ';background:' + g.col + '15;border-color:' + g.col + '33">' + g.cat + '</div><div class="gem-ttl">' + esc(g.title) + '</div></div>'
-      + '</div>'
-      + '<div class="gem-excerpt">' + esc(g.excerpt) + '</div>'
-      + '<div class="gem-body" id="gem-body-' + g.id + '">' + esc(g.body) + '</div>'
-      + '<div class="gem-foot">'
-      + '<button class="gem-expand" id="gem-btn-' + g.id + '" onclick="toggleGem(\'' + g.id + '\')">Read more ↓</button>'
-      + (g.link ? '<a class="gem-link" href="' + esc(g.link) + '" target="_blank">🔗 ' + esc(g.linkLabel || 'Learn more') + '</a>' : '')
-      + '</div>'
-      + '</div>';
-  }).join('');
+  var basicsHtml = filteredBasics.map(function(g){ return gemCardHTML(g, false); }).join('');
 
   var el = document.getElementById('lh-gems');
   el.innerHTML = '<div class="lh-back"><button class="lh-back-btn" onclick="backToHome()">← Back</button></div>'
-    + '<div class="lh-sec-hdr"><div><div class="lh-sec-title">💎 AI Gems</div><div class="lh-sec-sub">Pre-loaded AI knowledge — Claude, prompting, tools & content workflows</div></div></div>'
+    + '<div class="lh-sec-hdr"><div><div class="lh-sec-title">AI Gems</div><div class="lh-sec-sub">Pre-loaded knowledge + your team\'s own gems</div></div>'
+    + (canEdit ? '<button class="btn-primary" onclick="openAddGemModal()">+ Add Gem</button>' : '')
+    + '</div>'
+
+    // BASICS section
+    + '<div class="gems-section-hdr">'
+    + '<span class="gems-section-lbl">Basics</span>'
     + '<div class="gem-cats">' + catBtns + '</div>'
-    + '<div class="gem-grid">' + gemsHtml + '</div>';
+    + '</div>'
+    + '<div class="gem-grid" id="basics-gem-grid">' + (basicsHtml || '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">No gems in this category.</div>') + '</div>'
+
+    // TEAM GEMS section
+    + '<div class="gems-divider"></div>'
+    + '<div class="gems-section-hdr"><span class="gems-section-lbl">Team Gems</span></div>'
+    + '<div class="gem-grid" id="team-gem-grid"><div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:.5rem 0">Loading...</div></div>';
+
+  loadCustomGems();
+}
+
+async function loadCustomGems() {
+  var el = document.getElementById('team-gem-grid');
+  if (!el) return;
+  var canEdit = hubState.currentUser && hubState.currentUser.role === 'admin';
+  try {
+    var res = await db.from('learning_docs').select('*').eq('section', 'gem').order('created_at', { ascending: false });
+    if (res.error) throw res.error;
+    lhState.customGems = res.data || [];
+    loadCounts();
+    if (!lhState.customGems.length) {
+      el.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:.5rem 0">'
+        + (canEdit ? 'No team gems yet. Hit "+ Add Gem" to create your first one.' : 'No team gems yet.')
+        + '</div>';
+      return;
+    }
+    el.innerHTML = lhState.customGems.map(function(g){ return gemCardHTML(g, true); }).join('');
+  } catch(e) {
+    if (el) el.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:.5rem 0">Could not load team gems.</div>';
+  }
 }
 
 function toggleGem(id) {
@@ -910,6 +1015,165 @@ function toggleGem(id) {
   var isOpen = body.classList.toggle('open');
   btn.textContent = isOpen ? 'Show less ↑' : 'Read more ↓';
 }
+
+// ── ADD/EDIT GEM ─────────────────────────────────────────
+
+function openAddGemModal() {
+  if (!hubState.currentUser || hubState.currentUser.role !== 'admin') {
+    showToast('Only admins can add gems', 'error'); return;
+  }
+  lhState.editGemId = null;
+  lhState.gemPendingFiles = [];
+  lhState.gemExistingAttachments = [];
+  document.getElementById('gem-modal-title').textContent = 'Add Gem';
+  document.getElementById('gem-edit-id').value = '';
+  document.getElementById('gem-title').value = '';
+  document.getElementById('gem-category').value = '';
+  document.getElementById('gem-excerpt').value = '';
+  document.getElementById('gem-content').value = '';
+  document.getElementById('gem-file-prev-row').innerHTML = '';
+  document.getElementById('gem-link-rows').innerHTML = '';
+  document.getElementById('gem-upload-status').textContent = '';
+  lhState.gemLinkCount = 0;
+  document.getElementById('btn-delete-gem').style.display = 'none';
+  addGemLinkRow();
+  openModal('modal-gem');
+  setTimeout(function(){ document.getElementById('gem-title').focus(); }, 100);
+}
+
+function openEditGemModal(gemId) {
+  if (!hubState.currentUser || hubState.currentUser.role !== 'admin') {
+    showToast('Only admins can edit gems', 'error'); return;
+  }
+  var gem = lhState.customGems.find(function(g){ return g.id === gemId; });
+  if (!gem) return;
+  lhState.editGemId = gemId;
+  lhState.gemPendingFiles = [];
+  lhState.gemExistingAttachments = gem.attachments ? JSON.parse(JSON.stringify(gem.attachments)) : [];
+  document.getElementById('gem-modal-title').textContent = 'Edit Gem';
+  document.getElementById('gem-edit-id').value = gemId;
+  document.getElementById('gem-title').value = gem.title || '';
+  document.getElementById('gem-category').value = gem.tags || '';
+  document.getElementById('gem-excerpt').value = gem.description || '';
+  document.getElementById('gem-content').value = gem.content || '';
+  document.getElementById('gem-upload-status').textContent = '';
+  document.getElementById('btn-delete-gem').style.display = 'block';
+  renderGemFilePreviews();
+  document.getElementById('gem-link-rows').innerHTML = '';
+  lhState.gemLinkCount = 0;
+  var links = gem.links || [];
+  if (!links.length) { addGemLinkRow(); } else { links.forEach(function(lk){ addGemLinkRow(lk.label, lk.url); }); }
+  openModal('modal-gem');
+}
+
+function renderGemFilePreviews() {
+  var row = document.getElementById('gem-file-prev-row');
+  if (!row) return;
+  var html = '';
+  lhState.gemExistingAttachments.forEach(function(a, i) {
+    html += '<div class="file-prev-chip">' + getFileSVG(a.type, a.name) + ' ' + esc(a.name)
+      + ' <button class="file-prev-rm" onclick="removeGemExistingFile(' + i + ')">×</button></div>';
+  });
+  lhState.gemPendingFiles.forEach(function(pf, i) {
+    html += '<div class="file-prev-chip">' + esc(pf.name)
+      + ' <button class="file-prev-rm" onclick="removeGemPendingFile(' + i + ')">×</button></div>';
+  });
+  row.innerHTML = html;
+}
+
+function removeGemExistingFile(idx) { lhState.gemExistingAttachments.splice(idx, 1); renderGemFilePreviews(); }
+function removeGemPendingFile(idx) { lhState.gemPendingFiles.splice(idx, 1); renderGemFilePreviews(); }
+function handleGemDragOver(e) { e.preventDefault(); document.getElementById('gem-file-drop').classList.add('dragover'); }
+function handleGemDragLeave() { document.getElementById('gem-file-drop').classList.remove('dragover'); }
+function handleGemDrop(e) { e.preventDefault(); document.getElementById('gem-file-drop').classList.remove('dragover'); addGemFilesToPending(e.dataTransfer.files); }
+function handleGemFileSelect(e) { addGemFilesToPending(e.target.files); e.target.value = ''; }
+function addGemFilesToPending(files) {
+  for (var i = 0; i < files.length; i++) { lhState.gemPendingFiles.push({ file: files[i], name: files[i].name }); }
+  renderGemFilePreviews();
+}
+
+function addGemLinkRow(label, url) {
+  var idx = lhState.gemLinkCount++;
+  var row = document.createElement('div');
+  row.className = 'link-row'; row.id = 'gem-link-row-' + idx;
+  row.innerHTML = '<input class="form-input" id="gem-link-label-' + idx + '" type="text" placeholder="Label" value="' + esc(label || '') + '" style="max-width:180px"/>'
+    + '<input class="form-input" id="gem-link-url-' + idx + '" type="url" placeholder="https://..." value="' + esc(url || '') + '"/>'
+    + '<button class="link-rm" onclick="removeGemLinkRow(' + idx + ')">×</button>';
+  document.getElementById('gem-link-rows').appendChild(row);
+}
+function removeGemLinkRow(idx) { var r = document.getElementById('gem-link-row-' + idx); if (r) r.remove(); }
+
+function collectGemLinks() {
+  var links = [];
+  document.querySelectorAll('#gem-link-rows .link-row').forEach(function(row) {
+    var id = row.id.replace('gem-link-row-','');
+    var url = (document.getElementById('gem-link-url-' + id) || {}).value || '';
+    var label = (document.getElementById('gem-link-label-' + id) || {}).value || '';
+    if (url.trim()) links.push({ label: label.trim() || url.trim(), url: url.trim() });
+  });
+  return links;
+}
+
+async function saveGem() {
+  var title = (document.getElementById('gem-title').value || '').trim();
+  if (!title) { showToast('Title is required', 'error'); document.getElementById('gem-title').focus(); return; }
+  var btn = document.getElementById('save-gem-btn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  var gemId = lhState.editGemId || crypto.randomUUID();
+  var links = collectGemLinks();
+  var newUploads = lhState.gemPendingFiles.length ? await uploadPendingFiles(gemId, lhState.gemPendingFiles, 'learning-files') : [];
+  var allAttachments = lhState.gemExistingAttachments.concat(newUploads);
+  var payload = {
+    id: gemId,
+    section: 'gem',
+    title: title,
+    tags: (document.getElementById('gem-category').value || '').trim(),
+    description: (document.getElementById('gem-excerpt').value || '').trim(),
+    content: (document.getElementById('gem-content').value || '').trim(),
+    attachments: allAttachments,
+    links: links,
+    created_by: hubState.currentUser ? hubState.currentUser.id : '',
+    updated_at: Date.now()
+  };
+  if (!lhState.editGemId) payload.created_at = Date.now();
+  try {
+    var res = lhState.editGemId
+      ? await db.from('learning_docs').update(payload).eq('id', gemId)
+      : await db.from('learning_docs').insert(payload);
+    if (res.error) throw res.error;
+    showToast(lhState.editGemId ? 'Gem updated' : 'Gem added', 'success');
+    closeModal('modal-gem');
+    renderGems('All');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Save Gem';
+  var statusEl = document.getElementById('gem-upload-status');
+  if (statusEl) statusEl.textContent = '';
+}
+
+function deleteGemConfirm() {
+  if (!lhState.editGemId) return;
+  var gem = lhState.customGems.find(function(g){ return g.id === lhState.editGemId; });
+  var name = gem ? gem.title : 'this gem';
+  if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+  deleteGemById(lhState.editGemId, name);
+  closeModal('modal-gem');
+}
+
+async function deleteGemById(gemId, name) {
+  if (!confirm('Delete "' + name + '"?')) return;
+  try {
+    var res = await db.from('learning_docs').delete().eq('id', gemId);
+    if (res.error) throw res.error;
+    showToast('Gem deleted', 'success');
+    renderGems('All');
+  } catch(e) {
+    showToast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+// ── SEARCH ──────────────────────────────────────────────
 
 var searchTimer;
 function onSearchInput(val) {
@@ -925,30 +1189,27 @@ async function doSearch(q) {
   document.getElementById('lh-home').style.display = 'none';
   document.getElementById('lh-section').classList.remove('active');
   document.getElementById('lh-gems').classList.remove('active');
-
   var resultsEl = document.getElementById('lh-search-results');
   resultsEl.style.display = 'block';
-  resultsEl.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Searching…</div>';
-
+  resultsEl.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Searching...</div>';
   try {
     var res = await db.from('learning_docs').select('*').or('title.ilike.%' + q + '%,description.ilike.%' + q + '%,content.ilike.%' + q + '%,tags.ilike.%' + q + '%');
-    var docs = res.data || [];
+    var allDocs = res.data || [];
     var lq = q.toLowerCase();
     var gemMatches = GEMS.filter(function(g){
-      return g.title.toLowerCase().indexOf(lq) >= 0 || g.excerpt.toLowerCase().indexOf(lq) >= 0 || g.cat.toLowerCase().indexOf(lq) >= 0 || g.body.toLowerCase().indexOf(lq) >= 0;
+      return g.title.toLowerCase().indexOf(lq) >= 0 || (g.excerpt||'').toLowerCase().indexOf(lq) >= 0 || g.cat.toLowerCase().indexOf(lq) >= 0 || (g.body||'').toLowerCase().indexOf(lq) >= 0;
     });
+    var sopDocs = allDocs.filter(function(d){ return d.section === 'sop'; });
+    var trainDocs = allDocs.filter(function(d){ return d.section === 'training'; });
+    var teamGems = allDocs.filter(function(d){ return d.section === 'gem'; });
 
-    if (!docs.length && !gemMatches.length) {
-      resultsEl.innerHTML = '<div class="lh-no-res">No results found for "<strong>' + esc(q) + '</strong>"</div>';
+    if (!allDocs.length && !gemMatches.length) {
+      resultsEl.innerHTML = '<div class="lh-no-res">No results for "<strong>' + esc(q) + '</strong>"</div>';
       return;
     }
-
     var html = '<div style="font-family:Inter,sans-serif;font-size:.82rem;color:var(--muted);margin-bottom:1rem">Results for "<strong style="color:var(--h2)">' + esc(q) + '</strong>"</div>';
-    var sopDocs = docs.filter(function(d){ return d.section === 'sop'; });
-    var trainDocs = docs.filter(function(d){ return d.section === 'training'; });
-
     if (sopDocs.length) {
-      html += '<div class="lh-res-grp">📋 SOPs & Playbooks</div>';
+      html += '<div class="lh-res-grp">SOPs &amp; Playbooks</div>';
       sopDocs.forEach(function(d){
         html += '<div class="lh-res" onclick="openDocFromSearch(\'' + esc(d.id) + '\',\'sop\')">'
           + '<div class="lh-res-ttl">' + esc(d.title) + '</div>'
@@ -956,7 +1217,7 @@ async function doSearch(q) {
       });
     }
     if (trainDocs.length) {
-      html += '<div class="lh-res-grp">🎓 Training Modules</div>';
+      html += '<div class="lh-res-grp">Training Modules</div>';
       trainDocs.forEach(function(d){
         html += '<div class="lh-res" onclick="openDocFromSearch(\'' + esc(d.id) + '\',\'training\')">'
           + '<div class="lh-res-ttl">' + esc(d.title) + '</div>'
@@ -964,11 +1225,19 @@ async function doSearch(q) {
       });
     }
     if (gemMatches.length) {
-      html += '<div class="lh-res-grp">💎 AI Gems</div>';
+      html += '<div class="lh-res-grp">AI Gems — Basics</div>';
       gemMatches.forEach(function(g){
         html += '<div class="lh-res" onclick="openGemFromSearch(\'' + g.id + '\')">'
-          + '<div class="lh-res-ttl">' + g.icon + ' ' + esc(g.title) + '</div>'
-          + '<div class="lh-res-desc">' + esc(g.excerpt) + '</div></div>';
+          + '<div class="lh-res-ttl">' + esc(g.title) + '</div>'
+          + '<div class="lh-res-desc">' + esc(g.excerpt || '') + '</div></div>';
+      });
+    }
+    if (teamGems.length) {
+      html += '<div class="lh-res-grp">AI Gems — Team</div>';
+      teamGems.forEach(function(g){
+        html += '<div class="lh-res" onclick="openGemFromSearch(\'' + g.id + '\')">'
+          + '<div class="lh-res-ttl">' + esc(g.title) + '</div>'
+          + '<div class="lh-res-desc">' + esc(g.description || g.content || '') + '</div></div>';
       });
     }
     resultsEl.innerHTML = html;
@@ -992,10 +1261,10 @@ function openGemFromSearch(gemId) {
   setTimeout(function(){
     var bodyEl = document.getElementById('gem-body-' + gemId);
     var btnEl = document.getElementById('gem-btn-' + gemId);
-    if (bodyEl) { bodyEl.classList.add('open'); if(btnEl) btnEl.textContent = 'Show less ↑'; }
+    if (bodyEl) { bodyEl.classList.add('open'); if (btnEl) btnEl.textContent = 'Show less ↑'; }
     var card = document.getElementById('gem-' + gemId);
     if (card) card.scrollIntoView({ behavior:'smooth', block:'center' });
-  }, 300);
+  }, 400);
 }
 
 function clearSearch() {
