@@ -1549,6 +1549,7 @@ async function showTaskHub() {
   await loadIdeas();
   await loadDeliverables();
   refreshRecurring();
+  loadNotifications(); // check for pending requests + unread on load
 }
 
 // ═══════════════════════════════════════
@@ -2722,18 +2723,16 @@ async function markAllRead() {
 
 async function approveRequest(requestId, requesterName, permission) {
   try {
-    // Grant board access
     await db.from('board_access').insert({
       board_id: state.currentUser.id,
       granted_to_name: requesterName,
       permission: permission,
       granted_by: state.currentUser.id
     });
-    // Mark request as approved
     await db.from('board_requests').update({ status: 'approved' }).eq('id', requestId);
     showToast(requesterName + ' has been granted ' + permission + ' access!', 'success');
-    closeModal('modal-notifs');
-    await loadNotifications();
+    // Refresh the panel in place
+    state.pendingRequests = (state.pendingRequests || []).filter(function(r){ return r.id !== requestId; });
     await openNotifications();
   } catch(e) {
     showToast('Could not grant access. Try again.', 'error');
@@ -2744,9 +2743,9 @@ async function denyRequest(requestId, requesterName) {
   if (!confirm('Deny access request from ' + requesterName + '?')) return;
   try {
     await db.from('board_requests').update({ status: 'denied' }).eq('id', requestId);
-    showToast(requesterName + '\'s request has been denied.', 'success');
-    closeModal('modal-notifs');
-    await loadNotifications();
+    showToast(requesterName + '\'s request has been denied.');
+    // Refresh the panel in place
+    state.pendingRequests = (state.pendingRequests || []).filter(function(r){ return r.id !== requestId; });
     await openNotifications();
   } catch(e) {
     showToast('Could not deny request. Try again.', 'error');
