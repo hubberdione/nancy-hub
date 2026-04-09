@@ -251,6 +251,7 @@ async function onAuthSuccess(authUser) {
   initThemeToggle();
   initMobileNav();
   if (typeof onPageReady === 'function') onPageReady();
+  if (typeof initNancyChat === 'function') initNancyChat();
   setTimeout(function() { try { checkStorageAlert(); } catch(e) {} }, 5000);
 }
 
