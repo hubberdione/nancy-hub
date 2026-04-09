@@ -26,17 +26,16 @@
 .lh-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem}
 @media(max-width:640px){.lh-cards{grid-template-columns:1fr}}
 .lh-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:1.75rem;cursor:pointer;transition:transform .22s ease,box-shadow .22s ease;position:relative;overflow:hidden;display:flex;flex-direction:column}
-.lh-card-glow{position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;opacity:.06;transition:opacity .3s;pointer-events:none}
-.lh-card:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,.28)}
-.lh-card:hover .lh-card-glow{opacity:.13}
-.lh-card-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;background:color-mix(in srgb,var(--lhc,var(--primary)) 12%,transparent);color:var(--lhc,var(--primary));flex-shrink:0}
+.lh-card-glow{display:none}
+.lh-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.22)}
+.lh-card-icon-wrap{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;background:color-mix(in srgb,var(--lhc,var(--primary)) 12%,transparent);color:var(--lhc,var(--primary));flex-shrink:0}
 .lh-card-title{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:600;color:var(--h2);margin-bottom:.4rem;letter-spacing:-.02em}
 .lh-card-desc{font-family:'Inter',sans-serif;font-size:.85rem;color:var(--muted);line-height:1.65;margin-bottom:1.25rem;flex:1}
 .lh-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
 .lh-card-count{font-family:'Inter',sans-serif;font-size:.78rem;color:var(--muted)}
-.lh-card-btn{font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.42rem 1rem;border-radius:100px;border:1.5px solid var(--lhc,var(--primary));color:var(--lhc,var(--primary));background:none;cursor:pointer;transition:all .2s}
-.lh-card-btn:hover{background:var(--lhc,var(--primary));color:white}
-.lh-card-coming{font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--bg2);border-radius:100px;padding:.3rem .8rem;border:1px solid var(--border)}
+.lh-card-btn{font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;color:var(--lhc,var(--primary));background:none;border:none;cursor:pointer;padding:0;opacity:.85;transition:opacity .15s;letter-spacing:.01em}
+.lh-card-btn:hover{opacity:1}
+.lh-card-coming{font-family:'Inter',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);opacity:.6}
 
 .lh-section{display:none}
 .lh-section.active{display:block;animation:lhFadeIn .22s ease}
@@ -230,7 +229,6 @@
         <div class="lh-cards">
 
           <div class="lh-card" style="--lhc:#2d7dd2" onclick="openSection('sop')">
-            <div class="lh-card-glow" style="background:#2d7dd2"></div>
             <div class="lh-card-icon-wrap">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>
             </div>
@@ -243,7 +241,6 @@
           </div>
 
           <div class="lh-card" style="--lhc:#3bb273" onclick="openSection('training')">
-            <div class="lh-card-glow" style="background:#3bb273"></div>
             <div class="lh-card-icon-wrap">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
@@ -256,7 +253,6 @@
           </div>
 
           <div class="lh-card" style="--lhc:#f7b731" onclick="openSection('brand')">
-            <div class="lh-card-glow" style="background:#f7b731"></div>
             <div class="lh-card-icon-wrap">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
             </div>
@@ -269,7 +265,6 @@
           </div>
 
           <div class="lh-card" style="--lhc:#8854d0" onclick="openSection('gems')">
-            <div class="lh-card-glow" style="background:#8854d0"></div>
             <div class="lh-card-icon-wrap">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 18 3 22 9 12 22 2 9 6 3"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="12" y1="22" x2="6" y2="9"/><line x1="12" y1="22" x2="18" y2="9"/></svg>
             </div>
