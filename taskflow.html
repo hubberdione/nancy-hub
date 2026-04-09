@@ -3620,11 +3620,17 @@ async function initSlack() {
 
 async function slackAPI(token, method, params) {
   // Routes through Supabase Edge Function to avoid CORS
-  var result = await db.functions.invoke('slack', {
-    body: { method: method, params: params || {}, token: token }
+  var res = await fetch(SUPABASE_URL + '/functions/v1/slack', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    },
+    body: JSON.stringify({ method: method, params: params || {}, token: token })
   });
-  if (result.error) throw new Error(result.error.message || 'Slack proxy error');
-  return result.data;
+  if (!res.ok) throw new Error('Proxy HTTP ' + res.status);
+  var data = await res.json();
+  return data;
 }
 
 function getActiveToken() {
