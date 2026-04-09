@@ -633,6 +633,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 .slack-tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);flex-shrink:0;padding:0 1rem}
 .slack-tab{font-family:'Inter',sans-serif;font-size:.78rem;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:.55rem .75rem;color:var(--muted);cursor:pointer;transition:all .15s}
 .slack-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.slack-star-filter-btn{font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius-pill);padding:.25rem .7rem;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.slack-star-filter-btn:hover{border-color:var(--primary);color:var(--primary)}
+.slack-star-filter-btn.active{background:#f59e0b;color:white;border-color:#f59e0b}
+.slack-review-card{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:.7rem .9rem;margin-bottom:.5rem}
+.slack-review-card.five-star{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.06)}
+.slack-review-card.one-star,.slack-review-card.two-star{border-color:rgba(229,57,53,.2);background:rgba(229,57,53,.04)}
+.slack-review-stars{font-size:.95rem;letter-spacing:.05em;margin-bottom:.3rem}
+.slack-review-meta{font-family:'Inter',sans-serif;font-size:.68rem;color:var(--muted);margin-bottom:.35rem;display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+.slack-review-text{font-family:'Inter',sans-serif;font-size:.81rem;color:var(--body);line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.slack-review-ch{font-family:'Inter',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .slack-date-row{display:flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
 .slack-date-input{font-family:'Inter',sans-serif;font-size:.78rem;color:var(--body);background:var(--card);border:1px solid var(--border2);border-radius:7px;padding:.25rem .55rem;outline:none;cursor:pointer;flex:1;max-width:150px}
 .slack-date-label{font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted);margin-left:.1rem}
@@ -1426,7 +1436,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
     </div>
     <div class="slack-tab-bar" id="slack-tab-bar">
       <button class="slack-tab active" id="slack-tab-channels" onclick="slackShowChannelsTab()">Channels</button>
+      <button class="slack-tab" id="slack-tab-reviews" onclick="slackShowReviewsTab()">⭐ Reviews</button>
       <button class="slack-tab" id="slack-tab-summaries" onclick="slackShowSummaryTab()">Summaries</button>
+    </div>
+    <div id="slack-reviews-view" style="display:none;flex:1;overflow-y:auto;flex-direction:column">
+      <div style="padding:.75rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div style="font-family:'Inter',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.55rem">Filter by stars</div>
+        <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.65rem" id="slack-star-filters">
+          <button class="slack-star-filter-btn active" data-stars="0" onclick="slackSetStarFilter(0)">All ⭐</button>
+          <button class="slack-star-filter-btn" data-stars="5" onclick="slackSetStarFilter(5)">5★</button>
+          <button class="slack-star-filter-btn" data-stars="4" onclick="slackSetStarFilter(4)">4★</button>
+          <button class="slack-star-filter-btn" data-stars="3" onclick="slackSetStarFilter(3)">3★</button>
+          <button class="slack-star-filter-btn" data-stars="2" onclick="slackSetStarFilter(2)">2★</button>
+          <button class="slack-star-filter-btn" data-stars="1" onclick="slackSetStarFilter(1)">1★</button>
+        </div>
+        <button class="slack-hdr-btn" id="slack-pull-reviews-btn" onclick="slackPullReviews()" style="width:100%;justify-content:center;background:var(--primary);color:white;border-color:var(--primary)">Pull Reviews</button>
+      </div>
+      <div id="slack-reviews-list" style="padding:.75rem 1rem;flex:1;overflow-y:auto">
+        <div class="slack-empty">Select a date range above, then click Pull Reviews.</div>
+      </div>
     </div>
     <div id="slack-summaries-view" style="display:none;flex:1;overflow-y:auto;flex-direction:column"></div>
     <div id="slack-main-scroll" style="flex:1;overflow-y:auto;display:flex;flex-direction:column">
@@ -1504,7 +1532,8 @@ var slackState = {
   lastPulledAt: {}, mentionCounts: {}, summaryCache: {},
   dmNames: {}, starred: [], selectedChannels: [], selectMode: false,
   summaries: [], activeTab: 'channels', _btns: [],
-  archivedChannels: [], showArchived: false
+  archivedChannels: [], showArchived: false,
+  reviews: [], reviewStarFilter: 5
 };
 
 // THEME
@@ -3603,6 +3632,9 @@ initMobileNav();
 // alter table boards add column if not exists slack_user_id text;
 // ══════════════════════════════════════
 
+// Detect review messages (used by Pull All filter + Reviews tab)
+var SLACK_REVIEW_RE = /(\d+)[- ]star/i;
+
 var SLACK_SUMMARY_SYSTEM = 'You summarize Slack channel conversations for the CareNBloom (Hello Nancy) marketing team. '
   + 'Output valid JSON only — no markdown, no code blocks: '
   + '{"summary":"2-3 sentence overview of what was discussed","items":[{"tag":"ACTION","text":"one clear action item"},{"tag":"FYI","text":"one key info or decision"}]} '
@@ -3637,6 +3669,7 @@ function openSlackDrawer() {
   if (!slackState.inited) {
     slackState.inited = true;
     slackInitDatePicker();
+    slackShowChannelsTab();
     initSlack();
   } else if (slackState.ownToken && !slackState.channels.length) {
     slackLoadChannels('own');
@@ -3902,12 +3935,18 @@ function closeSlackChannel() {
   slackState.activeChannelId = null;
   slackState.activeChannelName = '';
   slackState.messages = [];
-  document.getElementById('slack-channel-view').style.display = 'none';
-  document.getElementById('slack-ch-section').style.display = 'flex';
-  document.getElementById('slack-summary-card').style.display = 'none';
+  var chView = document.getElementById('slack-channel-view');
+  if (chView) chView.style.display = 'none';
+  var summCard = document.getElementById('slack-summary-card');
+  if (summCard) summCard.style.display = 'none';
   // Hide "Pull Channel" header button when no channel open
   var phBtn = document.getElementById('slack-pull-ch-hdr-btn');
   if (phBtn) phBtn.style.display = 'none';
+  // Return to channels tab view
+  var mainScroll = document.getElementById('slack-main-scroll');
+  if (mainScroll) mainScroll.style.display = 'flex';
+  var chSection = document.getElementById('slack-ch-section');
+  if (chSection) chSection.style.display = 'flex';
 }
 
 function slackInitDatePicker() {
@@ -4094,7 +4133,12 @@ async function slackPullAll() {
         if (pullLatest) pullParams.latest = pullLatest;
         var data = await slackAPI(token, 'conversations.history', pullParams);
         if (!data.ok) continue;
-        var msgs = (data.messages || []).filter(function(m){ return m.type === 'message' && !m.subtype; });
+        var msgs = (data.messages || []).filter(function(m) {
+          if (m.type !== 'message' || m.subtype) return false;
+          // Exclude automated review bot messages (those belong in the Reviews tab)
+          if (SLACK_REVIEW_RE.test(m.text || '')) return false;
+          return true;
+        });
         msgs.forEach(function(msg) {
           var isMention = ownId && (msg.text || '').indexOf('<@' + ownId + '>') !== -1;
           slackState.mentions.push({ msg: msg, channelId: ch.id, channelName: ch.name, type: isMention ? 'mention' : 'message' });
@@ -4496,36 +4540,192 @@ async function slackBulkSummarize() {
 }
 
 // ─── FEATURE 4: Summaries Tab ────────────────────────────────────────────────
+function slackHideAllTabViews() {
+  ['slack-summaries-view','slack-reviews-view'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  ['slack-tab-channels','slack-tab-summaries','slack-tab-reviews'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  var chSection = document.getElementById('slack-ch-section');
+  if (chSection) chSection.style.display = 'none';
+  var chView = document.getElementById('slack-channel-view');
+  if (chView) chView.style.display = 'none';
+  var mainScroll = document.getElementById('slack-main-scroll');
+  if (mainScroll) mainScroll.style.display = 'none';
+}
+
 function slackShowChannelsTab() {
   slackState.activeTab = 'channels';
+  slackHideAllTabViews();
   var tabCh = document.getElementById('slack-tab-channels');
-  var tabSu = document.getElementById('slack-tab-summaries');
   if (tabCh) tabCh.classList.add('active');
-  if (tabSu) tabSu.classList.remove('active');
-  var summView = document.getElementById('slack-summaries-view');
-  if (summView) summView.style.display = 'none';
+  var mainScroll = document.getElementById('slack-main-scroll');
+  if (mainScroll) mainScroll.style.display = 'flex';
   var chSection = document.getElementById('slack-ch-section');
-  if (chSection) chSection.style.display = 'flex';
+  if (chSection) chSection.style.display = slackState.activeChannelId ? 'none' : 'flex';
   if (slackState.activeChannelId) {
     var chView = document.getElementById('slack-channel-view');
     if (chView) chView.style.display = 'flex';
-    if (chSection) chSection.style.display = 'none';
   }
 }
 
 function slackShowSummaryTab() {
   slackState.activeTab = 'summaries';
-  var tabCh = document.getElementById('slack-tab-channels');
+  slackHideAllTabViews();
   var tabSu = document.getElementById('slack-tab-summaries');
-  if (tabCh) tabCh.classList.remove('active');
   if (tabSu) tabSu.classList.add('active');
-  var chSection = document.getElementById('slack-ch-section');
-  if (chSection) chSection.style.display = 'none';
-  var chView = document.getElementById('slack-channel-view');
-  if (chView) chView.style.display = 'none';
   var summView = document.getElementById('slack-summaries-view');
   if (summView) summView.style.display = 'flex';
   renderSlackSummariesTab();
+}
+
+// ─── FEATURE 5: Reviews Tab ──────────────────────────────────────────────────
+function slackShowReviewsTab() {
+  slackState.activeTab = 'reviews';
+  slackHideAllTabViews();
+  var tabRv = document.getElementById('slack-tab-reviews');
+  if (tabRv) tabRv.classList.add('active');
+  var rvView = document.getElementById('slack-reviews-view');
+  if (rvView) rvView.style.display = 'flex';
+  // Update star filter button states
+  slackUpdateStarFilterUI();
+}
+
+function slackSetStarFilter(stars) {
+  slackState.reviewStarFilter = stars;
+  slackUpdateStarFilterUI();
+  // Re-render if we already have reviews
+  if (slackState.reviews.length) renderSlackReviews();
+}
+
+function slackUpdateStarFilterUI() {
+  var btns = document.querySelectorAll('.slack-star-filter-btn');
+  btns.forEach(function(btn) {
+    var s = parseInt(btn.getAttribute('data-stars') || '0');
+    btn.classList.toggle('active', s === slackState.reviewStarFilter);
+  });
+}
+
+function slackParseStars(text) {
+  var m = SLACK_REVIEW_RE.exec(text || '');
+  return m ? parseInt(m[1]) : null;
+}
+
+async function slackPullReviews() {
+  var token = slackState.ownToken;
+  if (!token) { showToast('No Slack token — click avatar → My Slack.'); return; }
+
+  var btn = document.getElementById('slack-pull-reviews-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Pulling...'; }
+
+  try {
+    if (!slackState.channels.length) await slackLoadChannels('own');
+
+    var oldest = slackGetSelectedOldest();
+    var latest = slackGetSelectedLatest();
+    var starFilter = slackState.reviewStarFilter; // 0 = all stars
+
+    slackState.reviews = [];
+    var allChannels = slackState.channels.filter(function(ch) {
+      return slackState.archivedChannels.indexOf(ch.id) === -1;
+    });
+
+    for (var i = 0; i < allChannels.length; i++) {
+      var ch = allChannels[i];
+      try {
+        var params = { channel: ch.id, oldest: oldest, limit: 200 };
+        if (latest) params.latest = latest;
+        var data = await slackAPI(token, 'conversations.history', params);
+        if (!data.ok) continue;
+        var msgs = (data.messages || []).filter(function(m) {
+          if (m.type !== 'message' || m.subtype) return false;
+          var stars = slackParseStars(m.text);
+          if (stars === null) return false;
+          return starFilter === 0 ? true : stars === starFilter;
+        });
+        msgs.forEach(function(m) {
+          slackState.reviews.push({
+            msg: m,
+            channelId: ch.id,
+            channelName: ch.name,
+            stars: slackParseStars(m.text)
+          });
+        });
+      } catch(e) { /* skip */ }
+      if (i < allChannels.length - 1) await slackSleep(130);
+    }
+
+    // Sort by timestamp desc
+    slackState.reviews.sort(function(a, b) {
+      return parseFloat(b.msg.ts || 0) - parseFloat(a.msg.ts || 0);
+    });
+
+    renderSlackReviews();
+    var count = slackState.reviews.length;
+    var label = starFilter === 0 ? 'all star ratings' : (starFilter + '-star');
+    showToast('Found ' + count + ' review' + (count !== 1 ? 's' : '') + ' (' + label + ')');
+  } catch(e) {
+    showToast('Pull reviews failed: ' + (e.message || 'error'));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Pull Reviews'; }
+  }
+}
+
+function renderSlackReviews() {
+  slackState._btns = [];
+  var el = document.getElementById('slack-reviews-list');
+  if (!el) return;
+
+  var reviews = slackState.reviews;
+  if (!reviews.length) {
+    el.innerHTML = '<div class="slack-empty">No reviews found for the selected date range and star filter.</div>';
+    return;
+  }
+
+  var starFilter = slackState.reviewStarFilter;
+  var filtered = starFilter === 0 ? reviews : reviews.filter(function(r){ return r.stars === starFilter; });
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="slack-empty">No ' + starFilter + '-star reviews in this range.</div>';
+    return;
+  }
+
+  // Count by star
+  var counts = {1:0,2:0,3:0,4:0,5:0};
+  filtered.forEach(function(r){ if (counts[r.stars] !== undefined) counts[r.stars]++; });
+
+  var starStr = [5,4,3,2,1].filter(function(s){ return counts[s]; }).map(function(s){ return s + '★ ×' + counts[s]; }).join('  ');
+  var header = '<div style="font-family:Inter,sans-serif;font-size:.7rem;color:var(--muted);margin-bottom:.75rem;padding:.3rem 0">' +
+    '<strong style="color:var(--body)">' + filtered.length + ' review' + (filtered.length !== 1 ? 's' : '') + '</strong>' +
+    (starStr ? '  ·  ' + starStr : '') +
+  '</div>';
+
+  var cards = filtered.map(function(r) {
+    var text = (r.msg.text || '').replace(/<([^|>]+)\|([^>]+)>/g, '$2').replace(/<[^>]+>/g, '').trim();
+    var ts = r.msg.ts ? new Date(parseFloat(r.msg.ts)*1000).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}) : '';
+    var starEmoji = '';
+    for (var s = 0; s < r.stars; s++) starEmoji += '★';
+    for (var e = r.stars; e < 5; e++) starEmoji += '☆';
+    var cardCls = r.stars === 5 ? 'five-star' : (r.stars <= 2 ? 'one-star' : '');
+    var taskText = text.slice(0, 120);
+    var source = '#' + r.channelName + ' (' + r.stars + '-star review)';
+    return '<div class="slack-review-card ' + cardCls + '">' +
+      '<div class="slack-review-stars" style="color:' + (r.stars >= 4 ? '#f59e0b' : r.stars <= 2 ? '#e53935' : '#8a8a88') + '">' + starEmoji + '</div>' +
+      '<div class="slack-review-meta">' +
+        '<span class="slack-review-ch">#' + esc(r.channelName) + '</span>' +
+        '<span>' + ts + '</span>' +
+      '</div>' +
+      '<div class="slack-review-text">' + esc(text).slice(0, 400) + (text.length > 400 ? '…' : '') + '</div>' +
+      '<div style="margin-top:.5rem">' +
+        '<button class="slack-add-task-btn" ' + slackBtn(taskText, source) + '>+ Add as Task</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  el.innerHTML = header + cards;
 }
 
 function renderSlackSummariesTab() {
