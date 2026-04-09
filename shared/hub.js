@@ -491,28 +491,16 @@ async function saveMySlackToken() {
     return;
   }
   try {
-    var res = await fetch(SUPABASE_URL + '/functions/v1/slack', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + SUPABASE_KEY
-      },
-      body: JSON.stringify({ method: 'auth.test', params: {}, token: token })
-    });
-    var data = await res.json();
-    if (!data.ok) { showToast('Invalid token: ' + (data.error || 'unknown')); return; }
-
-    var slackUserId = data.user_id || '';
-    await db.from('boards').update({ slack_token: token, slack_user_id: slackUserId }).eq('id', hubState.currentUser.id);
+    var result = await db.from('boards').update({ slack_token: token }).eq('id', hubState.currentUser.id);
+    if (result.error) throw new Error(result.error.message);
     hubState.currentUser.slack_token = token;
-    hubState.currentUser.slack_user_id = slackUserId;
     input.value = '';
 
     var statusEl = document.getElementById('user-slack-status');
     if (statusEl) { statusEl.textContent = 'Connected \u2713'; statusEl.style.color = 'var(--green,#3bb273)'; }
-    showToast('Slack connected as @' + (data.user || 'you'));
+    showToast('Slack token saved! Open the Slack drawer to pull your channels.');
   } catch(e) {
-    showToast('Error: ' + (e.message || 'network error'));
+    showToast('Error saving token: ' + (e.message || 'try again'));
   }
 }
 window.saveMySlackToken = saveMySlackToken;
