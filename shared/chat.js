@@ -71,47 +71,49 @@ var STARTERS = [
 function injectStyles() {
   var s = document.createElement('style');
   s.textContent = [
-    // ── Lemon bubble ────────────────────────────────────────────────
-    // Outer wrapper — transparent, overflow:visible so lemon floats above
-    '.nc-bubble{position:fixed;bottom:1.5rem;right:1.75rem;z-index:900;width:62px;height:84px;background:transparent;border:none;cursor:pointer;padding:0;display:block;transition:transform .25s cubic-bezier(.34,1.56,.64,1);overflow:visible}',
-    '.nc-bubble:hover{transform:scale(1.07) translateY(-3px)}',
+    // ── Yellow robot + leaf bubble (no animation) ───────────────────
+    // Outer wrapper
+    '.nc-bubble{position:fixed;bottom:1.5rem;right:1.75rem;z-index:900;width:64px;height:90px;background:transparent;border:none;cursor:pointer;padding:0;display:block;transition:transform .18s ease;overflow:visible}',
+    '.nc-bubble:hover{transform:scale(1.05)}',
     '.nc-bubble.open{transform:scale(1)}',
 
-    // Speech bubble shell — frosted glass circle with tail
-    '.nc-bbl{position:absolute;bottom:0;left:0;right:0;height:52px;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.22);border-radius:50% 50% 38% 50%/50% 50% 62% 50%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;z-index:1}',
-    '.nc-bbl-lbl{font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;color:rgba(255,255,255,.85);letter-spacing:.05em;line-height:1}',
+    // Speech bubble shell — frosted glass with tail
+    '.nc-bbl{position:absolute;bottom:0;left:0;right:0;height:54px;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.2);border-radius:50% 50% 36% 50%/50% 50% 64% 50%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;z-index:1}',
+    '.nc-bbl-lbl{font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;color:rgba(255,255,255,.82);letter-spacing:.05em;line-height:1}',
 
     // Notification dot
-    '.nc-bubble-dot{position:absolute;top:22px;right:2px;width:9px;height:9px;background:#e53935;border-radius:50%;border:2px solid rgba(0,0,0,.4);display:none;z-index:10}',
+    '.nc-bubble-dot{position:absolute;top:24px;right:3px;width:9px;height:9px;background:#e53935;border-radius:50%;border:2px solid rgba(0,0,0,.4);display:none;z-index:10}',
     '.nc-bubble-dot.show{display:block}',
 
-    // Lemon character — sits above bubble, rendered on top (z-index:2)
-    '.nc-lemon{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:2;animation:ncLemonBob 3s ease-in-out infinite}',
-    '.nc-bubble.open .nc-lemon{animation:none}',
-    '@keyframes ncLemonBob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-3deg)}50%{transform:translateX(-50%) translateY(-5px) rotate(3deg)}}',
+    // Robot wrapper — static, sits above bubble (z-index:2 = always in front)
+    '.nc-lemon{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:2}',
 
-    // Leaf
-    '.nc-lemon-leaf{width:14px;height:9px;background:linear-gradient(135deg,#4ade80,#22c55e);border-radius:80% 0 80% 0;transform:rotate(-25deg);margin-bottom:-3px;margin-left:10px;position:relative;z-index:3}',
+    // Sleek leaf — grows from top-right of head
+    '.nc-lemon-leaf{width:15px;height:10px;background:linear-gradient(135deg,#4ade80,#16a34a);border-radius:80% 5% 80% 5%;transform:rotate(-28deg);margin-bottom:-5px;margin-left:14px;position:relative;z-index:4}',
 
-    // Lemon body — oval with tips
-    '.nc-lemon-body{width:32px;height:38px;background:linear-gradient(150deg,#fef08a 10%,#facc15 60%,#eab308 100%);border-radius:50% 50% 46% 46%/40% 40% 60% 60%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;box-shadow:inset -4px -5px 0 rgba(0,0,0,.07),inset 2px 2px 0 rgba(255,255,255,.35)}',
+    // Robot head — yellow rounded rect, like reference photo
+    '.nc-lemon-body{width:40px;height:30px;background:linear-gradient(160deg,#fde68a,#fbbf24 60%,#f0a800);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;z-index:3}',
+    // Ear nubs
+    '.nc-lemon-body::before,.nc-lemon-body::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:5px;height:11px;background:#e09800;border-radius:3px}',
+    '.nc-lemon-body::before{left:-4px;border-radius:3px 0 0 3px}',
+    '.nc-lemon-body::after{right:-4px;border-radius:0 3px 3px 0}',
 
-    // Pointed tip top
-    '.nc-lemon-body::before{content:"";position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:#facc15;border-radius:50%;clip-path:ellipse(50% 80% at 50% 80%)}',
-    // Pointed tip bottom
-    '.nc-lemon-body::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:7px;height:7px;background:#eab308;border-radius:50%;clip-path:ellipse(50% 80% at 50% 20%)}',
+    // White visor panel (wide, like reference photo)
+    '.nc-lemon-eyes{width:30px;height:16px;background:rgba(255,255,255,.96);border-radius:5px;display:flex;align-items:center;justify-content:space-evenly;padding:0 4px}',
+    '.nc-lemon-eye{width:5px;height:5px;background:#1a1a2e;border-radius:50%}',
 
-    // Eyes
-    '.nc-lemon-eyes{display:flex;gap:8px;align-items:center}',
-    '.nc-lemon-eye{width:4px;height:4px;background:#1a1a2e;border-radius:50%;transition:transform .2s}',
-    '.nc-bubble:hover .nc-lemon-eye{transform:scaleY(0.5)}',
+    // Smile line below visor
+    '.nc-lemon-smile{width:14px;height:0;border-bottom:2.5px solid rgba(0,0,0,.22);border-radius:0 0 7px 7px}',
 
-    // Smile
-    '.nc-lemon-smile{width:13px;height:0;border-bottom:2.5px solid rgba(0,0,0,.3);border-radius:0 0 8px 8px}',
-    // ── end lemon bubble ─────────────────────────────────────────────
+    // Neck connector
+    '.nc-bot-neck{width:16px;height:7px;background:#e09800;border-radius:0 0 4px 4px;margin-top:0}',
+
+    // Shoulders — round top, merges into bubble
+    '.nc-bot-shoulders{width:44px;height:12px;background:linear-gradient(160deg,#fde68a,#fbbf24);border-radius:8px 8px 0 0;margin-top:1px}',
+    // ── end robot bubble ─────────────────────────────────────────────
 
     // Panel
-    '.nc-panel{position:fixed;bottom:calc(1.75rem + 52px + .75rem);right:1.75rem;z-index:900;width:380px;max-height:560px;background:var(--card,#1a1a1a);border:1px solid var(--border2,rgba(255,255,255,.12));border-radius:20px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(12px) scale(.97);transition:opacity .22s ease,transform .25s cubic-bezier(.34,1.3,.64,1);overflow:hidden}',
+    '.nc-panel{position:fixed;bottom:calc(1.5rem + 90px + .75rem);right:1.75rem;z-index:900;width:380px;max-height:560px;background:var(--card,#1a1a1a);border:1px solid var(--border2,rgba(255,255,255,.12));border-radius:20px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(12px) scale(.97);transition:opacity .22s ease,transform .25s cubic-bezier(.34,1.3,.64,1);overflow:hidden}',
     '.nc-panel.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}',
 
     // Header
@@ -232,7 +234,7 @@ function injectHTML() {
       '<span class="nc-bbl">',
         '<span class="nc-bbl-lbl" id="nc-bubble-ico">Hi</span>',
       '</span>',
-      // 2. Lemon character (z-index:2, rendered after = always in front)
+      // 2. Robot character (z-index:2, rendered after = always in front)
       '<span class="nc-lemon">',
         '<span class="nc-lemon-leaf"></span>',
         '<span class="nc-lemon-body">',
@@ -242,6 +244,8 @@ function injectHTML() {
           '</span>',
           '<span class="nc-lemon-smile"></span>',
         '</span>',
+        '<span class="nc-bot-neck"></span>',
+        '<span class="nc-bot-shoulders"></span>',
       '</span>',
     '</button>'
   ].join('');
