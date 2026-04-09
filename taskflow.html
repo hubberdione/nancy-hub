@@ -3619,18 +3619,12 @@ async function initSlack() {
 }
 
 async function slackAPI(token, method, params) {
-  var body = new URLSearchParams();
-  body.append('token', token);
-  Object.keys(params || {}).forEach(function(k) {
-    body.append(k, params[k]);
+  // Routes through Supabase Edge Function to avoid CORS
+  var result = await db.functions.invoke('slack', {
+    body: { method: method, params: params || {}, token: token }
   });
-  var res = await fetch('https://slack.com/api/' + method, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  if (!res.ok) throw new Error('Slack API HTTP ' + res.status);
-  return res.json();
+  if (result.error) throw new Error(result.error.message || 'Slack proxy error');
+  return result.data;
 }
 
 function getActiveToken() {
