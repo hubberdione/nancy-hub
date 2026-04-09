@@ -903,6 +903,7 @@ async function loadAvatars() {
     var postResult = await db.from('social_posts').select('avatar_id, status')
       .gte('week_start', weekStart.toISOString().slice(0,10))
       .lt('week_start', weekEnd.toISOString().slice(0,10));
+    if (postResult.error) throw postResult.error;
     renderAvatarCards(socialState.avatars, postResult.data || []);
   } catch(e) {
     container.innerHTML = '<div class="empty-st"><div class="empty-st-h">Could not load avatars</div><div>' + esc(e.message || '') + '</div></div>';
@@ -1193,7 +1194,7 @@ function updateNicheCount() {
 async function callGemini(prompt) {
   var key = (typeof GEMINI_API_KEY !== 'undefined') ? GEMINI_API_KEY : '';
   if (!key) throw new Error('NO_KEY');
-  var model = (typeof GEMINI_MODEL !== 'undefined') ? GEMINI_MODEL : 'gemini-1.5-flash';
+  var model = (typeof GEMINI_MODEL !== 'undefined') ? GEMINI_MODEL : 'gemini-1.5-flash-latest';
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key;
   var resp = await fetch(url, {
     method: 'POST',
@@ -1646,18 +1647,19 @@ async function approveAllWeekPosts() {
     var scheduledDate = new Date(d.date + 'T19:00:00');
     var weekStr = getWeekMonday(scheduledDate).toISOString().slice(0,10);
     try {
-      await db.from('social_posts').insert({
+      var r = await db.from('social_posts').insert({
         avatar_id: socialState.currentAvatar.id,
         platform: platform, post_type: d.post_type || 'AI Studio',
         caption: d.caption || '', status: 'pending',
         scheduled_for: scheduledDate.toISOString(), week_start: weekStr
       });
+      if (r.error) throw r.error;
       successes++;
       var card = document.getElementById('wkplan-card-' + i);
       if (card) card.classList.add('approved');
-    } catch(e) {}
+    } catch(e) { showToast('Day ' + (i+1) + ' failed: ' + (e.message||''), 'error'); }
   }
-  showToast(successes + ' posts sent to calendar!', 'success');
+  if (successes > 0) showToast(successes + ' of ' + studioState.weekPlan.length + ' posts sent to calendar!', 'success');
 }
 
 // ══════════════════════════════════════
