@@ -3619,11 +3619,16 @@ async function initSlack() {
 }
 
 async function slackAPI(token, method, params) {
-  var qs = Object.keys(params || {}).map(function(k) {
-    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-  }).join('&');
-  var url = 'https://slack.com/api/' + method + (qs ? '?' + qs : '');
-  var res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+  var body = new URLSearchParams();
+  body.append('token', token);
+  Object.keys(params || {}).forEach(function(k) {
+    body.append(k, params[k]);
+  });
+  var res = await fetch('https://slack.com/api/' + method, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  });
   if (!res.ok) throw new Error('Slack API HTTP ' + res.status);
   return res.json();
 }
