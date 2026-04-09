@@ -11,8 +11,8 @@
 const SUPABASE_URL = 'https://yiqniylxflulzfghujzw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpcW5peWx4Zmx1bHpmZ2h1anp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNzcwMTEsImV4cCI6MjA5MDY1MzAxMX0.ZVT3XwHkBrL1leBaQevew8G4k5syHmT5gYDznPQeAFY';
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8IiG-k3J2lcQR38unRpO2cHyRidAlQTM8FLWCIbHy9JjdvmeB6MrKo_vNVaqsi3Th/exec';
-var GEMINI_API_KEY = ''; // Loaded from Supabase settings after login — set via Admin panel
-const GEMINI_MODEL = 'gemini-2.0-flash'; // AI brain for the entire hub
+var GROQ_API_KEY = ''; // Loaded from Supabase settings after login — set via Admin panel
+const GROQ_MODEL = 'llama-3.3-70b-versatile'; // AI brain for the entire hub
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -239,10 +239,10 @@ async function onAuthSuccess(authUser) {
     }
   } catch(e) {}
   localStorage.setItem('nancy_user', JSON.stringify(hubState.currentUser));
-  // Load Gemini API key from settings (never stored in code)
+  // Load Groq API key from settings (never stored in code)
   try {
-    var gkResult = await db.from('settings').select('value').eq('key', 'gemini_api_key').single();
-    if (gkResult.data && gkResult.data.value) GEMINI_API_KEY = gkResult.data.value;
+    var gkResult = await db.from('settings').select('value').eq('key', 'groq_api_key').single();
+    if (gkResult.data && gkResult.data.value) GROQ_API_KEY = gkResult.data.value;
   } catch(e) {}
   updateNavUser();
   var app = document.getElementById('app');

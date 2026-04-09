@@ -303,19 +303,19 @@
           </div>
         </div>
 
-        <!-- Gemini -->
-        <div class="hc checking" id="hc-gemini">
+        <!-- Groq -->
+        <div class="hc checking" id="hc-groq">
           <div class="hc-top">
-            <div class="hc-dot checking" id="hc-gemini-dot"></div>
-            <div class="hc-name">Gemini AI</div>
+            <div class="hc-dot checking" id="hc-groq-dot"></div>
+            <div class="hc-name">Groq AI</div>
           </div>
-          <div class="hc-msg" id="hc-gemini-msg">Checking...</div>
-          <button class="hc-fix-toggle" id="hc-gemini-toggle" onclick="toggleFix('gemini')">▼ How to fix</button>
-          <div class="hc-fix-body" id="hc-gemini-fix">
-            <div class="hc-fix-step"><span class="hc-fix-step-num">1.</span><span>Go to <a class="hc-fix-link" href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> and create or copy your free API key.</span></div>
-            <div class="hc-fix-step"><span class="hc-fix-step-num">2.</span><span>Paste it into the <b>Gemini API Key</b> field in the Settings section below.</span></div>
+          <div class="hc-msg" id="hc-groq-msg">Checking...</div>
+          <button class="hc-fix-toggle" id="hc-groq-toggle" onclick="toggleFix('groq')">▼ How to fix</button>
+          <div class="hc-fix-body" id="hc-groq-fix">
+            <div class="hc-fix-step"><span class="hc-fix-step-num">1.</span><span>Go to <a class="hc-fix-link" href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> and create a free API key.</span></div>
+            <div class="hc-fix-step"><span class="hc-fix-step-num">2.</span><span>Paste it into the <b>Groq API Key</b> field in the Settings section below.</span></div>
             <div class="hc-fix-step"><span class="hc-fix-step-num">3.</span><span>Click Save, then come back here and Recheck.</span></div>
-            <button class="hc-recheck" onclick="checkGemini()">Recheck ↻</button>
+            <button class="hc-recheck" onclick="checkGroq()">Recheck ↻</button>
           </div>
         </div>
 
@@ -350,17 +350,17 @@
       </div>
       <div class="settings-grid">
 
-        <!-- Gemini API Key -->
+        <!-- Groq API Key -->
         <div class="settings-row">
           <div class="settings-row-inner">
-            <div class="settings-key">Gemini API Key</div>
-            <div class="settings-desc">Used for AI triage of emails and Slack messages in Inbox Review. Free tier — get it from Google AI Studio.</div>
+            <div class="settings-key">Groq API Key</div>
+            <div class="settings-desc">Powers all AI features across the hub. Free — get it from console.groq.com/keys.</div>
             <div class="settings-input-wrap">
-              <input class="settings-input" type="password" id="setting-gemini" placeholder="AIza••••••••••••••••••••••••••" autocomplete="off"/>
+              <input class="settings-input" type="password" id="setting-groq" placeholder="gsk_••••••••••••••••••••••••••" autocomplete="off"/>
             </div>
-            <div class="settings-saved" id="saved-gemini">✓ Saved</div>
+            <div class="settings-saved" id="saved-groq">✓ Saved</div>
           </div>
-          <button class="settings-save-btn" onclick="saveSetting('gemini_api_key','setting-gemini','saved-gemini')">Save</button>
+          <button class="settings-save-btn" onclick="saveSetting('groq_api_key','setting-groq','saved-groq')">Save</button>
         </div>
 
         <!-- Slack Token -->
@@ -444,8 +444,8 @@ async function onPageReady() {
 // ── RUN ALL CHECKS ──
 function runAllChecks() {
   setChecking('supabase'); setChecking('gas');
-  setChecking('gmail'); setChecking('slack'); setChecking('gemini');
-  checkSupabase(); checkGAS(); checkGmail(); checkSlack(); checkGemini();
+  setChecking('gmail'); setChecking('slack'); setChecking('groq');
+  checkSupabase(); checkGAS(); checkGmail(); checkSlack(); checkGroq();
 }
 
 // ── HEALTH STATE HELPERS ──
@@ -594,17 +594,17 @@ async function checkSlack() {
   }
 }
 
-async function checkGemini() {
+async function checkGroq() {
   try {
-    var result = await db.from('settings').select('value').eq('key', 'gemini_api_key').single();
+    var result = await db.from('settings').select('value').eq('key', 'groq_api_key').single();
     var key = result.data && result.data.value ? result.data.value : '';
     if (!key) {
-      setWarn('gemini', 'No API key set. AI triage is disabled.');
+      setWarn('groq', 'No API key set. AI features are disabled.');
       return;
     }
-    setOk('gemini', 'API key is configured');
+    setOk('groq', 'API key is configured');
   } catch(e) {
-    setWarn('gemini', 'Could not check Gemini key. Check settings below.');
+    setWarn('groq', 'Could not check Groq key. Check settings below.');
   }
 }
 
@@ -708,8 +708,8 @@ async function changeRole(memberId, newRole, memberName) {
 // ── SETTINGS ──
 async function loadCurrentSettings() {
   try {
-    var keys = ['gemini_api_key', 'inbox_slack_token', 'hub_password'];
-    var fieldMap = { gemini_api_key: 'setting-gemini', inbox_slack_token: 'setting-slack', hub_password: 'setting-hubpw' };
+    var keys = ['groq_api_key', 'inbox_slack_token', 'hub_password'];
+    var fieldMap = { groq_api_key: 'setting-groq', inbox_slack_token: 'setting-slack', hub_password: 'setting-hubpw' };
     var result = await db.from('settings').select('key,value').in('key', keys);
     if (result.data) {
       result.data.forEach(function(row) {
@@ -737,7 +737,7 @@ async function saveSetting(key, inputId, savedId) {
     showToast('Saved', 'success');
     // Recheck relevant service after saving
     if (key === 'inbox_slack_token') checkSlack();
-    if (key === 'gemini_api_key') checkGemini();
+    if (key === 'groq_api_key') checkGroq();
   } catch(e) {
     showToast('Could not save: ' + (e.message || 'unknown error'), 'error');
   }

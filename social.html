@@ -466,7 +466,7 @@
         <div class="studio-wrap">
           <div class="api-warn" id="api-warn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Gemini API key not configured. Add your key to <code style="background:rgba(247,183,49,.15);padding:1px 5px;border-radius:4px;font-size:.78rem">shared/hub.js</code> to enable AI features.
+            Groq API key not configured. Add your key in Admin → Settings to enable AI features.
           </div>
 
           <!-- STEP 1 -->
@@ -884,7 +884,7 @@ function onPageReady() {
   }
   loadAvatars();
   // Check Gemini key
-  if (!GEMINI_API_KEY) {
+  if (!GROQ_API_KEY) {
     document.getElementById('api-warn').classList.add('show');
   }
 }
@@ -1192,18 +1192,17 @@ function updateNicheCount() {
 }
 
 async function callGemini(prompt) {
-  var key = (typeof GEMINI_API_KEY !== 'undefined') ? GEMINI_API_KEY : '';
+  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
   if (!key) throw new Error('NO_KEY');
-  var model = (typeof GEMINI_MODEL !== 'undefined') ? GEMINI_MODEL : 'gemini-1.5-flash-latest';
-  var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key;
-  var resp = await fetch(url, {
+  var model = (typeof GROQ_MODEL !== 'undefined') ? GROQ_MODEL : 'llama-3.3-70b-versatile';
+  var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({ model: model, messages: [{ role: 'user', content: prompt }] })
   });
   var data = await resp.json();
-  if (!resp.ok || data.error) throw new Error(data.error ? data.error.message : 'Gemini error');
-  return data.candidates[0].content.parts[0].text;
+  if (!resp.ok || data.error) throw new Error(data.error ? data.error.message : 'Groq error');
+  return data.choices[0].message.content;
 }
 
 function extractJSON(text) {
@@ -1296,8 +1295,8 @@ function setBtnLoading(id, loading, label) {
 async function generateHooks() {
   var niche = (document.getElementById('studio-niche').value || '').trim();
   if (!niche) { showToast('Describe your niche first.', 'error'); return; }
-  var key = (typeof GEMINI_API_KEY !== 'undefined') ? GEMINI_API_KEY : '';
-  if (!key) { showToast('Configure your Gemini API key first.', 'error'); return; }
+  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
+  if (!key) { showToast('Configure your Groq API key first.', 'error'); return; }
   studioState.niche = niche;
   setBtnLoading('btn-gen-hooks', true, 'Generate Formats & Hooks');
   var ctx = await buildAvatarContext();
@@ -1361,7 +1360,7 @@ function setDuration(btn) {
 // Step 2 — Script Generator
 async function generateScript(variation) {
   if (!studioState.selectedHook) { showToast('Select a hook first.', 'error'); return; }
-  var key = (typeof GEMINI_API_KEY !== 'undefined') ? GEMINI_API_KEY : '';
+  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
   if (!key) { showToast('No API key configured.', 'error'); return; }
   setBtnLoading('btn-gen-script', true, 'Generate Script');
   var ctx = await buildAvatarContext();
@@ -1423,7 +1422,7 @@ function renderScriptSection(key, label, data) {
 
 async function regenSection(key) {
   if (!studioState.script || !studioState.selectedHook) return;
-  var keyGemini = (typeof GEMINI_API_KEY !== 'undefined') ? GEMINI_API_KEY : '';
+  var keyGemini = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
   if (!keyGemini) { showToast('No API key configured.', 'error'); return; }
   var btn = document.getElementById('regen-' + key);
   if (btn) btn.classList.add('busy');
@@ -1453,7 +1452,7 @@ async function regenSection(key) {
 // Step 3 — Shot Plan Generator
 async function generateShotPlan(variation) {
   if (!studioState.script) { showToast('Generate a script first.', 'error'); return; }
-  var keyGemini = (typeof GEMINI_API_KEY !== 'undefined') ? GEMINI_API_KEY : '';
+  var keyGemini = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
   if (!keyGemini) { showToast('No API key configured.', 'error'); return; }
   setBtnLoading('btn-gen-shots', true, 'Generate Shot Plan');
   var s = studioState.script;
@@ -1547,7 +1546,7 @@ async function approveToCalendar() {
 // WEEK PLAN GENERATOR
 // ══════════════════════════════════════
 async function generateWeekPlan() {
-  var key = (typeof GEMINI_API_KEY !== 'undefined') ? GEMINI_API_KEY : '';
+  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
   if (!key) { showToast('No API key configured.', 'error'); return; }
   if (!socialState.currentAvatar) { showToast('Open an avatar first.', 'error'); return; }
 
