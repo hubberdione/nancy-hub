@@ -645,20 +645,14 @@
           <div class="studio-divider"></div>
 
           <!-- STEP 4: HASHTAG GENERATOR -->
-          <div class="studio-step">
+          <div class="studio-step" id="studio-step4">
             <div class="studio-step-hdr">
               <div class="studio-num">4</div>
-              <div>
-                <div class="studio-step-title">Hashtag Pack Generator</div>
-                <div class="studio-step-meta" id="step4-meta">Generate 30 hashtags grouped by reach</div>
-              </div>
-              <div style="margin-left:auto;font-size:.78rem;color:var(--muted)">30 hashtags · 3 groups</div>
+              <div class="studio-step-title">Hashtag Pack Generator</div>
+              <div class="studio-step-meta" id="step4-meta">Generate a script first</div>
             </div>
-            <div class="studio-step-body">
-              <textarea class="studio-niche" id="hashtag-topic-input" placeholder="Describe your niche or this post's topic..." style="height:70px"></textarea>
-              <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem">
-                <button class="gen-btn" id="btn-gen-hashtags" onclick="generateHashtagPack()">Generate Hashtag Pack</button>
-              </div>
+            <div id="studio-step4-body" class="studio-locked">
+              <button class="btn-primary" id="btn-gen-hashtags" onclick="generateHashtagPack()">Generate Hashtag Pack</button>
               <div id="hashtag-pack-output" style="margin-top:1rem"></div>
             </div>
           </div>
@@ -1678,9 +1672,11 @@ async function generateScript(variation) {
     var text = await callGemini(prompt);
     studioState.script = extractJSON(text);
     renderScript(studioState.script);
-    // Unlock step 3 and show approve bar
+    // Unlock steps 3 and 4 and show approve bar
     document.getElementById('studio-step3-body').classList.remove('studio-locked');
     document.getElementById('step3-meta').textContent = 'Script ready — generate shot plan below';
+    document.getElementById('studio-step4-body').classList.remove('studio-locked');
+    document.getElementById('step4-meta').textContent = '30 hashtags · 3 groups';
     var approveBar = document.getElementById('approve-bar');
     if (approveBar) {
       approveBar.style.display = 'flex';
@@ -1811,17 +1807,22 @@ function renderShotPlan(shots) {
 
 // Step 4 — Hashtag Pack Generator (AI Studio)
 async function generateHashtagPack() {
-  var topicEl = document.getElementById('hashtag-topic-input');
-  var topic = (topicEl ? topicEl.value.trim() : '') || studioState.niche || '';
-  if (!topic) { showToast('Enter a topic first.', 'error'); return; }
   var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
   if (!key) { showToast('No API key configured.', 'error'); return; }
+  // Auto-build context from hook + script + niche — no manual input needed
+  var hook = studioState.selectedHook || '';
+  var script = studioState.script;
+  var scriptText = script ? [script.hook && script.hook.text, script.body && script.body.text, script.cta && script.cta.text].filter(Boolean).join(' ') : '';
+  var niche = studioState.niche || '';
+  if (!hook && !scriptText && !niche) { showToast('Generate a script first.', 'error'); return; }
   setBtnLoading('btn-gen-hashtags', true, 'Generate Hashtag Pack');
   var ctx = await buildAvatarContext();
   var prompt = 'You are a social media hashtag strategist.\n\n' +
     (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
-    'Niche/Topic: ' + topic + '\n\n' +
-    'Generate exactly 30 hashtags. Group them:\n' +
+    (niche ? 'Niche: ' + niche + '\n' : '') +
+    (hook ? 'Hook: ' + hook + '\n' : '') +
+    (scriptText ? 'Script: ' + scriptText + '\n' : '') + '\n' +
+    'Based on this content, generate exactly 30 highly relevant hashtags. Group them:\n' +
     '- mega: 5 hashtags with 10M+ posts\n' +
     '- mid: 15 hashtags with 100K–10M posts\n' +
     '- niche: 10 hashtags under 100K posts\n\n' +
