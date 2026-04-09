@@ -87,6 +87,39 @@
 .vault-sec{font-family:'Fraunces',serif;font-size:.98rem;font-weight:600;color:var(--h2);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
 .vault-foot{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)}
 
+/* ─── VAULT VIEW/EDIT MODES ─────────────────── */
+.vault-edit-mode{display:none}
+.vault-view-mode{padding:1.25rem 0}
+.vv-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.vv-section-label{font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--primary);margin-bottom:1rem;margin-top:1.75rem}
+.vv-section-label:first-child{margin-top:0}
+.vv-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.75rem}
+.vv-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem}
+.vv-card-full{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;margin-bottom:.75rem}
+.vv-field-label{font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.vv-field-text{font-family:'Inter',sans-serif;font-size:.88rem;color:var(--h2);line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.vv-field-empty{font-family:'Inter',sans-serif;font-size:.85rem;color:var(--muted);font-style:italic}
+.vv-sched-row{display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.vv-sched-row:last-child{border-bottom:none}
+.vv-sched-plat{font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);min-width:80px}
+.vv-sched-val{font-family:'Inter',sans-serif;font-size:.85rem;color:var(--h2)}
+.vv-edit-btn{display:flex;align-items:center;gap:.4rem;background:var(--primary-light);color:var(--primary);border:none;border-radius:8px;padding:.45rem .9rem;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s}
+.vv-edit-btn:hover{background:var(--primary);color:white}
+.btn-primary.btn-saving{opacity:.6;pointer-events:none}
+.btn-primary.btn-saved{background:#3bb273 !important;border-color:#3bb273 !important}
+
+/* ─── AVATAR CARD HOVER ─────────────────── */
+.av-card{transition:transform .22s ease,box-shadow .22s ease}
+.av-card:hover{transform:translateY(-5px);box-shadow:0 16px 40px var(--avc-glow,rgba(255,48,204,.18))}
+
+/* ─── TAB PANEL FADE-IN ─────────────────── */
+@keyframes panelFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.av-panel.active{animation:panelFadeIn .22s ease}
+
+/* ─── TOOL CARD HOVER ─────────────────── */
+.tool-card{transition:border-color .18s,box-shadow .18s}
+.tool-card:hover{border-color:var(--primary);box-shadow:0 4px 20px rgba(255,48,204,.08)}
+
 /* ─── CALENDAR ───────────────────────────── */
 .cal-top{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap}
 .wk-nav{display:flex;align-items:center;gap:.4rem}
@@ -543,27 +576,87 @@
 
       <!-- PROFILE TAB -->
       <div class="av-panel active" data-panel="vault">
-        <div class="vault-grid">
-          <div>
-            <div class="vault-sec">Identity &amp; Voice</div>
-            <div class="form-field"><label class="form-label">Bio</label><textarea class="form-textarea" id="vault-bio" rows="3" placeholder="Who is this avatar? Background, personality..."></textarea></div>
-            <div class="form-field"><label class="form-label">Face Description</label><textarea class="form-textarea" id="vault-face" rows="3" placeholder="Visual appearance for image generation..."></textarea></div>
-            <div class="form-field"><label class="form-label">Voice &amp; Tone</label><textarea class="form-textarea" id="vault-voice" rows="3" placeholder="How does this avatar write and speak?"></textarea></div>
-            <div class="form-field"><label class="form-label">Example Captions</label><textarea class="form-textarea" id="vault-captions" rows="4" placeholder="Paste example captions that match this voice..."></textarea></div>
+
+        <!-- VIEW MODE -->
+        <div class="vault-view-mode" id="vault-view-mode">
+          <div class="vv-top">
+            <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;color:var(--h2)">Avatar Profile</div>
+            <button class="vv-edit-btn" onclick="vaultEditMode()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit Profile
+            </button>
           </div>
-          <div>
-            <div class="vault-sec">Posting Schedule</div>
-            <div class="form-field"><label class="form-label">Instagram Schedule</label><input class="form-input" id="vault-ig-sched" type="text" placeholder="e.g. Mon, Wed, Fri at 7pm HKT"/></div>
-            <div class="form-field"><label class="form-label">TikTok Schedule</label><input class="form-input" id="vault-tt-sched" type="text" placeholder="e.g. Daily at 6pm HKT"/></div>
-            <div class="vault-sec" style="margin-top:1.5rem">Custom Prompts</div>
-            <div class="form-field"><label class="form-label">Image Generation Base</label><textarea class="form-textarea" id="vault-img-prompt" rows="4" placeholder="Base prompt for generating images of this avatar..."></textarea></div>
-            <div class="form-field"><label class="form-label">Caption Prompt Base</label><textarea class="form-textarea" id="vault-cap-prompt" rows="3" placeholder="Instructions for caption generation AI..."></textarea></div>
+
+          <div class="vv-section-label">Identity &amp; Voice</div>
+          <div class="vv-grid">
+            <div class="vv-card">
+              <div class="vv-field-label">Bio</div>
+              <div id="vv-bio" class="vv-field-text vv-field-empty">Not set yet</div>
+            </div>
+            <div class="vv-card">
+              <div class="vv-field-label">Voice &amp; Tone</div>
+              <div id="vv-voice" class="vv-field-text vv-field-empty">Not set yet</div>
+            </div>
+          </div>
+          <div class="vv-card-full">
+            <div class="vv-field-label">Face Description</div>
+            <div id="vv-face" class="vv-field-text vv-field-empty">Not set yet</div>
+          </div>
+          <div class="vv-card-full">
+            <div class="vv-field-label">Example Captions</div>
+            <div id="vv-captions" class="vv-field-text vv-field-empty">Not set yet</div>
+          </div>
+
+          <div class="vv-section-label">Posting Schedule</div>
+          <div class="vv-card-full">
+            <div class="vv-sched-row">
+              <span class="vv-sched-plat">📸 Instagram</span>
+              <span class="vv-sched-val vv-field-empty" id="vv-ig-sched">Not set</span>
+            </div>
+            <div class="vv-sched-row">
+              <span class="vv-sched-plat">🎵 TikTok</span>
+              <span class="vv-sched-val vv-field-empty" id="vv-tt-sched">Not set</span>
+            </div>
+          </div>
+
+          <div class="vv-section-label">Custom Prompts</div>
+          <div class="vv-grid">
+            <div class="vv-card">
+              <div class="vv-field-label">Image Generation Base</div>
+              <div id="vv-img-prompt" class="vv-field-text vv-field-empty">Not set yet</div>
+            </div>
+            <div class="vv-card">
+              <div class="vv-field-label">Caption Prompt Base</div>
+              <div id="vv-cap-prompt" class="vv-field-text vv-field-empty">Not set yet</div>
+            </div>
           </div>
         </div>
-        <div class="vault-foot">
-          <button class="btn-ghost" onclick="loadVault(socialState.currentAvatar.id)">Discard</button>
-          <button class="btn-primary" onclick="saveVault()">Save Profile</button>
+
+        <!-- EDIT MODE (hidden by default) -->
+        <div class="vault-edit-mode" id="vault-edit-mode">
+          <div class="vault-grid">
+            <div>
+              <div class="vault-sec">Identity &amp; Voice</div>
+              <div class="form-field"><label class="form-label">Bio</label><textarea class="form-textarea" id="vault-bio" rows="3" placeholder="Who is this avatar? Background, personality..."></textarea></div>
+              <div class="form-field"><label class="form-label">Face Description</label><textarea class="form-textarea" id="vault-face" rows="3" placeholder="Visual appearance for image generation..."></textarea></div>
+              <div class="form-field"><label class="form-label">Voice &amp; Tone</label><textarea class="form-textarea" id="vault-voice" rows="3" placeholder="How does this avatar write and speak?"></textarea></div>
+              <div class="form-field"><label class="form-label">Example Captions</label><textarea class="form-textarea" id="vault-captions" rows="4" placeholder="Paste example captions that match this voice..."></textarea></div>
+            </div>
+            <div>
+              <div class="vault-sec">Posting Schedule</div>
+              <div class="form-field"><label class="form-label">Instagram Schedule</label><input class="form-input" id="vault-ig-sched" type="text" placeholder="e.g. Mon, Wed, Fri at 7pm HKT"/></div>
+              <div class="form-field"><label class="form-label">TikTok Schedule</label><input class="form-input" id="vault-tt-sched" type="text" placeholder="e.g. Daily at 6pm HKT"/></div>
+              <div class="vault-sec" style="margin-top:1.5rem">Custom Prompts</div>
+              <div class="form-field"><label class="form-label">Image Generation Base</label><textarea class="form-textarea" id="vault-img-prompt" rows="4" placeholder="Base prompt for generating images of this avatar..."></textarea></div>
+              <div class="form-field"><label class="form-label">Caption Prompt Base</label><textarea class="form-textarea" id="vault-cap-prompt" rows="3" placeholder="Instructions for caption generation AI..."></textarea></div>
+            </div>
+          </div>
+          <div class="vault-foot">
+            <button class="btn-ghost" onclick="vaultViewMode()">Cancel</button>
+            <button class="btn-primary" id="save-vault-btn" onclick="saveVault()">Save Profile</button>
+          </div>
         </div>
+
       </div>
 
       <!-- AI STUDIO TAB -->
@@ -1418,11 +1511,34 @@ function showTab(tab) {
 // ══════════════════════════════════════
 // VAULT
 // ══════════════════════════════════════
+function vaultViewMode() {
+  document.getElementById('vault-view-mode').style.display = 'block';
+  document.getElementById('vault-edit-mode').style.display = 'none';
+}
+
+function vaultEditMode() {
+  document.getElementById('vault-view-mode').style.display = 'none';
+  document.getElementById('vault-edit-mode').style.display = 'block';
+}
+
+function _vaultSetViewText(id, val) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (val && val.trim()) {
+    el.textContent = val;
+    el.classList.remove('vv-field-empty');
+  } else {
+    el.textContent = el.dataset.empty || 'Not set yet';
+    el.classList.add('vv-field-empty');
+  }
+}
+
 async function loadVault(avatarId) {
   try {
     var r = await db.from('social_avatars').select('*').eq('id', avatarId).single();
     if (r.error) throw r.error;
     var d = r.data;
+    // Populate form fields
     document.getElementById('vault-bio').value = d.bio || '';
     document.getElementById('vault-face').value = d.face_desc || '';
     document.getElementById('vault-voice').value = d.voice_tone || '';
@@ -1431,11 +1547,26 @@ async function loadVault(avatarId) {
     document.getElementById('vault-tt-sched').value = d.tiktok_schedule || '';
     document.getElementById('vault-img-prompt').value = d.img_prompt_base || '';
     document.getElementById('vault-cap-prompt').value = d.caption_prompt_base || '';
+    // Populate view mode
+    _vaultSetViewText('vv-bio', d.bio);
+    _vaultSetViewText('vv-face', d.face_desc);
+    _vaultSetViewText('vv-voice', d.voice_tone);
+    _vaultSetViewText('vv-captions', d.example_captions);
+    var igEl = document.getElementById('vv-ig-sched');
+    var ttEl = document.getElementById('vv-tt-sched');
+    if (igEl) { igEl.textContent = d.ig_schedule || 'Not set'; igEl.classList.toggle('vv-field-empty', !d.ig_schedule); }
+    if (ttEl) { ttEl.textContent = d.tiktok_schedule || 'Not set'; ttEl.classList.toggle('vv-field-empty', !d.tiktok_schedule); }
+    _vaultSetViewText('vv-img-prompt', d.img_prompt_base);
+    _vaultSetViewText('vv-cap-prompt', d.caption_prompt_base);
+    // Start in view mode
+    vaultViewMode();
   } catch(e) { showToast('Could not load profile.', 'error'); }
 }
 
 async function saveVault() {
   if (!socialState.currentAvatar) return;
+  var btn = document.getElementById('save-vault-btn');
+  if (btn) { btn.textContent = 'Saving...'; btn.classList.add('btn-saving'); }
   var payload = {
     bio: document.getElementById('vault-bio').value,
     face_desc: document.getElementById('vault-face').value,
@@ -1449,8 +1580,27 @@ async function saveVault() {
   try {
     var r = await db.from('social_avatars').update(payload).eq('id', socialState.currentAvatar.id);
     if (r.error) throw r.error;
-    showToast('Profile saved.', 'success');
-  } catch(e) { showToast('Save failed.', 'error'); }
+    // Update view mode display immediately
+    _vaultSetViewText('vv-bio', payload.bio);
+    _vaultSetViewText('vv-face', payload.face_desc);
+    _vaultSetViewText('vv-voice', payload.voice_tone);
+    _vaultSetViewText('vv-captions', payload.example_captions);
+    var igEl = document.getElementById('vv-ig-sched');
+    var ttEl = document.getElementById('vv-tt-sched');
+    if (igEl) { igEl.textContent = payload.ig_schedule || 'Not set'; igEl.classList.toggle('vv-field-empty', !payload.ig_schedule); }
+    if (ttEl) { ttEl.textContent = payload.tiktok_schedule || 'Not set'; ttEl.classList.toggle('vv-field-empty', !payload.tiktok_schedule); }
+    _vaultSetViewText('vv-img-prompt', payload.img_prompt_base);
+    _vaultSetViewText('vv-cap-prompt', payload.caption_prompt_base);
+    // Animate button then switch to view
+    if (btn) { btn.textContent = '✓ Saved!'; btn.classList.remove('btn-saving'); btn.classList.add('btn-saved'); }
+    setTimeout(function() {
+      if (btn) { btn.textContent = 'Save Profile'; btn.classList.remove('btn-saved'); }
+      vaultViewMode();
+    }, 1000);
+  } catch(e) {
+    if (btn) { btn.textContent = 'Save Profile'; btn.classList.remove('btn-saving'); }
+    showToast('Save failed.', 'error');
+  }
 }
 
 // ══════════════════════════════════════
