@@ -3730,11 +3730,16 @@ async function slackLoadChannels(workspaceId) {
     slackState.channels = (data.channels || []).filter(function(c) { return c.is_member; });
     slackState.dms = dmData.ok ? (dmData.channels || []) : [];
 
-    // Resolve DM user names
-    var dmUserIds = slackState.dms.map(function(d) { return d.user; }).filter(Boolean);
-    if (dmUserIds.length) await resolveSlackUsers(token, dmUserIds);
-
+    // Render immediately, then resolve DM names in background
     renderSlackChannelList();
+
+    // Try to resolve DM user names (requires users:read scope)
+    var dmUserIds = slackState.dms.map(function(d) { return d.user; }).filter(Boolean);
+    if (dmUserIds.length) {
+      resolveSlackUsers(token, dmUserIds).then(function() {
+        renderSlackChannelList(); // re-render with names
+      }).catch(function() { /* scope not available, show IDs */ });
+    }
     document.getElementById('slack-ch-meta').textContent = slackState.channels.length + ' channels';
   } catch(e) {
     document.getElementById('slack-channel-list').innerHTML = '<div class="slack-empty">Could not load channels: ' + esc(e.message) + '</div>';
@@ -3769,8 +3774,9 @@ function renderSlackChannelList() {
   if (slackState.dms.length) {
     html += '<div class="slack-section-label" style="margin-top:.5rem">Direct Messages</div>';
     slackState.dms.forEach(function(dm) {
-      var name = slackState.userCache[dm.user] || dm.user || 'DM';
-      var initials = name.split(' ').map(function(p){return p[0]||'';}).join('').toUpperCase().slice(0,2);
+      var name = slackState.userCache[dm.user] || '';
+      if (!name) name = 'Direct Message';
+      var initials = (name === 'Direct Message') ? 'DM' : name.split(' ').map(function(p){return p[0]||'';}).join('').toUpperCase().slice(0,2);
       var count = slackState.mentionCounts['dm_' + dm.id] || 0;
       var badgeCls = count > 0 ? ' show' : '';
       var activeCls = slackState.activeChannelId === dm.id ? ' active' : '';
@@ -3840,13 +3846,18 @@ function slackGetSelectedOldest() {
 function slackInitDatePicker() {
   var input = document.getElementById('slack-date-input');
   if (!input) return;
-  // Set default to today
   var today = new Date();
   var yyyy = today.getFullYear();
   var mm = String(today.getMonth() + 1).padStart(2, '0');
   var dd = String(today.getDate()).padStart(2, '0');
-  input.value = yyyy + '-' + mm + '-' + dd;
-  input.max = yyyy + '-' + mm + '-' + dd; // can't go to future
+  var todayStr = yyyy + '-' + mm + '-' + dd;
+  input.max = todayStr;
+  // Default to 7 days ago so there's always content on first open
+  var weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  var wy = weekAgo.getFullYear();
+  var wm = String(weekAgo.getMonth() + 1).padStart(2, '0');
+  var wd = String(weekAgo.getDate()).padStart(2, '0');
+  input.value = wy + '-' + wm + '-' + wd;
   updateSlackDateLabel();
   input.addEventListener('change', updateSlackDateLabel);
 }
@@ -3933,7 +3944,7 @@ function renderSlackMessages() {
   if (!slackState.messages.length) {
     var lbl = document.getElementById('slack-date-label');
     var dateStr = lbl ? lbl.textContent : 'the selected date';
-    el.innerHTML = '<div class="slack-empty">No messages for ' + esc(dateStr) + ' in this channel.</div>';
+    el.innerHTML = '<div class="slack-empty">No messages from ' + esc(dateStr) + ' onward in this channel.<br><br>Try changing the date picker to go further back, then click <strong>Pull</strong>.</div>';
     return;
   }
 
