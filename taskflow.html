@@ -2476,15 +2476,23 @@ async function grantAccess() {
   var name = nameEl.value.trim();
   if (!name) { showToast('Enter a teammate name!', 'error'); return; }
   try {
+    // Verify the person is an actual team member
+    var memberCheck = await db.from('boards').select('id,name').ilike('name', name).maybeSingle();
+    if (!memberCheck.data) {
+      showToast('"' + name + '" is not a member of this hub. Ask them to create an account first.', 'error');
+      return;
+    }
+    // Use exact name from DB to avoid casing issues
+    var exactName = memberCheck.data.name;
     await db.from('board_access').insert({
       board_id: state.currentUser.id,
-      granted_to_name: name,
+      granted_to_name: exactName,
       permission: selectedPerm,
       granted_by: state.currentUser.id
     });
     var permWord = selectedPerm === 'edit' ? 'edit' : 'view';
-    await addNotification(name + ' was given ' + permWord + ' access to your board.', 'access');
-    showToast('Access granted to ' + name + '! Share code: ' + state.currentUser.shareCode, 'success');
+    await addNotification(exactName + ' was given ' + permWord + ' access to your board.', 'access');
+    showToast('Access granted to ' + exactName + '!', 'success');
     nameEl.value = '';
     await loadAccessList();
   } catch(e) {
