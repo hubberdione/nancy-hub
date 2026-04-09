@@ -1651,7 +1651,7 @@ function renderBoard() {
   };
 
   tiers.forEach(tier => {
-    const tierTasks = tasks.filter(t => t.tier === tier);
+    const tierTasks = tasks.filter(t => t.tier === tier && !t.completed);
     const container = document.getElementById(containerIds[tier]);
     if (!container) return;
 
@@ -1711,7 +1711,7 @@ function renderSidebar(tasks) {
 
   doneEl.innerHTML = done.length === 0
     ? '<span style="font-family:sans-serif;font-size:.8rem;color:var(--muted)">Nothing completed yet.</span>'
-    : done.map(t => `<div class="sidebar-task done"><div class="sidebar-task-dot" style="background:var(--muted)"></div><div class="sidebar-task-title">${esc(t.title)}</div></div>`).join('');
+    : done.map(t => `<div class="sidebar-task done"><div class="sidebar-task-dot" style="background:${TIER_COLORS[t.tier] || 'var(--muted)'}"></div><div class="sidebar-task-title">✓ ${esc(t.title)}</div></div>`).join('');
 }
 
 // ═══════════════════════════════════════
