@@ -1572,13 +1572,13 @@ async function saveTaskToDB(task) {
       description: task.description,
       tier: task.tier,
       completed: task.completed,
-      created_at: task.createdAt,
+      created_at: task.createdAt || task.created_at || Date.now(),
       task_order: task.taskOrder || 0,
       recurring: task.recurring,
-      recurring_freq: task.freq,
-      due_date: task.dueDate,
-      is_personal: task.isPersonal,
-      shared_to_dashboard: task.sharedToDashboard,
+      recurring_freq: task.freq || task.recurring_freq,
+      due_date: task.dueDate || task.due_date || null,
+      is_personal: task.isPersonal || task.is_personal || false,
+      shared_to_dashboard: task.sharedToDashboard || task.shared_to_dashboard || false,
       owner_id: state.currentUser?.id?.startsWith('local_') ? null : state.currentUser?.id,
       board_type: task.boardType || 'main'
     }).select().single();
