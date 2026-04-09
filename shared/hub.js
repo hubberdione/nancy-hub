@@ -223,7 +223,9 @@ async function onAuthSuccess(authUser) {
         avatar: result.data.avatar, email: result.data.email,
         shareCode: result.data.share_code,
         role: result.data.role || 'member',
-        authId: authUser.id
+        authId: authUser.id,
+        slack_token: result.data.slack_token || '',
+        slack_user_id: result.data.slack_user_id || ''
       };
     } else {
       var result2 = await db.from('boards').select('*').eq('email', authUser.email).single();
@@ -233,7 +235,9 @@ async function onAuthSuccess(authUser) {
           id: result2.data.id, name: result2.data.name,
           avatar: result2.data.avatar, email: result2.data.email,
           shareCode: result2.data.share_code,
-          role: result2.data.role || 'member', authId: authUser.id
+          role: result2.data.role || 'member', authId: authUser.id,
+          slack_token: result2.data.slack_token || '',
+          slack_user_id: result2.data.slack_user_id || ''
         };
       }
     }
@@ -324,8 +328,21 @@ function openUserMenu() {
     info += '<div style="font-family:sans-serif;font-size:.68rem;font-weight:700;color:var(--primary);margin-top:2px">Admin</div>';
   }
   info += '</div>';
-  var signout = '<div onclick="signOut()" style="padding:.75rem 1rem;font-family:sans-serif;font-size:.85rem;color:#e53935;cursor:pointer">Sign Out</div>';
-  menu.innerHTML = info + signout;
+  var slackConnected = hubState.currentUser && hubState.currentUser.slack_token;
+  var slackStatusText = slackConnected ? 'Connected ✓' : 'Not connected';
+  var slackStatusColor = slackConnected ? 'var(--green,#3bb273)' : 'var(--muted)';
+  var mySlack = '<div style="padding:.75rem 1rem;border-top:1px solid var(--border)">' +
+    '<div style="font-family:sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem">My Slack</div>' +
+    '<div id="user-slack-status" style="font-family:sans-serif;font-size:.75rem;color:' + slackStatusColor + ';margin-bottom:.5rem">' + slackStatusText + '</div>' +
+    '<div style="display:flex;gap:.4rem">' +
+      '<input id="user-slack-token-input" type="password" placeholder="xoxp-••••••••" ' +
+        'style="flex:1;font-size:.78rem;padding:.35rem .6rem;border:1px solid var(--border2);border-radius:7px;background:var(--bg);color:var(--body);font-family:sans-serif;outline:none" />' +
+      '<button onclick="saveMySlackToken()" ' +
+        'style="font-size:.75rem;font-weight:600;padding:.35rem .7rem;border-radius:7px;background:var(--primary);color:white;border:none;cursor:pointer;font-family:sans-serif">Save</button>' +
+    '</div>' +
+  '</div>';
+  var signout = '<div onclick="signOut()" style="padding:.75rem 1rem;font-family:sans-serif;font-size:.85rem;color:#e53935;cursor:pointer;border-top:1px solid var(--border)">Sign Out</div>';
+  menu.innerHTML = info + mySlack + signout;
   document.body.appendChild(menu);
   setTimeout(function() {
     document.addEventListener('click', function closeMenu(e) {
@@ -463,6 +480,37 @@ function initThemeToggle() {
   var isLight = document.documentElement.getAttribute('data-theme') === 'light';
   btn.innerHTML = isLight ? ICON_SUN : ICON_MOON;
 }
+
+// ── MY SLACK TOKEN ──
+async function saveMySlackToken() {
+  var input = document.getElementById('user-slack-token-input');
+  if (!input) return;
+  var token = (input.value || '').trim();
+  if (!token || !token.startsWith('xoxp-')) {
+    showToast('Token must start with xoxp-');
+    return;
+  }
+  try {
+    var res = await fetch('https://slack.com/api/auth.test', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (!data.ok) { showToast('Invalid token: ' + (data.error || 'unknown')); return; }
+
+    var slackUserId = data.user_id || '';
+    await db.from('boards').update({ slack_token: token, slack_user_id: slackUserId }).eq('id', hubState.currentUser.id);
+    hubState.currentUser.slack_token = token;
+    hubState.currentUser.slack_user_id = slackUserId;
+    input.value = '';
+
+    var statusEl = document.getElementById('user-slack-status');
+    if (statusEl) { statusEl.textContent = 'Connected \u2713'; statusEl.style.color = 'var(--green,#3bb273)'; }
+    showToast('Slack connected as @' + (data.user || 'you'));
+  } catch(e) {
+    showToast('Error: ' + (e.message || 'network error'));
+  }
+}
+window.saveMySlackToken = saveMySlackToken;
 
 // ── BOOT ──
 async function bootHub() {

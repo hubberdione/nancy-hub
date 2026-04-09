@@ -363,17 +363,53 @@
           <button class="settings-save-btn" onclick="saveSetting('groq_api_key','setting-groq','saved-groq')">Save</button>
         </div>
 
-        <!-- Slack Token -->
+        <!-- Slack Token (legacy) -->
         <div class="settings-row">
           <div class="settings-row-inner">
-            <div class="settings-key">Slack Token</div>
-            <div class="settings-desc">User token for fetching messages in Inbox Review. Must start with <code style="font-size:.75rem;background:var(--bg3);padding:1px 4px;border-radius:3px">xoxp-</code>. Stored securely in your database.</div>
+            <div class="settings-key">Own Slack Token (legacy — use profile instead)</div>
+            <div class="settings-desc">Legacy admin Slack token for Inbox Review. For the Task Hub Slack panel, each user sets their own token via profile menu.</div>
             <div class="settings-input-wrap">
               <input class="settings-input" type="password" id="setting-slack" placeholder="xoxp-••••••••••••" autocomplete="off"/>
             </div>
             <div class="settings-saved" id="saved-slack">✓ Saved</div>
           </div>
           <button class="settings-save-btn" onclick="saveSetting('inbox_slack_token','setting-slack','saved-slack')">Save</button>
+        </div>
+
+        <!-- Client Slack Workspaces -->
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:.75rem">
+          <div class="settings-row-inner" style="width:100%">
+            <div class="settings-key">Client Slack Workspaces</div>
+            <div class="settings-desc">Team-shared client workspace tokens. Monitor for keyword mentions of Nancy across client Slacks.</div>
+          </div>
+          <div id="client-ws-list" style="width:100%">
+            <div style="font-family:sans-serif;font-size:.82rem;color:var(--muted)">Loading...</div>
+          </div>
+          <div id="add-client-ws-form" style="display:none;width:100%;background:var(--bg2,#323230);border-radius:10px;padding:1rem;border:1px solid var(--border)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem">
+              <input class="settings-input" id="new-ws-name" placeholder="Client name (e.g. Acme Corp)" />
+              <input class="settings-input" type="password" id="new-ws-token" placeholder="xoxp-••••••••" />
+            </div>
+            <input class="settings-input" id="new-ws-keywords" placeholder="Keywords: nancy, hello nancy, avo" style="width:100%;margin-bottom:.6rem;box-sizing:border-box" />
+            <div style="display:flex;gap:.4rem">
+              <button class="settings-save-btn" onclick="addClientWorkspace()">Add Workspace</button>
+              <button class="settings-save-btn" style="background:var(--bg3,#3a3a38);color:var(--body)" onclick="document.getElementById('add-client-ws-form').style.display='none'">Cancel</button>
+            </div>
+          </div>
+          <button class="settings-save-btn" style="align-self:flex-start" onclick="document.getElementById('add-client-ws-form').style.display='block'">+ Add Client Workspace</button>
+        </div>
+
+        <!-- Global Monitor Keywords -->
+        <div class="settings-row">
+          <div class="settings-row-inner">
+            <div class="settings-key">Monitor Keywords</div>
+            <div class="settings-desc">Default keywords for all client workspaces (comma-separated)</div>
+            <div class="settings-input-wrap">
+              <input class="settings-input" type="text" id="setting-slack-keywords" placeholder="nancy, hello nancy, avo, namii" />
+            </div>
+            <div class="settings-saved" id="saved-slack-keywords">✓ Saved</div>
+          </div>
+          <button class="settings-save-btn" onclick="saveSetting('slack_monitor_keywords','setting-slack-keywords','saved-slack-keywords')">Save</button>
         </div>
 
         <!-- Hub Password -->
@@ -440,6 +476,7 @@ async function onPageReady() {
   loadUsage();
   loadTeam();
   loadActivity();
+  loadClientWorkspaces();
 }
 
 // ── RUN ALL CHECKS ──
@@ -723,13 +760,20 @@ async function deleteUser(memberId, memberName) {
 // ── SETTINGS ──
 async function loadCurrentSettings() {
   try {
-    var keys = ['groq_api_key', 'inbox_slack_token', 'hub_password'];
-    var fieldMap = { groq_api_key: 'setting-groq', inbox_slack_token: 'setting-slack', hub_password: 'setting-hubpw' };
+    var keys = ['groq_api_key', 'inbox_slack_token', 'hub_password', 'slack_monitor_keywords'];
+    var fieldMap = { groq_api_key: 'setting-groq', inbox_slack_token: 'setting-slack', hub_password: 'setting-hubpw', slack_monitor_keywords: 'setting-slack-keywords' };
     var result = await db.from('settings').select('key,value').in('key', keys);
     if (result.data) {
       result.data.forEach(function(row) {
         var el = document.getElementById(fieldMap[row.key]);
-        if (el && row.value) el.placeholder = '••••••••••••••• (set)';
+        if (el && row.value) {
+          // Keywords field is not a password — show actual value
+          if (row.key === 'slack_monitor_keywords') {
+            el.value = row.value;
+          } else {
+            el.placeholder = '••••••••••••••• (set)';
+          }
+        }
       });
     }
   } catch(e) {}
@@ -785,6 +829,74 @@ async function loadActivity() {
   } catch(e) {
     wrap.innerHTML = '<div class="activity-empty">Could not load activity.</div>';
   }
+}
+
+// ── CLIENT SLACK WORKSPACES ──
+async function loadClientWorkspaces() {
+  var el = document.getElementById('client-ws-list');
+  if (!el) return;
+  try {
+    var res = await db.from('settings').select('value').eq('key', 'client_slack_workspaces').single();
+    var list = (res.data && res.data.value) ? JSON.parse(res.data.value) : [];
+    if (!list.length) {
+      el.innerHTML = '<div style="font-family:sans-serif;font-size:.82rem;color:var(--muted)">No client workspaces yet.</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(ws) {
+      return '<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-family:sans-serif;font-size:.85rem;font-weight:600;color:var(--h2);flex:1">' + esc(ws.name) + '</span>' +
+        '<span style="font-family:sans-serif;font-size:.75rem;color:var(--muted)">' + esc((ws.keywords || []).join(', ')) + '</span>' +
+        '<button onclick="removeClientWorkspace(\'' + ws.id + '\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.75rem;padding:2px 6px;transition:color .15s" onmouseover="this.style.color=\'#e53935\'" onmouseout="this.style.color=\'var(--muted)\'">Remove</button>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:.82rem">Could not load.</div>';
+  }
+}
+
+async function addClientWorkspace() {
+  var name = (document.getElementById('new-ws-name').value || '').trim();
+  var token = (document.getElementById('new-ws-token').value || '').trim();
+  var keywords = (document.getElementById('new-ws-keywords').value || 'nancy, hello nancy').split(',').map(function(k){ return k.trim(); }).filter(Boolean);
+
+  if (!name || !token) { showToast('Name and token required', 'error'); return; }
+  if (!token.startsWith('xoxp-')) { showToast('Token must start with xoxp-', 'error'); return; }
+
+  // Validate token
+  try {
+    var res = await fetch('https://slack.com/api/auth.test', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (!data.ok) { showToast('Invalid token: ' + (data.error || 'unknown'), 'error'); return; }
+  } catch(e) { showToast('Could not validate token', 'error'); return; }
+
+  // Load existing, append, save
+  var existing = [];
+  try {
+    var listRes = await db.from('settings').select('value').eq('key', 'client_slack_workspaces').single();
+    if (listRes.data && listRes.data.value) existing = JSON.parse(listRes.data.value);
+  } catch(e) {}
+
+  existing.push({ id: Date.now().toString(), name: name, token: token, keywords: keywords });
+  await db.from('settings').upsert({ key: 'client_slack_workspaces', value: JSON.stringify(existing) }, { onConflict: 'key' });
+
+  document.getElementById('new-ws-name').value = '';
+  document.getElementById('new-ws-token').value = '';
+  document.getElementById('new-ws-keywords').value = '';
+  document.getElementById('add-client-ws-form').style.display = 'none';
+  showToast('Client workspace added \u2713', 'success');
+  loadClientWorkspaces();
+}
+
+async function removeClientWorkspace(id) {
+  var existing = [];
+  try {
+    var res = await db.from('settings').select('value').eq('key', 'client_slack_workspaces').single();
+    if (res.data && res.data.value) existing = JSON.parse(res.data.value);
+  } catch(e) {}
+  existing = existing.filter(function(ws) { return ws.id !== id; });
+  await db.from('settings').upsert({ key: 'client_slack_workspaces', value: JSON.stringify(existing) }, { onConflict: 'key' });
+  showToast('Workspace removed', 'success');
+  loadClientWorkspaces();
 }
 
 bootHub();
