@@ -3142,7 +3142,9 @@ async function onAuthSuccess(authUser) {
         email: boardData.email,
         shareCode: boardData.share_code,
         role: boardData.role || 'member',
-        authId: authUser.id
+        authId: authUser.id,
+        slack_token: boardData.slack_token || '',
+        slack_user_id: boardData.slack_user_id || ''
       };
     } else {
       // Try by email
@@ -3153,7 +3155,9 @@ async function onAuthSuccess(authUser) {
         state.currentUser = {
           id: bd2.id, name: bd2.name, avatar: bd2.avatar,
           email: bd2.email, shareCode: bd2.share_code,
-          role: bd2.role || 'member', authId: authUser.id
+          role: bd2.role || 'member', authId: authUser.id,
+          slack_token: bd2.slack_token || '',
+          slack_user_id: bd2.slack_user_id || ''
         };
       }
     }
@@ -3214,9 +3218,19 @@ function openUserMenu() {
   }
   userInfo += '</div>';
 
-  var signOutBtn = '<div onclick="signOut()" style="padding:.75rem 1rem;font-family:sans-serif;font-size:.85rem;color:#e53935;cursor:pointer">Sign Out</div>';
+  var slackConnected = state.currentUser && state.currentUser.slack_token;
+  var slackSection = '<div style="padding:.75rem 1rem;border-top:1px solid var(--border)">' +
+    '<div style="font-family:sans-serif;font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem">My Slack</div>' +
+    '<div id="tf-slack-status" style="font-family:sans-serif;font-size:.75rem;color:' + (slackConnected ? 'var(--green,#3bb273)' : 'var(--muted)') + ';margin-bottom:.4rem">' + (slackConnected ? 'Connected ✓' : 'Not connected') + '</div>' +
+    '<div style="display:flex;gap:.4rem">' +
+      '<input id="tf-slack-token-input" type="password" placeholder="xoxp-••••••••" style="flex:1;font-size:.78rem;padding:.3rem .55rem;border:1px solid var(--border2);border-radius:7px;background:var(--bg);color:var(--body);font-family:sans-serif;outline:none"/>' +
+      '<button onclick="saveTFSlackToken()" style="font-size:.75rem;font-weight:600;padding:.3rem .65rem;border-radius:7px;background:var(--primary);color:white;border:none;cursor:pointer;font-family:sans-serif">Save</button>' +
+    '</div>' +
+  '</div>';
 
-  menu.innerHTML = userInfo + signOutBtn;
+  var signOutBtn = '<div onclick="signOut()" style="padding:.75rem 1rem;font-family:sans-serif;font-size:.85rem;color:#e53935;cursor:pointer;border-top:1px solid var(--border)">Sign Out</div>';
+
+  menu.innerHTML = userInfo + slackSection + signOutBtn;
   document.body.appendChild(menu);
 
   setTimeout(function() {
@@ -3227,6 +3241,28 @@ function openUserMenu() {
       }
     });
   }, 100);
+}
+
+async function saveTFSlackToken() {
+  var input = document.getElementById('tf-slack-token-input');
+  if (!input) return;
+  var token = (input.value || '').trim();
+  if (!token || !token.startsWith('xoxp-')) { showToast('Token must start with xoxp-'); return; }
+  try {
+    var res = await db.from('boards').update({ slack_token: token }).eq('id', state.currentUser.id);
+    if (res.error) throw new Error(res.error.message);
+    state.currentUser.slack_token = token;
+    input.value = '';
+    var statusEl = document.getElementById('tf-slack-status');
+    if (statusEl) { statusEl.textContent = 'Connected ✓'; statusEl.style.color = 'var(--green,#3bb273)'; }
+    showToast('Slack token saved! Open the Slack drawer to pull your channels.');
+    // Reset drawer so it re-inits with new token
+    slackState.inited = false;
+    slackState.ownToken = '';
+    slackState.channels = [];
+  } catch(e) {
+    showToast('Error saving: ' + (e.message || 'try again'));
+  }
 }
 
 async function signOut() {
