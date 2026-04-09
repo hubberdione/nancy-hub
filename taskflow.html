@@ -1435,15 +1435,14 @@ async function initApp() {
   checkRewards();
   checkRecap();
   checkStorage();
-  // Hide pill nav on scroll in board-main
+  // Hide pill nav on window scroll (board-main doesn't scroll — window does)
   (function(){
-    var bm = document.getElementById('board-main-content');
-    if (!bm) return;
     var lastY = 0, hidden = false;
-    bm.addEventListener('scroll', function(){
+    window.addEventListener('scroll', function(){
       var nav = document.querySelector('.topnav');
       if (!nav) return;
-      var y = bm.scrollTop, delta = y - lastY;
+      var y = window.scrollY || document.documentElement.scrollTop;
+      var delta = y - lastY;
       if (delta > 6 && y > 60 && !hidden){ nav.classList.add('nav-hidden'); hidden = true; }
       else if (delta < -6 && hidden){ nav.classList.remove('nav-hidden'); hidden = false; }
       lastY = y;
