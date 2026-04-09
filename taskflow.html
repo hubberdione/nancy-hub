@@ -1482,6 +1482,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 <div class="toast" id="toast"></div>
 
 <script>
+// ── SLACK STATE (must be at top so it's always defined) ──
+var slackState = {
+  inited: false, ownToken: '', ownUserId: '', clientWorkspaces: [],
+  activeWorkspaceId: 'own', channels: [], dms: [], activeChannelId: null,
+  activeChannelName: '', messages: [], mentions: [], userCache: {},
+  lastPulledAt: {}, mentionCounts: {}, summaryCache: {}
+};
+
 // THEME
 var ICON_MOON_TF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
 var ICON_SUN_TF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
@@ -3530,24 +3538,6 @@ initMobileNav();
 // alter table boards add column if not exists slack_token text;
 // alter table boards add column if not exists slack_user_id text;
 // ══════════════════════════════════════
-
-var slackState = {
-  inited: false,
-  ownToken: '',
-  ownUserId: '',
-  clientWorkspaces: [],
-  activeWorkspaceId: 'own',
-  channels: [],
-  dms: [],
-  activeChannelId: null,
-  activeChannelName: '',
-  messages: [],
-  mentions: [],
-  userCache: {},
-  lastPulledAt: {},
-  mentionCounts: {},
-  summaryCache: {}
-};
 
 var SLACK_SUMMARY_SYSTEM = 'You summarize Slack channel conversations for the CareNBloom (Hello Nancy) marketing team. '
   + 'Output valid JSON only — no markdown, no code blocks: '
