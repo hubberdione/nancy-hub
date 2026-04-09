@@ -71,49 +71,41 @@ var STARTERS = [
 function injectStyles() {
   var s = document.createElement('style');
   s.textContent = [
-    // ── Yellow robot + leaf bubble (no animation) ───────────────────
-    // Outer wrapper
-    '.nc-bubble{position:fixed;bottom:1.5rem;right:1.75rem;z-index:900;width:64px;height:90px;background:transparent;border:none;cursor:pointer;padding:0;display:block;transition:transform .18s ease;overflow:visible}',
-    '.nc-bubble:hover{transform:scale(1.05)}',
-    '.nc-bubble.open{transform:scale(1)}',
+    // ── EVE-style mini yellow bot, small + floating ──────────────────
+    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:900;width:42px;height:60px;background:transparent;border:none;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;transition:transform .2s ease;overflow:visible}',
+    '.nc-bubble:hover{transform:translateY(-3px)}',
+    '.nc-bubble.open{transform:none}',
 
-    // Speech bubble shell — frosted glass with tail
-    '.nc-bbl{position:absolute;bottom:0;left:0;right:0;height:54px;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1.5px solid rgba(255,255,255,.2);border-radius:50% 50% 36% 50%/50% 50% 64% 50%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;z-index:1}',
-    '.nc-bbl-lbl{font-family:Inter,sans-serif;font-size:.72rem;font-weight:700;color:rgba(255,255,255,.82);letter-spacing:.05em;line-height:1}',
+    // "Hi" label — sits below character, no bubble background
+    '.nc-bbl{display:none}',
+    '.nc-bbl-lbl{font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.05em;line-height:1;flex-shrink:0}',
 
-    // Notification dot
-    '.nc-bubble-dot{position:absolute;top:24px;right:3px;width:9px;height:9px;background:#e53935;border-radius:50%;border:2px solid rgba(0,0,0,.4);display:none;z-index:10}',
+    // Unread dot
+    '.nc-bubble-dot{position:absolute;top:8px;right:0;width:7px;height:7px;background:#e53935;border-radius:50%;border:1.5px solid rgba(0,0,0,.5);display:none;z-index:10}',
     '.nc-bubble-dot.show{display:block}',
 
-    // Robot wrapper — static, sits above bubble (z-index:2 = always in front)
-    '.nc-lemon{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:2}',
+    // Character wrapper
+    '.nc-lemon{display:flex;flex-direction:column;align-items:center;flex-shrink:0}',
 
-    // Sleek leaf — grows from top-right of head
-    '.nc-lemon-leaf{width:15px;height:10px;background:linear-gradient(135deg,#4ade80,#16a34a);border-radius:80% 5% 80% 5%;transform:rotate(-28deg);margin-bottom:-5px;margin-left:14px;position:relative;z-index:4}',
+    // Tiny sleek leaf — top-right, angled
+    '.nc-lemon-leaf{width:9px;height:6px;background:linear-gradient(120deg,#4ade80,#16a34a);border-radius:80% 5% 80% 5%;transform:rotate(-25deg);align-self:flex-end;margin-right:2px;margin-bottom:-3px}',
 
-    // Robot head — yellow rounded rect, like reference photo
-    '.nc-lemon-body{width:40px;height:30px;background:linear-gradient(160deg,#fde68a,#fbbf24 60%,#f0a800);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;z-index:3}',
-    // Ear nubs
-    '.nc-lemon-body::before,.nc-lemon-body::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:5px;height:11px;background:#e09800;border-radius:3px}',
-    '.nc-lemon-body::before{left:-4px;border-radius:3px 0 0 3px}',
-    '.nc-lemon-body::after{right:-4px;border-radius:0 3px 3px 0}',
+    // EVE oval body — yellow, smooth egg, small
+    '.nc-lemon-body{width:30px;height:36px;background:linear-gradient(155deg,#fef08a 0%,#fbbf24 50%,#d97706 100%);border-radius:50% 50% 46% 46%/42% 42% 58% 58%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;box-shadow:0 5px 12px rgba(0,0,0,.3),inset 0 2px 3px rgba(255,255,255,.45)}',
 
-    // White visor panel (wide, like reference photo)
-    '.nc-lemon-eyes{width:30px;height:16px;background:rgba(255,255,255,.96);border-radius:5px;display:flex;align-items:center;justify-content:space-evenly;padding:0 4px}',
-    '.nc-lemon-eye{width:5px;height:5px;background:#1a1a2e;border-radius:50%}',
+    // Large EVE oval eyes — dark with subtle blue glint
+    '.nc-lemon-eyes{display:flex;gap:4px}',
+    '.nc-lemon-eye{width:8px;height:6px;background:#111827;border-radius:50%;box-shadow:inset 1px 1px 2px rgba(96,165,250,.6)}',
 
-    // Smile line below visor
-    '.nc-lemon-smile{width:14px;height:0;border-bottom:2.5px solid rgba(0,0,0,.22);border-radius:0 0 7px 7px}',
+    // Tiny smile
+    '.nc-lemon-smile{width:10px;height:0;border-bottom:1.5px solid rgba(0,0,0,.3);border-radius:0 0 5px 5px}',
 
-    // Neck connector
-    '.nc-bot-neck{width:16px;height:7px;background:#e09800;border-radius:0 0 4px 4px;margin-top:0}',
-
-    // Shoulders — round top, merges into bubble
-    '.nc-bot-shoulders{width:44px;height:12px;background:linear-gradient(160deg,#fde68a,#fbbf24);border-radius:8px 8px 0 0;margin-top:1px}',
-    // ── end robot bubble ─────────────────────────────────────────────
+    // Hidden — no neck/shoulders needed
+    '.nc-bot-neck,.nc-bot-shoulders{display:none}',
+    // ── end EVE lemon ────────────────────────────────────────────────
 
     // Panel
-    '.nc-panel{position:fixed;bottom:calc(1.5rem + 90px + .75rem);right:1.75rem;z-index:900;width:380px;max-height:560px;background:var(--card,#1a1a1a);border:1px solid var(--border2,rgba(255,255,255,.12));border-radius:20px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(12px) scale(.97);transition:opacity .22s ease,transform .25s cubic-bezier(.34,1.3,.64,1);overflow:hidden}',
+    '.nc-panel{position:fixed;bottom:calc(1.75rem + 60px + .75rem);right:1.75rem;z-index:900;width:380px;max-height:560px;background:var(--card,#1a1a1a);border:1px solid var(--border2,rgba(255,255,255,.12));border-radius:20px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(12px) scale(.97);transition:opacity .22s ease,transform .25s cubic-bezier(.34,1.3,.64,1);overflow:hidden}',
     '.nc-panel.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}',
 
     // Header
