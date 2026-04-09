@@ -1759,7 +1759,7 @@ async function saveTask() {
   btn.textContent = 'Saving...';
 
   const task = {
-    id: 'task_' + Date.now(),
+    id: crypto.randomUUID(),
     title,
     description: document.getElementById('new-task-desc').value.trim(),
     tier,
@@ -2072,7 +2072,7 @@ async function promoteIdea(id) {
   idea.promoted = true;
   try { await db.from('ideas').update({ promoted: true }).eq('id', id); } catch(e) {}
   const task = {
-    id: 'task_' + Date.now(), title: idea.title, description: idea.notes,
+    id: crypto.randomUUID(), title: idea.title, description: idea.notes,
     tier: 'parking', completed: false, completed_at: null, createdAt: Date.now(),
     created_at: Date.now(), is_personal: false, shared_to_dashboard: false, recurring: false
   };
