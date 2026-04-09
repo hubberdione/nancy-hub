@@ -780,6 +780,11 @@
         <label class="plat-chk"><input type="checkbox" id="av-plat-tt" value="TikTok" checked> TikTok</label>
       </div>
     </div>
+    <div class="form-field" id="av-share-field">
+      <label class="form-label">Share with</label>
+      <div id="av-share-list" style="display:flex;flex-direction:column;gap:.35rem;max-height:140px;overflow-y:auto;padding:.25rem 0"></div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:.3rem">Only selected team members can see this avatar.</div>
+    </div>
     <div class="modal-footer">
       <button class="btn-danger" id="btn-delete-avatar" style="display:none;margin-right:auto" onclick="deleteAvatar()">Delete</button>
       <button class="btn-ghost" onclick="closeModal('modal-avatar-form')">Cancel</button>
@@ -897,7 +902,16 @@ async function loadAvatars() {
   try {
     var avResult = await db.from('social_avatars').select('*').order('created_at');
     if (avResult.error) throw avResult.error;
-    socialState.avatars = avResult.data || [];
+    var all = avResult.data || [];
+    var currentUserId = hubState.currentUser && hubState.currentUser.id;
+    var isAdmin = hubState.currentUser && hubState.currentUser.role === 'admin';
+    // Filter: own avatars + avatars shared with me + legacy avatars without owner (visible to all)
+    socialState.avatars = isAdmin ? all : all.filter(function(av) {
+      if (!av.owner_id) return true; // legacy - no owner set, visible to all
+      if (av.owner_id === currentUserId) return true; // my avatar
+      var shared = Array.isArray(av.shared_with) ? av.shared_with : (av.shared_with ? JSON.parse(av.shared_with) : []);
+      return shared.indexOf(currentUserId) !== -1;
+    });
     var weekStart = getWeekMonday(new Date());
     var weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 7);
     var postResult = await db.from('social_posts').select('avatar_id, status')
@@ -939,13 +953,18 @@ function renderAvatarCards(avatars, posts) {
           '<button class="av-adm-btn" onclick="openAvatarModal(\'' + av.id + '\')">Edit</button>' +
           '<button class="av-adm-btn del" onclick="confirmDeleteAvatar(\'' + av.id + '\',\'' + esc(av.name).replace(/'/g,'&#39;') + '\')">Delete</button>' +
         '</div>' : '';
+    var currentUserId = hubState.currentUser && hubState.currentUser.id;
+    var isOwner = !av.owner_id || av.owner_id === currentUserId;
+    var ownerBadge = isOwner
+      ? '<span style="font-size:.68rem;background:rgba(255,48,204,.12);color:var(--primary);padding:2px 7px;border-radius:20px;font-weight:600">Mine</span>'
+      : '<span style="font-size:.68rem;background:rgba(59,178,115,.1);color:#3bb273;padding:2px 7px;border-radius:20px;font-weight:600">Shared</span>';
     return '<div class="av-card" style="--avc:' + color + ';--avc-glow:' + glowColor + '">' +
       '<div class="av-card-in">' +
         adminHtml +
         '<div class="av-card-head">' +
           '<div class="av-circle" style="background:' + color + '">' + initials + '</div>' +
           '<div class="av-card-meta">' +
-            '<div class="av-card-name">' + esc(av.name) + '</div>' +
+            '<div class="av-card-name">' + esc(av.name) + '</div>' + ownerBadge +
             '<div class="av-type-bdg" style="background:' + typeBg + ';color:' + typeColor + '">' + esc(av.type || 'AI Persona') + '</div>' +
             '<div class="av-plat-row">' + platBadges + '</div>' +
           '</div>' +
@@ -990,6 +1009,32 @@ async function openAvatarModal(avatarId) {
       deleteBtn.style.display = 'block';
     }
   }
+  // Load team for share-with
+  var shareList = document.getElementById('av-share-list');
+  shareList.innerHTML = '<span style="font-size:.8rem;color:var(--muted)">Loading...</span>';
+  try {
+    var teamRes = await db.from('boards').select('id,name,email').order('name');
+    var members = (teamRes.data || []).filter(function(m) { return m.id !== (hubState.currentUser && hubState.currentUser.id); });
+    var existingShared = [];
+    if (avatarId) {
+      var av2 = socialState.avatars.find(function(a){ return a.id === avatarId; });
+      if (av2 && av2.shared_with) {
+        existingShared = Array.isArray(av2.shared_with) ? av2.shared_with : JSON.parse(av2.shared_with);
+      }
+    }
+    if (!members.length) {
+      shareList.innerHTML = '<span style="font-size:.8rem;color:var(--muted)">No other team members.</span>';
+    } else {
+      shareList.innerHTML = members.map(function(m) {
+        var checked = existingShared.indexOf(m.id) !== -1 ? 'checked' : '';
+        return '<label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--h2);cursor:pointer">' +
+          '<input type="checkbox" data-uid="' + esc(m.id) + '" ' + checked + ' style="accent-color:var(--primary)">' +
+          esc(m.name || m.email) + '</label>';
+      }).join('');
+    }
+  } catch(e) {
+    shareList.innerHTML = '<span style="font-size:.8rem;color:var(--muted)">Could not load team.</span>';
+  }
   openModal('modal-avatar-form');
 }
 
@@ -1015,7 +1060,17 @@ async function saveAvatar() {
   if (document.getElementById('av-plat-tt').checked) platforms.push('TikTok');
   if (!name) { showToast('Please enter a name.', 'error'); return; }
   if (!platforms.length) { showToast('Select at least one platform.', 'error'); return; }
-  var payload = { name: name, type: type, color: color, platforms: platforms.join(',') };
+  var sharedWith = [];
+  document.querySelectorAll('#av-share-list input[type=checkbox]').forEach(function(cb) {
+    if (cb.checked) sharedWith.push(cb.dataset.uid);
+  });
+  var payload = {
+    name: name, type: type, color: color, platforms: platforms.join(','),
+    shared_with: sharedWith
+  };
+  if (!editId) {
+    payload.owner_id = hubState.currentUser && hubState.currentUser.id;
+  }
   try {
     if (editId) {
       var r = await db.from('social_avatars').update(payload).eq('id', editId);

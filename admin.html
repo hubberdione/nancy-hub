@@ -681,6 +681,8 @@ async function loadTeam() {
         } else {
           html += '<button class="team-role-btn" onclick="changeRole(\'' + esc(member.id) + '\',\'admin\',\'' + esc(member.name) + '\')">Make admin</button>';
         }
+        // Only admins can delete (hubState.currentUser.role === 'admin' checked server-side by admin page access)
+        html += '<button class="team-role-btn danger" onclick="deleteUser(\'' + esc(member.id) + '\',\'' + esc(member.name).replace(/'/g,"&#39;") + '\')">Delete</button>';
         html += '</div>';
       }
       html += '</div>';
@@ -702,6 +704,18 @@ async function changeRole(memberId, newRole, memberName) {
     loadTeam();
   } catch(e) {
     showToast('Could not update role', 'error');
+  }
+}
+
+async function deleteUser(memberId, memberName) {
+  if (!confirm('Delete ' + memberName + '? They will immediately lose access to the hub. This cannot be undone.')) return;
+  try {
+    var result = await db.from('boards').delete().eq('id', memberId);
+    if (result.error) throw result.error;
+    showToast(memberName + ' has been removed.', 'success');
+    loadTeam();
+  } catch(e) {
+    showToast('Could not delete user: ' + (e.message || 'unknown error'), 'error');
   }
 }
 
