@@ -71,11 +71,13 @@ var STARTERS = [
 function injectStyles() {
   var s = document.createElement('style');
   s.textContent = [
-    // Bubble button
-    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:900;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s,border-color .2s;font-size:1.45rem;line-height:1}',
-    '.nc-bubble:hover{transform:scale(1.08);background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.22)}',
-    '.nc-bubble.open{transform:scale(1);background:rgba(255,255,255,.1)}',
-    '.nc-bubble-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;background:#f7b731;border-radius:50%;border:1.5px solid rgba(0,0,0,.3);display:none}',
+    // Bubble button — sleek pill with "Hi" label
+    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:900;height:44px;padding:0 1.1rem 0 .9rem;border-radius:100px;background:linear-gradient(135deg,#d946ab,#ff30cc);border:none;cursor:pointer;display:flex;align-items:center;gap:.55rem;box-shadow:0 4px 20px rgba(255,48,204,.35);transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;font-size:1rem;line-height:1}',
+    '.nc-bubble:hover{transform:scale(1.05) translateY(-2px);box-shadow:0 8px 28px rgba(255,48,204,.45)}',
+    '.nc-bubble.open{transform:scale(1);box-shadow:0 4px 16px rgba(255,48,204,.3)}',
+    '.nc-bubble-icon{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;flex-shrink:0}',
+    '.nc-bubble-label{font-family:Inter,sans-serif;font-size:.8rem;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.01em}',
+    '.nc-bubble-dot{position:absolute;top:-2px;right:-2px;width:9px;height:9px;background:#f7b731;border-radius:50%;border:2px solid var(--bg,#282826);display:none}',
     '.nc-bubble-dot.show{display:block}',
 
     // Panel
@@ -149,7 +151,7 @@ function injectStyles() {
     // Mobile
     '@media(max-width:480px){',
     '.nc-panel{width:calc(100vw - 2rem);right:1rem;bottom:calc(1rem + 52px + .75rem)}',
-    '.nc-bubble{bottom:1rem;right:1rem}',
+    '.nc-bubble{bottom:1rem;right:1rem;height:40px;padding:0 .9rem 0 .75rem}',
     '}'
   ].join('');
   document.head.appendChild(s);
@@ -193,10 +195,13 @@ function injectHTML() {
       '</div>',
     '</div>',
 
-    // Bubble button
+    // Bubble button — sleek pill
     '<button class="nc-bubble" id="nc-bubble" onclick="ncToggle()" title="Chat with Nancy AI">',
       '<span class="nc-bubble-dot" id="nc-dot"></span>',
-      '<span id="nc-bubble-ico">🍋</span>',
+      '<span class="nc-bubble-icon">',
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+      '</span>',
+      '<span class="nc-bubble-label" id="nc-bubble-ico">Hi 👋</span>',
     '</button>'
   ].join('');
 
@@ -237,11 +242,11 @@ function ncToggle() {
   if (nc.open) {
     panel.classList.add('open');
     bubble.classList.add('open');
-    bubble.style.background = '';
     dot.classList.remove('show');
     nc.unread = false;
-    ico.style.fontSize = '.9rem';
-    ico.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    // Show close × in label
+    ico.style.fontSize = '';
+    ico.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     setTimeout(function() {
       var input = document.getElementById('nc-input');
       if (input) input.focus();
@@ -250,8 +255,8 @@ function ncToggle() {
   } else {
     panel.classList.remove('open');
     bubble.classList.remove('open');
-    ico.style.fontSize = '1.45rem';
-    ico.innerHTML = '🍋';
+    ico.style.fontSize = '';
+    ico.innerHTML = 'Hi 👋';
   }
 }
 
