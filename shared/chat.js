@@ -38,12 +38,11 @@ function injectStyles() {
   var s = document.createElement('style');
   s.textContent = [
     // Bubble button
-    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:900;width:56px;height:56px;border-radius:50%;background:linear-gradient(145deg,#fff9c4,#fde047);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(253,224,71,.5),0 2px 8px rgba(0,0,0,.25);transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;color:white;font-size:1.6rem;line-height:1}',
-    '.nc-bubble:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(253,224,71,.6),0 4px 12px rgba(0,0,0,.3)}',
-    '.nc-bubble.open{transform:scale(1)}',
-    '.nc-bubble-dot{position:absolute;top:3px;right:3px;width:10px;height:10px;background:#f7b731;border-radius:50%;border:2px solid var(--bg,#111);display:none;animation:ncPulse 1.6s ease-in-out infinite}',
+    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:900;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1),background .2s,border-color .2s;font-size:1.45rem;line-height:1}',
+    '.nc-bubble:hover{transform:scale(1.08);background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.22)}',
+    '.nc-bubble.open{transform:scale(1);background:rgba(255,255,255,.1)}',
+    '.nc-bubble-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;background:#f7b731;border-radius:50%;border:1.5px solid rgba(0,0,0,.3);display:none}',
     '.nc-bubble-dot.show{display:block}',
-    '@keyframes ncPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.65;transform:scale(1.15)}}',
 
     // Panel
     '.nc-panel{position:fixed;bottom:calc(1.75rem + 52px + .75rem);right:1.75rem;z-index:900;width:380px;max-height:560px;background:var(--card,#1a1a1a);border:1px solid var(--border2,rgba(255,255,255,.12));border-radius:20px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(12px) scale(.97);transition:opacity .22s ease,transform .25s cubic-bezier(.34,1.3,.64,1);overflow:hidden}',
@@ -62,6 +61,14 @@ function injectStyles() {
     // Messages
     '.nc-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.75rem;scroll-behavior:smooth}',
     '.nc-msgs::-webkit-scrollbar{width:4px}.nc-msgs::-webkit-scrollbar-track{background:transparent}.nc-msgs::-webkit-scrollbar-thumb{background:var(--border,rgba(255,255,255,.08));border-radius:4px}',
+
+    // Info note
+    '.nc-info{background:rgba(255,255,255,.03);border:1px solid var(--border,rgba(255,255,255,.08));border-radius:12px;padding:.65rem .85rem;margin-bottom:.6rem}',
+    '.nc-info-row{display:flex;align-items:flex-start;gap:.45rem;font-family:Inter,sans-serif;font-size:.72rem;color:var(--muted,#888);line-height:1.45}',
+    '.nc-info-row+.nc-info-row{margin-top:.3rem}',
+    '.nc-info-icon{flex-shrink:0;margin-top:1px;opacity:.6}',
+    '.nc-info-val{color:var(--body,#bbb)}',
+    '.nc-info-val strong{color:var(--h2,#e0e0e0);font-weight:600}',
 
     // Starters
     '.nc-starters{padding:.25rem 0 .5rem;display:flex;flex-direction:column;gap:.4rem}',
@@ -163,7 +170,20 @@ function injectHTML() {
 }
 
 function ncRenderStarters() {
-  var html = '<div class="nc-starters"><div class="nc-starter-lbl">Try asking</div>';
+  var infoNote = [
+    '<div class="nc-info">',
+      '<div class="nc-info-row">',
+        '<svg class="nc-info-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+        '<span class="nc-info-val"><strong>Model:</strong> llama-3.3-70b via Groq &nbsp;·&nbsp; Knowledge cutoff: <strong>early 2024</strong></span>',
+      '</div>',
+      '<div class="nc-info-row">',
+        '<svg class="nc-info-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
+        '<span class="nc-info-val"><strong>Best for:</strong> brainstorming, content writing, strategy, AI guidance — not real-time news or live data</span>',
+      '</div>',
+    '</div>'
+  ].join('');
+
+  var html = infoNote + '<div class="nc-starters"><div class="nc-starter-lbl">Try asking</div>';
   STARTERS.forEach(function(s) {
     html += '<button class="nc-starter" onclick="ncUseStarter(this.textContent)">' + s + '</button>';
   });
@@ -183,11 +203,11 @@ function ncToggle() {
   if (nc.open) {
     panel.classList.add('open');
     bubble.classList.add('open');
-    bubble.style.background = 'linear-gradient(145deg,#fff9c4,#fde047)';
+    bubble.style.background = '';
     dot.classList.remove('show');
     nc.unread = false;
-    ico.style.fontSize = '1rem';
-    ico.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#78350f" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    ico.style.fontSize = '.9rem';
+    ico.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     setTimeout(function() {
       var input = document.getElementById('nc-input');
       if (input) input.focus();
@@ -196,7 +216,7 @@ function ncToggle() {
   } else {
     panel.classList.remove('open');
     bubble.classList.remove('open');
-    ico.style.fontSize = '1.6rem';
+    ico.style.fontSize = '1.45rem';
     ico.innerHTML = '🍋';
   }
 }
