@@ -424,6 +424,7 @@ const CURRENT_PAGE = 'learning';
 
 var lhState = {
   section: null,
+  gemsView: null,   // null = gems hub, 'basics' = basics grid, 'team' = team grid
   docs: [],
   customGems: [],
   editDocId: null,
@@ -584,7 +585,8 @@ function openSection(name) {
   document.getElementById('lh-gems').classList.remove('active');
 
   if (name === 'gems') {
-    renderGems('All');
+    lhState.gemsView = null;
+    renderGemsHub();
     document.getElementById('lh-gems').classList.add('active');
   } else if (name === 'brand') {
     renderBrandSoon();
@@ -975,57 +977,114 @@ function gemCardHTML(g, isCustom) {
   return html;
 }
 
-async function renderGems(activeCat) {
-  var canEdit = hubState.currentUser && hubState.currentUser.role === 'admin';
-  var cats = ['All', 'Claude', 'Prompting', 'AI Tools', 'Content AI'];
-  var filteredBasics = activeCat === 'All' ? GEMS : GEMS.filter(function(g){ return g.cat === activeCat; });
+// ── GEMS HUB — 2 card landing ─────────────────────────
 
-  var catBtns = cats.map(function(c){
-    return '<button class="gem-cat-btn' + (c === activeCat ? ' active' : '') + '" onclick="renderGems(\'' + c + '\')">' + c + '</button>';
-  }).join('');
-
-  var basicsHtml = filteredBasics.map(function(g){ return gemCardHTML(g, false); }).join('');
+async function renderGemsHub() {
+  lhState.gemsView = null;
+  // fetch team gem count for the card
+  var teamCount = 0;
+  try {
+    var res = await db.from('learning_docs').select('id').eq('section', 'gem');
+    teamCount = (res.data || []).length;
+  } catch(e) {}
 
   var el = document.getElementById('lh-gems');
   el.innerHTML = '<div class="lh-back"><button class="lh-back-btn" onclick="backToHome()">← Back</button></div>'
-    + '<div class="lh-sec-hdr"><div><div class="lh-sec-title">AI Gems</div><div class="lh-sec-sub">Pre-loaded knowledge + your team\'s own gems</div></div>'
-    + (canEdit ? '<button class="btn-primary" onclick="openAddGemModal()">+ Add Gem</button>' : '')
+    + '<div class="lh-sec-hdr"><div>'
+    + '<div class="lh-sec-title">AI Gems</div>'
+    + '<div class="lh-sec-sub">Curated knowledge — explore the basics or browse your team\'s gems</div>'
+    + '</div></div>'
+    + '<div class="lh-cards" style="max-width:700px">'
+
+    // Basics card
+    + '<div class="lh-card" style="--lhc:#8854d0" onclick="openGemsSection(\'basics\')">'
+    + '<div class="lh-card-icon-wrap"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>'
+    + '<div class="lh-card-title">Basics</div>'
+    + '<div class="lh-card-desc">Pre-loaded AI knowledge — Claude, prompting strategies, top tools, and content workflows.</div>'
+    + '<div class="lh-card-foot"><span class="lh-card-count">' + GEMS.length + ' guides</span><span class="lh-card-btn">Explore →</span></div>'
     + '</div>'
 
-    // BASICS section
-    + '<div class="gems-section-hdr">'
-    + '<span class="gems-section-lbl">Basics</span>'
-    + '<div class="gem-cats">' + catBtns + '</div>'
+    // Team Gems card
+    + '<div class="lh-card" style="--lhc:#0ea5e9" onclick="openGemsSection(\'team\')">'
+    + '<div class="lh-card-icon-wrap"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>'
+    + '<div class="lh-card-title">Team Gems</div>'
+    + '<div class="lh-card-desc">Gems added by your team — research, docs, videos, and knowledge you\'ve collected.</div>'
+    + '<div class="lh-card-foot"><span class="lh-card-count">' + teamCount + ' gem' + (teamCount !== 1 ? 's' : '') + '</span><span class="lh-card-btn">Browse →</span></div>'
     + '</div>'
-    + '<div class="gem-grid" id="basics-gem-grid">' + (basicsHtml || '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">No gems in this category.</div>') + '</div>'
-
-    // TEAM GEMS section
-    + '<div class="gems-divider"></div>'
-    + '<div class="gems-section-hdr"><span class="gems-section-lbl">Team Gems</span></div>'
-    + '<div class="gem-grid" id="team-gem-grid"><div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:.5rem 0">Loading...</div></div>';
-
-  loadCustomGems();
+    + '</div>';
 }
 
-async function loadCustomGems() {
-  var el = document.getElementById('team-gem-grid');
-  if (!el) return;
+// ── BASICS VIEW ───────────────────────────────────────
+
+function openGemsSection(view) {
+  lhState.gemsView = view;
+  if (view === 'basics') renderBasicsGems('All');
+  else renderTeamGems();
+}
+
+function backToGemsHub() {
+  renderGemsHub();
+}
+
+function renderBasicsGems(activeCat) {
+  var cats = ['All', 'Claude', 'Prompting', 'AI Tools', 'Content AI'];
+  var filtered = activeCat === 'All' ? GEMS : GEMS.filter(function(g){ return g.cat === activeCat; });
+
+  var catBtns = cats.map(function(c){
+    return '<button class="gem-cat-btn' + (c === activeCat ? ' active' : '') + '" onclick="renderBasicsGems(\'' + c + '\')">' + c + '</button>';
+  }).join('');
+
+  var gemsHtml = filtered.map(function(g){ return gemCardHTML(g, false); }).join('');
+
+  var el = document.getElementById('lh-gems');
+  el.innerHTML = '<div class="lh-back"><button class="lh-back-btn" onclick="backToGemsHub()">← AI Gems</button></div>'
+    + '<div class="lh-sec-hdr"><div>'
+    + '<div class="lh-sec-title">Basics</div>'
+    + '<div class="lh-sec-sub">Pre-loaded AI knowledge across Claude, prompting, tools &amp; content</div>'
+    + '</div></div>'
+    + '<div class="gem-cats">' + catBtns + '</div>'
+    + '<div class="gem-grid">' + (gemsHtml || '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">No gems in this category.</div>') + '</div>';
+}
+
+// ── TEAM GEMS VIEW ────────────────────────────────────
+
+async function renderTeamGems() {
   var canEdit = hubState.currentUser && hubState.currentUser.role === 'admin';
+  var el = document.getElementById('lh-gems');
+  el.innerHTML = '<div class="lh-back"><button class="lh-back-btn" onclick="backToGemsHub()">← AI Gems</button></div>'
+    + '<div class="lh-sec-hdr"><div>'
+    + '<div class="lh-sec-title">Team Gems</div>'
+    + '<div class="lh-sec-sub">Knowledge your team has added — docs, research, videos &amp; notes</div>'
+    + '</div>'
+    + (canEdit ? '<button class="btn-primary" onclick="openAddGemModal()">+ Add Gem</button>' : '')
+    + '</div>'
+    + '<div class="gem-grid" id="team-gem-grid"><div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:.5rem 0">Loading...</div></div>';
+
+  var gridEl = document.getElementById('team-gem-grid');
   try {
     var res = await db.from('learning_docs').select('*').eq('section', 'gem').order('created_at', { ascending: false });
     if (res.error) throw res.error;
     lhState.customGems = res.data || [];
     loadCounts();
     if (!lhState.customGems.length) {
-      el.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:.5rem 0">'
-        + (canEdit ? 'No team gems yet. Hit "+ Add Gem" to create your first one.' : 'No team gems yet.')
+      gridEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem 1rem">'
+        + '<div style="font-family:Fraunces,serif;font-size:1.1rem;font-weight:600;color:var(--h2);margin-bottom:.4rem">No team gems yet</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);margin-bottom:1.5rem">'
+        + (canEdit ? 'Add your first gem — paste research, upload a doc, or turn a video into a knowledge card.' : 'Your team hasn\'t added any gems yet.')
+        + '</div>'
+        + (canEdit ? '<button class="btn-primary" onclick="openAddGemModal()">+ Add First Gem</button>' : '')
         + '</div>';
       return;
     }
-    el.innerHTML = lhState.customGems.map(function(g){ return gemCardHTML(g, true); }).join('');
+    gridEl.innerHTML = lhState.customGems.map(function(g){ return gemCardHTML(g, true); }).join('');
   } catch(e) {
-    if (el) el.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:.5rem 0">Could not load team gems.</div>';
+    if (gridEl) gridEl.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:.5rem 0">Could not load team gems.</div>';
   }
+}
+
+async function loadCustomGems() {
+  // keep for backward compat (search reopens team view)
+  await renderTeamGems();
 }
 
 function openGemModal(id, isCustom) {
@@ -1193,7 +1252,10 @@ async function saveGem() {
     if (res.error) throw res.error;
     showToast(lhState.editGemId ? 'Gem updated' : 'Gem added', 'success');
     closeModal('modal-gem');
-    renderGems('All');
+    lhState.section = 'gems';
+    document.getElementById('lh-home').style.display = 'none';
+    document.getElementById('lh-gems').classList.add('active');
+    renderTeamGems();
   } catch(e) {
     showToast('Save failed: ' + e.message, 'error');
   }
@@ -1217,7 +1279,7 @@ async function deleteGemById(gemId, name) {
     var res = await db.from('learning_docs').delete().eq('id', gemId);
     if (res.error) throw res.error;
     showToast('Gem deleted', 'success');
-    renderGems('All');
+    renderTeamGems();
   } catch(e) {
     showToast('Delete failed: ' + e.message, 'error');
   }
@@ -1306,9 +1368,10 @@ async function openDocFromSearch(docId, section) {
 }
 
 function openGemFromSearch(gemId) {
+  var isCustom = !!lhState.customGems.find(function(g){ return g.id === gemId; });
   clearSearch();
   openSection('gems');
-  setTimeout(function(){ openGemModal(gemId, false); }, 400);
+  setTimeout(function(){ openGemModal(gemId, isCustom); }, 400);
 }
 
 function clearSearch() {
