@@ -290,6 +290,29 @@
 .mnav-wrap{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--card);border-top:1px solid var(--border);padding:.35rem .5rem env(safe-area-inset-bottom,.5rem)}
 .mnav-inner{display:flex;align-items:center;justify-content:space-around;max-width:480px;margin:0 auto}
 
+/* ── TOOLS ── */
+.tools-wrap{padding:1.5rem 1rem 3rem;}
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem;}
+.tool-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:.75rem;}
+.tool-card-hdr{display:flex;align-items:flex-start;gap:.75rem;}
+.tool-icon{font-size:1.5rem;flex-shrink:0;margin-top:2px;}
+.tool-name{font-family:'Inter',sans-serif;font-size:.95rem;font-weight:700;color:var(--h2);}
+.tool-desc{font-family:sans-serif;font-size:.78rem;color:var(--muted);margin-top:2px;}
+.tool-input{width:100%;background:var(--input-bg,rgba(255,255,255,.05));border:1px solid var(--border);border-radius:8px;padding:.6rem .75rem;color:var(--h2);font-family:sans-serif;font-size:.84rem;resize:vertical;box-sizing:border-box;}
+.tool-select{width:100%;background:var(--input-bg,rgba(255,255,255,.05));border:1px solid var(--border);border-radius:8px;padding:.5rem .75rem;color:var(--h2);font-family:sans-serif;font-size:.84rem;}
+.tool-btn{background:var(--primary);color:#fff;border:none;border-radius:9px;padding:.55rem 1rem;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600;cursor:pointer;width:100%;transition:opacity .15s;}
+.tool-btn:hover{opacity:.88;}
+.tool-btn:disabled{opacity:.5;cursor:not-allowed;}
+.tool-output{display:none;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:9px;padding:.85rem;font-family:sans-serif;font-size:.84rem;color:var(--h2);line-height:1.6;white-space:pre-wrap;}
+.tool-output.show{display:block;}
+.tool-result-item{padding:.6rem 0;border-bottom:1px solid var(--border);}
+.tool-result-item:last-child{border-bottom:none;}
+.tool-hashtag-group{margin-bottom:.75rem;}
+.tool-hashtag-label{font-size:.7rem;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:.35rem;}
+.tool-hashtag-tags{display:flex;flex-wrap:wrap;gap:.35rem;}
+.tool-hashtag-tag{background:rgba(255,48,204,.1);color:var(--primary);border-radius:20px;padding:3px 10px;font-size:.78rem;font-weight:500;cursor:pointer;}
+.tool-hashtag-tag:hover{background:rgba(255,48,204,.2);}
+
 /* ─── RESPONSIVE ─── */
 @media(max-width:768px){
   .s-wrap{padding:0 1rem 2rem}
@@ -431,6 +454,7 @@
         <div class="av-tab" data-tab="memory" onclick="showTab('memory')">Performance</div>
         <div class="av-tab" data-tab="instruct" onclick="showTab('instruct')">Instructions</div>
         <div class="av-tab" data-tab="assets" onclick="showTab('assets')">Assets</div>
+        <div class="av-tab" data-tab="tools" onclick="showTab('tools')">Tools</div>
       </div>
     </div>
 
@@ -539,10 +563,31 @@
 
           <div class="studio-divider"></div>
 
-          <!-- STEP 4 -->
+          <!-- STEP 4: HASHTAG GENERATOR -->
           <div class="studio-step">
             <div class="studio-step-hdr">
               <div class="studio-num">4</div>
+              <div>
+                <div class="studio-step-title">Hashtag Pack Generator</div>
+                <div class="studio-step-meta" id="step4-meta">Generate 30 hashtags grouped by reach</div>
+              </div>
+              <div style="margin-left:auto;font-size:.78rem;color:var(--muted)">30 hashtags · 3 groups</div>
+            </div>
+            <div class="studio-step-body">
+              <textarea class="studio-niche" id="hashtag-topic-input" placeholder="Describe your niche or this post's topic..." style="height:70px"></textarea>
+              <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem">
+                <button class="gen-btn" id="btn-gen-hashtags" onclick="generateHashtagPack()">Generate Hashtag Pack</button>
+              </div>
+              <div id="hashtag-pack-output" style="margin-top:1rem"></div>
+            </div>
+          </div>
+
+          <div class="studio-divider"></div>
+
+          <!-- STEP 5 -->
+          <div class="studio-step">
+            <div class="studio-step-hdr">
+              <div class="studio-num">5</div>
               <div class="studio-step-title">Weekly Content Plan</div>
               <div class="studio-step-meta">AI-generated post ideas for each day of the week</div>
             </div>
@@ -670,6 +715,108 @@
           <button class="folder-tab act" data-folder="all" onclick="filterAssets('all',this)">All</button>
         </div>
         <div id="asset-grid" class="asset-grid"></div>
+      </div>
+
+      <!-- TOOLS TAB -->
+      <div class="av-panel" data-panel="tools">
+        <div class="tools-wrap">
+          <div class="tools-grid">
+
+            <!-- Caption Writer -->
+            <div class="tool-card">
+              <div class="tool-card-hdr">
+                <span class="tool-icon">✍️</span>
+                <div>
+                  <div class="tool-name">Caption Writer</div>
+                  <div class="tool-desc">5 ready-to-post captions in this avatar's voice</div>
+                </div>
+              </div>
+              <textarea class="tool-input" id="tool-caption-input" placeholder="Describe your post topic or paste your idea..." rows="3"></textarea>
+              <button class="tool-btn" onclick="runTool('caption')">Generate Captions</button>
+              <div class="tool-output" id="tool-caption-output"></div>
+            </div>
+
+            <!-- Hashtag Pack -->
+            <div class="tool-card">
+              <div class="tool-card-hdr">
+                <span class="tool-icon">#️⃣</span>
+                <div>
+                  <div class="tool-name">Hashtag Pack</div>
+                  <div class="tool-desc">30 hashtags grouped by reach size</div>
+                </div>
+              </div>
+              <textarea class="tool-input" id="tool-hashtag-input" placeholder="Describe your niche or post topic..." rows="3"></textarea>
+              <button class="tool-btn" onclick="runTool('hashtag')">Generate Hashtags</button>
+              <div class="tool-output" id="tool-hashtag-output"></div>
+            </div>
+
+            <!-- Comment Reply Generator -->
+            <div class="tool-card">
+              <div class="tool-card-hdr">
+                <span class="tool-icon">💬</span>
+                <div>
+                  <div class="tool-name">Comment Reply Generator</div>
+                  <div class="tool-desc">3 reply options in this avatar's voice</div>
+                </div>
+              </div>
+              <textarea class="tool-input" id="tool-reply-input" placeholder="Paste the comment you want to reply to..." rows="3"></textarea>
+              <button class="tool-btn" onclick="runTool('reply')">Generate Replies</button>
+              <div class="tool-output" id="tool-reply-output"></div>
+            </div>
+
+            <!-- Bio Optimizer -->
+            <div class="tool-card">
+              <div class="tool-card-hdr">
+                <span class="tool-icon">⚡</span>
+                <div>
+                  <div class="tool-name">Bio Optimizer</div>
+                  <div class="tool-desc">Rewrite & optimize for IG or TikTok</div>
+                </div>
+              </div>
+              <select class="tool-select" id="tool-bio-platform">
+                <option value="Instagram">Instagram</option>
+                <option value="TikTok">TikTok</option>
+              </select>
+              <textarea class="tool-input" id="tool-bio-input" placeholder="Paste current bio here..." rows="3"></textarea>
+              <button class="tool-btn" onclick="runTool('bio')">Optimize Bio</button>
+              <div class="tool-output" id="tool-bio-output"></div>
+            </div>
+
+            <!-- Trend Hook Pack -->
+            <div class="tool-card">
+              <div class="tool-card-hdr">
+                <span class="tool-icon">🔥</span>
+                <div>
+                  <div class="tool-name">Trend Hook Pack</div>
+                  <div class="tool-desc">10 scroll-stopping hooks for a trending topic</div>
+                </div>
+              </div>
+              <textarea class="tool-input" id="tool-hook-input" placeholder="Enter a trending topic or niche..." rows="3"></textarea>
+              <button class="tool-btn" onclick="runTool('hook')">Generate Hooks</button>
+              <div class="tool-output" id="tool-hook-output"></div>
+            </div>
+
+            <!-- Content Repurposer -->
+            <div class="tool-card">
+              <div class="tool-card-hdr">
+                <span class="tool-icon">♻️</span>
+                <div>
+                  <div class="tool-name">Content Repurposer</div>
+                  <div class="tool-desc">Turn long content into short-form posts</div>
+                </div>
+              </div>
+              <select class="tool-select" id="tool-repurpose-platform">
+                <option value="Instagram">Instagram</option>
+                <option value="TikTok">TikTok</option>
+                <option value="Threads">Threads</option>
+              </select>
+              <textarea class="tool-input" id="tool-repurpose-input" placeholder="Paste your long-form content, article, or script..." rows="4"></textarea>
+              <button class="tool-btn" onclick="runTool('repurpose')">Repurpose Content</button>
+              <div class="tool-output" id="tool-repurpose-output"></div>
+            </div>
+
+          </div>
+        </div>
       </div>
 
     </div><!-- /av-body -->
@@ -1581,6 +1728,43 @@ function renderShotPlan(shots) {
   '</div>';
 }
 
+// Step 4 — Hashtag Pack Generator (AI Studio)
+async function generateHashtagPack() {
+  var topicEl = document.getElementById('hashtag-topic-input');
+  var topic = (topicEl ? topicEl.value.trim() : '') || studioState.niche || '';
+  if (!topic) { showToast('Enter a topic first.', 'error'); return; }
+  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
+  if (!key) { showToast('No API key configured.', 'error'); return; }
+  setBtnLoading('btn-gen-hashtags', true, 'Generate Hashtag Pack');
+  var ctx = await buildAvatarContext();
+  var prompt = 'You are a social media hashtag strategist.\n\n' +
+    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
+    'Niche/Topic: ' + topic + '\n\n' +
+    'Generate exactly 30 hashtags. Group them:\n' +
+    '- mega: 5 hashtags with 10M+ posts\n' +
+    '- mid: 15 hashtags with 100K–10M posts\n' +
+    '- niche: 10 hashtags under 100K posts\n\n' +
+    'Each hashtag must start with #. Respond ONLY with raw valid JSON:\n' +
+    '{"mega":["#tag1","#tag2","#tag3","#tag4","#tag5"],"mid":["#tag",...],"niche":["#tag",...]}';
+  try {
+    var text = await callGemini(prompt);
+    var data = extractJSON(text);
+    function renderGroup(label, color, tags) {
+      if (!tags || !tags.length) return '';
+      return '<div style="margin-bottom:.9rem"><div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;color:' + color + ';text-transform:uppercase;margin-bottom:.4rem">' + label + '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:.35rem">' +
+        tags.map(function(t){ return '<span onclick="navigator.clipboard.writeText(' + JSON.stringify(t) + ');showToast(\'Copied!\',\'success\')" style="background:rgba(255,48,204,.1);color:var(--primary);border-radius:20px;padding:3px 10px;font-size:.78rem;font-weight:500;cursor:pointer">' + esc(t) + '</span>'; }).join('') +
+        '</div></div>';
+    }
+    var out = document.getElementById('hashtag-pack-output');
+    out.innerHTML = renderGroup('Mega — 10M+ posts', '#f7b731', data.mega) +
+      renderGroup('Mid — 100K to 10M', '#2d7dd2', data.mid) +
+      renderGroup('Niche — under 100K', '#3bb273', data.niche) +
+      '<div style="font-size:.72rem;color:var(--muted);margin-top:.25rem">Click any hashtag to copy.</div>';
+  } catch(e) { showToast('Hashtag generation failed: ' + e.message, 'error'); }
+  setBtnLoading('btn-gen-hashtags', false, 'Generate Hashtag Pack');
+}
+
 // ══════════════════════════════════════
 // APPROVE SCRIPT TO CALENDAR
 // ══════════════════════════════════════
@@ -1609,6 +1793,187 @@ async function approveToCalendar() {
     var btn = document.getElementById('approve-bar');
     if (btn) btn.style.background = 'rgba(59,178,115,.08)';
   } catch(e) { showToast('Failed: ' + (e.message || ''), 'error'); }
+}
+
+// ══════════════════════════════════════
+// TOOLS
+// ══════════════════════════════════════
+async function runTool(tool) {
+  var inputs = {
+    caption: 'tool-caption-input',
+    hashtag: 'tool-hashtag-input',
+    reply: 'tool-reply-input',
+    bio: 'tool-bio-input',
+    hook: 'tool-hook-input',
+    repurpose: 'tool-repurpose-input'
+  };
+  var outputs = {
+    caption: 'tool-caption-output',
+    hashtag: 'tool-hashtag-output',
+    reply: 'tool-reply-output',
+    bio: 'tool-bio-output',
+    hook: 'tool-hook-output',
+    repurpose: 'tool-repurpose-output'
+  };
+  var inputEl = document.getElementById(inputs[tool]);
+  var outputEl = document.getElementById(outputs[tool]);
+  var btn = inputEl && inputEl.closest('.tool-card') && inputEl.closest('.tool-card').querySelector('.tool-btn');
+  if (!inputEl || !outputEl) return;
+  var input = inputEl.value.trim();
+  if (!input) { showToast('Please fill in the input first.', 'error'); return; }
+  var ctx = await buildAvatarContext();
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+  outputEl.classList.remove('show');
+  try {
+    var html = '';
+    if (tool === 'caption') html = await toolCaption(input, ctx);
+    else if (tool === 'hashtag') html = await toolHashtag(input, ctx);
+    else if (tool === 'reply') html = await toolReply(input, ctx);
+    else if (tool === 'bio') html = await toolBio(input, ctx);
+    else if (tool === 'hook') html = await toolHook(input, ctx);
+    else if (tool === 'repurpose') html = await toolRepurpose(input, ctx);
+    outputEl.innerHTML = html;
+    outputEl.classList.add('show');
+  } catch(e) {
+    showToast('Generation failed: ' + (e.message || 'Try again'), 'error');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = btn.textContent.replace('Generating...', getBtnLabel(tool)); }
+}
+
+function getBtnLabel(tool) {
+  var labels = { caption:'Generate Captions', hashtag:'Generate Hashtags', reply:'Generate Replies', bio:'Optimize Bio', hook:'Generate Hooks', repurpose:'Repurpose Content' };
+  return labels[tool] || 'Generate';
+}
+
+async function toolCaption(input, ctx) {
+  var prompt = 'You are an expert social media copywriter.\n\n' +
+    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
+    'Post topic: ' + input + '\n\n' +
+    'Write exactly 5 unique, scroll-stopping captions for this post. Each should:\n' +
+    '- Be ready to post (include emojis, line breaks, and a CTA)\n' +
+    '- Be 80-150 words\n' +
+    '- Use the avatar\'s voice and style from the context above\n' +
+    '- Vary in angle (educational, emotional, funny, bold, personal)\n\n' +
+    'Respond ONLY with raw valid JSON:\n' +
+    '{"captions":["caption 1 text","caption 2 text","caption 3 text","caption 4 text","caption 5 text"]}';
+  var text = await callGemini(prompt);
+  var data = extractJSON(text);
+  return (data.captions || []).map(function(c, i) {
+    return '<div class="tool-result-item"><div style="font-size:.72rem;font-weight:700;color:var(--primary);margin-bottom:.35rem">CAPTION ' + (i+1) + '</div>' + esc(c) + '</div>';
+  }).join('');
+}
+
+async function toolHashtag(input, ctx) {
+  var prompt = 'You are a social media hashtag strategist.\n\n' +
+    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
+    'Niche/Topic: ' + input + '\n\n' +
+    'Generate exactly 30 hashtags for this niche/topic. Group them into:\n' +
+    '- mega: 5 hashtags with 10M+ posts (broad reach)\n' +
+    '- mid: 15 hashtags with 100K–10M posts (balanced)\n' +
+    '- niche: 10 hashtags with under 100K posts (targeted)\n\n' +
+    'Each hashtag must start with #. Respond ONLY with raw valid JSON:\n' +
+    '{"mega":["#tag1","#tag2","#tag3","#tag4","#tag5"],"mid":["#tag"...],"niche":["#tag"...]}';
+  var text = await callGemini(prompt);
+  var data = extractJSON(text);
+  function renderGroup(label, tags) {
+    if (!tags || !tags.length) return '';
+    return '<div class="tool-hashtag-group"><div class="tool-hashtag-label">' + label + '</div>' +
+      '<div class="tool-hashtag-tags">' +
+      tags.map(function(t){ return '<span class="tool-hashtag-tag" onclick="copyTag(this)">' + esc(t) + '</span>'; }).join('') +
+      '</div></div>';
+  }
+  return renderGroup('Mega (10M+ posts)', data.mega) + renderGroup('Mid (100K–10M posts)', data.mid) + renderGroup('Niche (under 100K)', data.niche) +
+    '<div style="font-size:.72rem;color:var(--muted);margin-top:.5rem">Click any hashtag to copy it.</div>';
+}
+
+function copyTag(el) {
+  navigator.clipboard.writeText(el.textContent).then(function(){ showToast('Copied ' + el.textContent, 'success'); });
+}
+
+async function toolReply(input, ctx) {
+  var prompt = 'You are an expert social media community manager.\n\n' +
+    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
+    'Comment to reply to: "' + input + '"\n\n' +
+    'Write exactly 3 different reply options in the avatar\'s voice. Each reply should:\n' +
+    '- Be authentic, warm, and on-brand\n' +
+    '- Be 1-3 sentences max\n' +
+    '- Vary in tone (e.g. playful, genuine, informative)\n\n' +
+    'Respond ONLY with raw valid JSON:\n' +
+    '{"replies":["reply 1","reply 2","reply 3"]}';
+  var text = await callGemini(prompt);
+  var data = extractJSON(text);
+  return (data.replies || []).map(function(r, i) {
+    return '<div class="tool-result-item" style="display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem">' +
+      '<div>' + esc(r) + '</div>' +
+      '<button onclick="navigator.clipboard.writeText(' + JSON.stringify(r) + ');showToast(\'Copied!\',\'success\')" style="flex-shrink:0;background:rgba(255,48,204,.12);color:var(--primary);border:none;border-radius:7px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-weight:600">Copy</button>' +
+      '</div>';
+  }).join('');
+}
+
+async function toolBio(input, ctx) {
+  var platform = (document.getElementById('tool-bio-platform') || {}).value || 'Instagram';
+  var prompt = 'You are an expert social media profile optimizer.\n\n' +
+    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
+    'Platform: ' + platform + '\n' +
+    'Current bio: "' + input + '"\n\n' +
+    'Rewrite this bio optimized for ' + platform + '. Requirements:\n' +
+    (platform === 'Instagram' ? '- Max 150 characters\n- Include emojis\n- Clear value proposition\n- Strong CTA' : '- Max 80 characters\n- Punchy and memorable\n- Reflects personality\n- Optional CTA') + '\n\n' +
+    'Provide 3 bio variations. Respond ONLY with raw valid JSON:\n' +
+    '{"bios":["bio 1","bio 2","bio 3"]}';
+  var text = await callGemini(prompt);
+  var data = extractJSON(text);
+  return (data.bios || []).map(function(b, i) {
+    var charCount = b.length;
+    return '<div class="tool-result-item">' +
+      '<div style="font-size:.7rem;font-weight:700;color:var(--primary);margin-bottom:.3rem">VERSION ' + (i+1) + ' · ' + charCount + ' chars</div>' +
+      '<div style="margin-bottom:.4rem">' + esc(b) + '</div>' +
+      '<button onclick="navigator.clipboard.writeText(' + JSON.stringify(b) + ');showToast(\'Copied!\',\'success\')" style="background:rgba(255,48,204,.12);color:var(--primary);border:none;border-radius:7px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-weight:600">Copy</button>' +
+      '</div>';
+  }).join('');
+}
+
+async function toolHook(input, ctx) {
+  var prompt = 'You are a viral short-form content strategist.\n\n' +
+    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
+    'Topic/Trend: ' + input + '\n\n' +
+    'Generate exactly 10 scroll-stopping hooks for this topic. Each hook should:\n' +
+    '- Be under 10 words\n' +
+    '- Create curiosity, controversy, or urgency\n' +
+    '- Be optimized for TikTok and Instagram Reels\n' +
+    '- Match the avatar\'s voice\n\n' +
+    'Respond ONLY with raw valid JSON:\n' +
+    '{"hooks":["hook 1","hook 2","hook 3","hook 4","hook 5","hook 6","hook 7","hook 8","hook 9","hook 10"]}';
+  var text = await callGemini(prompt);
+  var data = extractJSON(text);
+  return (data.hooks || []).map(function(h, i) {
+    return '<div class="tool-result-item" style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">' +
+      '<div style="font-weight:600;color:var(--h2)">' + esc(h) + '</div>' +
+      '<button onclick="navigator.clipboard.writeText(' + JSON.stringify(h) + ');showToast(\'Copied!\',\'success\')" style="flex-shrink:0;background:rgba(255,48,204,.12);color:var(--primary);border:none;border-radius:7px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-weight:600">Copy</button>' +
+      '</div>';
+  }).join('');
+}
+
+async function toolRepurpose(input, ctx) {
+  var platform = (document.getElementById('tool-repurpose-platform') || {}).value || 'Instagram';
+  var prompt = 'You are a content repurposing expert for social media.\n\n' +
+    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
+    'Target platform: ' + platform + '\n' +
+    'Original content:\n"' + input + '"\n\n' +
+    'Repurpose this into 3 short-form ' + platform + ' posts. Each post should:\n' +
+    '- Be optimized for ' + platform + '\n' +
+    '- Capture the key insight in a fresh angle\n' +
+    '- Be ready to post (include hook, body, CTA)\n' +
+    '- Use the avatar\'s voice and style\n\n' +
+    'Respond ONLY with raw valid JSON:\n' +
+    '{"posts":["post 1 full text","post 2 full text","post 3 full text"]}';
+  var text = await callGemini(prompt);
+  var data = extractJSON(text);
+  return (data.posts || []).map(function(p, i) {
+    return '<div class="tool-result-item"><div style="font-size:.72rem;font-weight:700;color:var(--primary);margin-bottom:.35rem">VERSION ' + (i+1) + '</div>' +
+      '<div style="white-space:pre-wrap;margin-bottom:.4rem">' + esc(p) + '</div>' +
+      '<button onclick="navigator.clipboard.writeText(' + JSON.stringify(p) + ');showToast(\'Copied!\',\'success\')" style="background:rgba(255,48,204,.12);color:var(--primary);border:none;border-radius:7px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-weight:600">Copy</button>' +
+      '</div>';
+  }).join('');
 }
 
 // ══════════════════════════════════════
