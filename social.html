@@ -16,14 +16,13 @@
 .s-title{font-family:'Fraunces',serif;font-size:2rem;font-weight:600;color:var(--h2);letter-spacing:-.03em;line-height:1;margin-bottom:.3rem}
 .s-sub{font-size:.88rem;color:var(--muted);font-family:'Inter',sans-serif}
 .av-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
-.av-card{
+.av-card{cursor:pointer;
   background:var(--card);border:1px solid var(--border);border-radius:20px;
   overflow:hidden;transition:box-shadow .3s cubic-bezier(.25,.46,.45,.94),transform .3s cubic-bezier(.25,.46,.45,.94);
   position:relative;
 }
-.av-card::after{content:'';position:absolute;inset:0;border-radius:20px;opacity:0;transition:opacity .3s;background:radial-gradient(circle at 70% 0%,var(--avc-glow,rgba(255,48,204,.08)),transparent 65%);pointer-events:none}
-.av-card:hover{box-shadow:0 20px 60px rgba(0,0,0,.35),0 4px 16px rgba(0,0,0,.2);transform:translateY(-4px)}
-.av-card:hover::after{opacity:1}
+.av-card::after{display:none}
+.av-card:hover{box-shadow:0 12px 36px rgba(0,0,0,.22);transform:translateY(-3px)}
 .av-card-in{padding:1.5rem;position:relative;z-index:1}
 .av-card-head{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem}
 .av-circle{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:700;color:white;flex-shrink:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
@@ -42,8 +41,8 @@
 .av-stat-box:last-child{border-right:none}
 .av-stat-n{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:600;color:var(--h2);display:block;line-height:1}
 .av-stat-l{font-family:'Inter',sans-serif;font-size:.65rem;color:var(--muted);display:block;margin-top:.25rem}
-.av-open{width:100%;padding:.7rem;border:none;border-radius:10px;font-family:'Fraunces',serif;font-size:.9rem;font-weight:500;color:white;cursor:pointer;transition:filter .2s,transform .15s,box-shadow .2s}
-.av-open:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.av-open{width:100%;padding:.5rem 0 0;border:none;background:none;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;color:var(--avc,var(--primary));cursor:pointer;text-align:left;transition:opacity .15s;opacity:.85;display:flex;align-items:center;gap:.3rem}
+.av-open:hover{opacity:1}
 
 /* ─── AVATAR WORKSPACE ──────────────────── */
 /* Full-screen scroll container — the pill nav sits on top (z-index 200).
@@ -1272,7 +1271,7 @@ function renderAvatarCards(avatars, posts) {
     var ownerBadge = isOwner
       ? '<span style="font-size:.68rem;background:rgba(255,48,204,.12);color:var(--primary);padding:2px 7px;border-radius:20px;font-weight:600">Mine</span>'
       : '<span style="font-size:.68rem;background:rgba(59,178,115,.1);color:#3bb273;padding:2px 7px;border-radius:20px;font-weight:600">Shared</span>';
-    return '<div class="av-card" style="--avc:' + color + ';--avc-glow:' + glowColor + '">' +
+    return '<div class="av-card" style="--avc:' + color + '" data-avid="' + av.id + '" onclick="openAvatarById(this.dataset.avid)">' +
       '<div class="av-card-in">' +
         adminHtml +
         '<div class="av-card-head">' +
@@ -1287,7 +1286,7 @@ function renderAvatarCards(avatars, posts) {
           '<div class="av-stat-box"><span class="av-stat-n">' + postedCount + '</span><span class="av-stat-l">Posted this week</span></div>' +
           '<div class="av-stat-box"><span class="av-stat-n">' + pendingCount + '</span><span class="av-stat-l">Pending review</span></div>' +
         '</div>' +
-        '<button class="av-open" style="background:' + color + ';margin-top:.875rem" data-avid="' + av.id + '" onclick="openAvatarById(this.dataset.avid)">Open Workspace →</button>' +
+        '<button class="av-open" data-avid="' + av.id + '" onclick="event.stopPropagation();openAvatarById(this.dataset.avid)">Open Workspace →</button>' +
       '</div>' +
     '</div>';
   }).join('');
