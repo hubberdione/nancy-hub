@@ -4074,11 +4074,18 @@ async function openDeliverables() {
     list.innerHTML = state.deliverables.map(d => {
       const files = d.deliverable_files || [];
       const imgs = files.filter(f => f.mime_type && f.mime_type.startsWith('image/'));
+      const links = Array.isArray(d.links) ? d.links.filter(Boolean) : (d.links ? String(d.links).split(',').map(l=>l.trim()).filter(Boolean) : []);
+      const linksHtml = links.length > 0 ? `<div style="margin-top:.5rem;display:flex;flex-direction:column;gap:.25rem">${links.map(l => {
+        let label = l;
+        try { label = new URL(l).hostname.replace('www.',''); } catch(e) {}
+        return `<a href="${l}" target="_blank" rel="noopener" style="font-family:sans-serif;font-size:.78rem;color:var(--primary);word-break:break-all">🔗 ${esc(label)}</a>`;
+      }).join('')}</div>` : '';
       return `
       <div class="deliverable-item">
         <div class="deliv-task-title">✓ ${esc(d.task_title)}</div>
         <div class="deliv-date">${new Date(d.completed_at).toLocaleDateString('en-HK', {year:'numeric',month:'short',day:'numeric'})}</div>
         ${d.notes ? `<div class="deliv-notes">${esc(d.notes)}</div>` : ''}
+        ${linksHtml}
         ${imgs.length > 0 ? `<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">${imgs.map(f => `<a href="${f.direct_url}" target="_blank"><img src="${f.thumbnail_url || f.embed_url}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'"></a>`).join('')}</div>` : ''}
         ${files.filter(f => !f.mime_type?.startsWith('image/')).map(f => `<div style="margin-top:.5rem"><a href="${f.direct_url}" target="_blank" style="font-family:sans-serif;font-size:.78rem;color:var(--primary)">📎 ${esc(f.file_name)}</a></div>`).join('')}
       </div>`;
