@@ -353,7 +353,7 @@ var NC_TOOLS = [
     function: {
       name: 'get_team_members',
       description: 'Get a list of all team members in the hub — their names, roles, and emails.',
-      parameters: { type: 'object', properties: {} }
+      parameters: { type: 'object', properties: {}, additionalProperties: false }
     }
   },
   {
@@ -377,7 +377,7 @@ var NC_TOOLS = [
     function: {
       name: 'get_slack_channels',
       description: 'List all available Slack channels the bot can read from.',
-      parameters: { type: 'object', properties: {} }
+      parameters: { type: 'object', properties: {}, additionalProperties: false }
     }
   }
 ];
@@ -519,23 +519,34 @@ async function ncSend() {
   try {
     var messages = [{ role: 'system', content: NANCY_SYSTEM }].concat(nc.messages);
     var reply = null;
-    var maxLoops = 5; // prevent infinite tool loops
+    var maxLoops = 5;
+    var useTools = true; // may be disabled if Groq rejects tool schema
 
     for (var loop = 0; loop < maxLoops; loop++) {
       var payload = {
         model: model,
         max_tokens: 1024,
-        messages: messages,
-        tools: NC_TOOLS,
-        tool_choice: 'auto'
+        messages: messages
       };
+      if (useTools) {
+        payload.tools = NC_TOOLS;
+        payload.tool_choice = 'auto';
+      }
 
       var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
         body: JSON.stringify(payload)
       });
-      if (!resp.ok) throw new Error('API error ' + resp.status);
+
+      // If Groq rejects tool schema (400), retry without tools
+      if (!resp.ok) {
+        if (resp.status === 400 && useTools) {
+          useTools = false;
+          continue;
+        }
+        throw new Error('API error ' + resp.status);
+      }
       var data = await resp.json();
 
       var choice = data.choices && data.choices[0];
