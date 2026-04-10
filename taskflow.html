@@ -382,24 +382,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 @keyframes rbotWave{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(-35deg)}}
 
 /* REWARD TIER PREVIEW ROW (banner right side) */
-.reward-tier-preview{display:flex;gap:1rem;align-items:flex-end;flex-shrink:0;padding:.1rem .2rem}
-.rtp-bot{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:transform .2s,opacity .2s;opacity:.65;animation:rbotFloat 2.8s ease-in-out infinite}
+.reward-tier-preview{display:flex;gap:.9rem;align-items:flex-end;flex-shrink:0;padding:.1rem .2rem}
+.rtp-bot{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:transform .2s,opacity .2s;opacity:.6;animation:rbotFloat 2.8s ease-in-out infinite}
 .rtp-bot:nth-child(2){animation-delay:.4s}
 .rtp-bot:nth-child(3){animation-delay:.8s}
 .rtp-bot:nth-child(4){animation-delay:1.2s}
-.rtp-bot:hover{transform:translateY(-4px) scale(1.12)!important;opacity:1!important;animation:none}
-.rtp-bot.active{opacity:1;transform:translateY(-5px) scale(1.18)!important;animation:none}
-.rtp-head{width:30px;height:27px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 45%,#ec4899 100%);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:0 3px 8px rgba(236,72,153,.4)}
-.rtp-eyes{display:flex;gap:6px;align-items:center}
-.rtp-eye{width:5px;height:5px;background:#111;border-radius:50%;display:block}
+.rtp-bot:hover{transform:translateY(-3px) scale(1.15)!important;opacity:1!important;animation:none}
+.rtp-bot.active{opacity:1;transform:translateY(-4px) scale(1.2)!important;animation:none}
+/* Bot figure: head + body side-by-side with item held out */
+.rtp-figure{display:flex;flex-direction:column;align-items:center;gap:1px;position:relative}
+.rtp-held{position:absolute;right:-12px;bottom:2px;font-size:.8rem;line-height:1}
+.rtp-head{width:18px;height:16px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 45%,#ec4899 100%);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 2px 5px rgba(236,72,153,.35)}
+.rtp-eyes{display:flex;gap:3px;align-items:center}
+.rtp-eye{width:3px;height:3px;background:#111;border-radius:50%;display:block}
 .rtp-mouth{height:0;display:block}
-.rtp-mouth.mood-sad{width:10px;border-top:2px solid #111;border-radius:5px 5px 0 0;margin-top:2px}
-.rtp-mouth.mood-ok{width:8px;border-bottom:2px solid #111;margin-top:2px}
-.rtp-mouth.mood-happy{width:13px;height:5px;border-bottom:2px solid #111;border-radius:0 0 7px 7px;margin-top:2px}
-.rtp-mouth.mood-ecstatic{width:15px;height:6px;border-bottom:2px solid #111;border-radius:0 0 8px 8px;background:rgba(255,255,255,.3);margin-top:2px}
-.rtp-body{width:22px;height:16px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 45%,#ec4899 100%);border-radius:5px;box-shadow:0 2px 6px rgba(236,72,153,.25)}
-.rtp-item{font-size:1.1rem;line-height:1}
-.rtp-label{font-family:'Inter',sans-serif;font-size:.6rem;font-weight:700;text-align:center;white-space:nowrap;letter-spacing:.01em}
+.rtp-mouth.mood-sad{width:7px;border-top:1.5px solid #111;border-radius:4px 4px 0 0;margin-top:1px}
+.rtp-mouth.mood-ok{width:6px;border-bottom:1.5px solid #111;margin-top:1px}
+.rtp-mouth.mood-happy{width:9px;height:3px;border-bottom:1.5px solid #111;border-radius:0 0 5px 5px;margin-top:1px}
+.rtp-mouth.mood-ecstatic{width:11px;height:4px;border-bottom:1.5px solid #111;border-radius:0 0 6px 6px;background:rgba(255,255,255,.25);margin-top:1px}
+.rtp-body{width:14px;height:11px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 45%,#ec4899 100%);border-radius:3px;box-shadow:0 1px 4px rgba(236,72,153,.2)}
+.rtp-label{font-family:'Inter',sans-serif;font-size:.55rem;font-weight:700;text-align:center;white-space:nowrap;letter-spacing:.01em;margin-top:3px}
 
 /* IDEAS */
 .ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-top:1rem}
@@ -822,27 +824,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
         </div>
         <div class="reward-tier-preview" id="reward-tier-preview">
           <div class="rtp-bot" onclick="openRewards()" title="Dead Rose · 0–48%">
-            <div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-sad"></div></div>
-            <div class="rtp-body"></div>
-            <div class="rtp-item">🌹</div>
+            <div class="rtp-figure"><div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-sad"></div></div><div class="rtp-body"></div><span class="rtp-held">🌹</span></div>
             <div class="rtp-label" style="color:#c97aa0">Dead Rose</div>
           </div>
           <div class="rtp-bot" onclick="openRewards()" title="Guacamole · 49–68%">
-            <div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-ok"></div></div>
-            <div class="rtp-body"></div>
-            <div class="rtp-item">🥑</div>
+            <div class="rtp-figure"><div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-ok"></div></div><div class="rtp-body"></div><span class="rtp-held">🥑</span></div>
             <div class="rtp-label" style="color:#79b854">Guacamole</div>
           </div>
           <div class="rtp-bot" onclick="openRewards()" title="BeRRilicious · 69–88%">
-            <div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-happy"></div></div>
-            <div class="rtp-body"></div>
-            <div class="rtp-item">🫐</div>
+            <div class="rtp-figure"><div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-happy"></div></div><div class="rtp-body"></div><span class="rtp-held">🫐</span></div>
             <div class="rtp-label" style="color:#e05470">BeRRilicious</div>
           </div>
           <div class="rtp-bot" onclick="openRewards()" title="Lemonade · 89–100%">
-            <div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-ecstatic"></div></div>
-            <div class="rtp-body"></div>
-            <div class="rtp-item">🍋</div>
+            <div class="rtp-figure"><div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-ecstatic"></div></div><div class="rtp-body"></div><span class="rtp-held">🍋</span></div>
             <div class="rtp-label" style="color:#d4a820">Lemonade</div>
           </div>
         </div>
@@ -2321,11 +2315,9 @@ function checkRewards() {
   const tierPreviewHTML = `<div class="reward-tier-preview" id="reward-tier-preview">` +
     REWARD_TIERS.map(function(t) {
       const isActive = dailyOk && dt.name === t.name;
-      return `<div class="rtp-bot${isActive ? ' active' : ''}" onclick="openRewards()" title="${t.name} · ${t.min}–${t.max}%" style="${isActive ? 'transform:translateY(-4px) scale(1.15);opacity:1' : ''}">
-        <div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-${t.mood}"></div></div>
-        <div class="rtp-body"></div>
-        <div class="rtp-item">${t.item}</div>
-        <div class="rtp-label" style="color:${t.color};${isActive ? 'font-size:.6rem;font-weight:800' : ''}">${t.name}</div>
+      return `<div class="rtp-bot${isActive ? ' active' : ''}" onclick="openRewards()" title="${t.name} · ${t.min}–${t.max}%">
+        <div class="rtp-figure"><div class="rtp-head"><div class="rtp-eyes"><span class="rtp-eye"></span><span class="rtp-eye"></span></div><div class="rtp-mouth mood-${t.mood}"></div></div><div class="rtp-body"></div><span class="rtp-held">${t.item}</span></div>
+        <div class="rtp-label" style="color:${t.color}">${t.name}</div>
       </div>`;
     }).join('') + `</div>`;
 
@@ -3530,5 +3522,6 @@ function goAdmin() {
 boot();
 initMobileNav();
 </script>
+<script src="shared/chat.js?v=9"></script>
 </body>
 </html>
