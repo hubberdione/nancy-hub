@@ -1781,6 +1781,10 @@ function getVisibleTasks() {
   if (state.currentBoard === 'shared') {
     return state.tasks.filter(t => t.shared_to_dashboard);
   }
+  if (state.currentBoard === 'viewing') {
+    // Show all tasks fetched for this board (already filtered by viewSharedBoard query)
+    return state.tasks;
+  }
   // Personal board = tasks I own + tasks assigned to me
   const uid = state.currentUser?.id;
   return state.tasks.filter(t => {
@@ -3128,9 +3132,13 @@ async function viewSharedBoard(boardId, boardName) {
   state.viewingBoardId = boardId;
   state.viewingBoardName = boardName;
   try {
-    var result = await db.from('tasks').select('*').eq('owner_id', boardId).order('task_order');
-    if (result.error) throw result.error;
-    state.tasks = result.data || [];
+    var [ownRes, assignedRes] = await Promise.all([
+      db.from('tasks').select('*').eq('owner_id', boardId).order('task_order'),
+      db.from('tasks').select('*').ilike('assigned_to', '%' + boardId + '%').order('task_order')
+    ]);
+    var combined = [...(ownRes.data || []), ...(assignedRes.data || [])];
+    var seen = new Set();
+    state.tasks = combined.filter(function(t) { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
     renderBoard();
     showToast('Viewing ' + boardName + "'s board");
   } catch(e) {
