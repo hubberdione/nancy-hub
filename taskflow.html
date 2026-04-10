@@ -460,10 +460,21 @@ body.reward-time .rtp-icon{display:block}
 .idea-btn:hover{background:var(--primary);color:white;border-color:var(--primary)}
 
 /* DELIVERABLES */
-.deliverable-item{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
-.deliv-task-title{font-family:sans-serif;font-size:.92rem;font-weight:700;color:var(--h2);margin-bottom:.5rem}
-.deliv-date{font-family:sans-serif;font-size:.75rem;color:var(--muted);margin-bottom:.75rem}
+.deliverable-item{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;position:relative}
+.deliv-task-title{font-family:sans-serif;font-size:.92rem;font-weight:700;color:var(--h2);margin-bottom:.3rem}
+.deliv-date{font-family:sans-serif;font-size:.76rem;font-weight:600;color:var(--primary);margin-bottom:.65rem;display:flex;align-items:center;gap:.3rem}
 .deliv-notes{font-family:sans-serif;font-size:.85rem;color:var(--body);line-height:1.6;background:var(--bg);padding:.75rem;border-radius:var(--radius-sm);margin-bottom:.75rem}
+.deliv-share-btn{display:inline-flex;align-items:center;gap:.3rem;font-family:sans-serif;font-size:.75rem;font-weight:600;color:var(--primary);background:var(--primary-light);border:1px solid rgba(236,72,153,.25);border-radius:20px;padding:.25rem .75rem;cursor:pointer;margin-top:.75rem;transition:all .18s}
+.deliv-share-btn:hover{background:rgba(236,72,153,.18)}
+.deliv-shared-by{display:inline-flex;align-items:center;gap:.3rem;font-family:sans-serif;font-size:.73rem;color:var(--muted);background:var(--bg2);border-radius:20px;padding:.2rem .65rem;margin-top:.75rem}
+.deliv-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.25rem}
+.deliv-tab{font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);padding:.6rem 1.1rem;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .18s}
+.deliv-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.deliv-share-picker{margin-top:.75rem;padding:.75rem;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.deliv-share-picker .assign-chip{font-size:.78rem;padding:.3rem .6rem}
+.deliv-share-recipients{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.5rem}
+.deliv-shared-tag{display:inline-flex;align-items:center;gap:.25rem;font-family:sans-serif;font-size:.72rem;background:rgba(59,178,115,.12);color:#059669;border:1px solid rgba(59,178,115,.3);border-radius:20px;padding:.18rem .55rem}
+.deliv-from-badge{font-family:sans-serif;font-size:.72rem;background:var(--bg2);color:var(--muted);border-radius:20px;padding:.2rem .6rem;display:inline-flex;align-items:center;gap:.25rem}
 
 /* TOAST */
 .toast{position:fixed;bottom:2rem;right:2rem;background:rgba(236,72,153,.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(236,72,153,.4);color:#f9d0eb;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:500;padding:.7rem 1.2rem;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.25);z-index:9000;opacity:0;transform:translateY(10px);transition:all .28s cubic-bezier(.4,0,.2,1);pointer-events:none}
@@ -1446,13 +1457,34 @@ body.reward-time .rtp-icon{display:block}
 
 <!-- DELIVERABLES MODAL -->
 <div class="modal-overlay" id="modal-deliverables" onclick="closeModalOutside(event,'modal-deliverables')" style="align-items:flex-start;padding-top:0">
-  <div class="modal" style="max-width:700px;border-radius:0 0 20px 20px;max-height:90vh">
-    <div class="modal-header">
+  <div class="modal" style="max-width:700px;border-radius:0 0 20px 20px;max-height:92vh;display:flex;flex-direction:column">
+    <div class="modal-header" style="flex-shrink:0">
       <div class="modal-title">📦 Deliverables</div>
       <button class="modal-close" onclick="closeModal('modal-deliverables')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-    <div id="deliverables-list">
+    <div class="deliv-tabs" style="flex-shrink:0">
+      <div class="deliv-tab active" id="deliv-tab-mine" onclick="switchDelivTab('mine')">My Work</div>
+      <div class="deliv-tab" id="deliv-tab-shared" onclick="switchDelivTab('shared')">Shared With Me <span id="deliv-shared-badge" style="display:none;background:var(--primary);color:white;font-size:.65rem;border-radius:10px;padding:0 5px;margin-left:3px"></span></div>
+    </div>
+    <div id="deliverables-list" style="overflow-y:auto;flex:1;padding-right:2px">
       <div style="font-family:sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">No deliverables yet. Complete a task to add one.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DELIVERABLE SHARE MODAL -->
+<div class="modal-overlay" id="modal-deliv-share" onclick="closeModalOutside(event,'modal-deliv-share')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">📤 Share Deliverable</div>
+      <button class="modal-close" onclick="closeModal('modal-deliv-share')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="font-family:sans-serif;font-size:.83rem;color:var(--muted);margin-bottom:1rem" id="deliv-share-task-name"></div>
+    <label class="form-label">Share with</label>
+    <div id="deliv-share-member-list" style="display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0 1rem"></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-deliv-share')">Cancel</button>
+      <button class="btn-primary" id="deliv-share-send-btn" onclick="sendDeliverableShare()">Share 📤</button>
     </div>
   </div>
 </div>
@@ -1621,6 +1653,7 @@ let state = {
   tasks: [],
   ideas: [],
   deliverables: [],
+  sharedDeliverables: [],
   members: [],
   notifications: [],
   currentBoard: 'personal',
@@ -1808,7 +1841,7 @@ async function showTaskHub() {
   await loadMembers();
   await loadTasks();
   await loadIdeas();
-  await loadDeliverables();
+  await Promise.all([loadDeliverables(), loadSharedDeliverables()]);
   await loadNotifications();
   refreshRecurring();
   // Refresh notifications every 60s
@@ -3451,6 +3484,8 @@ function renderSidebar(tasks) {
 // SQL required: alter table tasks add column if not exists assigned_to text;
 //               alter table tasks add column if not exists assigned_by text;
 //               create table if not exists notifications (id uuid primary key default gen_random_uuid(), to_user text not null, from_user text, from_name text, type text not null, task_id text, task_title text not null, read boolean default false, created_at bigint default (extract(epoch from now())*1000)::bigint);
+//               create table if not exists deliverable_shares (id uuid primary key default gen_random_uuid(), deliverable_id uuid not null, shared_with text not null, shared_by text not null, shared_by_name text, shared_at bigint default (extract(epoch from now())*1000)::bigint);
+//               alter table deliverables add column if not exists owner_id text;
 // ═══════════════════════════════════════
 async function loadMembers() {
   if (!state.currentUser?.id) return;
@@ -3544,11 +3579,19 @@ function renderNotifPanel() {
     return;
   }
   list.innerHTML = state.notifications.map(n => {
-    const icon = n.type === 'assigned' ? '📋' : '✅';
-    const text = n.type === 'assigned'
-      ? `<b>${esc(n.from_name||'Someone')}</b> assigned you: "<em>${esc(n.task_title)}</em>"`
-      : `<b>${esc(n.from_name||'Someone')}</b> completed your task: "<em>${esc(n.task_title)}</em>"`;
-    return `<div class="notif-item ${n.read ? '' : 'unread'}">
+    let icon, text;
+    if (n.type === 'assigned') {
+      icon = '📋';
+      text = `<b>${esc(n.from_name||'Someone')}</b> assigned you: "<em>${esc(n.task_title)}</em>"`;
+    } else if (n.type === 'deliverable_shared') {
+      icon = '📦';
+      text = `<b>${esc(n.from_name||'Someone')}</b> shared a deliverable with you: "<em>${esc(n.task_title)}</em>"`;
+    } else {
+      icon = '✅';
+      text = `<b>${esc(n.from_name||'Someone')}</b> completed your task: "<em>${esc(n.task_title)}</em>"`;
+    }
+    const clickAttr = n.type === 'deliverable_shared' ? `onclick="closeAllPanels();openDeliverables('shared')"` : '';
+    return `<div class="notif-item ${n.read ? '' : 'unread'}" ${clickAttr} style="${n.type==='deliverable_shared'?'cursor:pointer':''}">
       <div class="notif-icon">${icon}</div>
       <div class="notif-body">
         <div class="notif-text">${text}</div>
@@ -3787,6 +3830,7 @@ async function confirmComplete() {
     const { data: deliv, error } = await db.from('deliverables').insert({
       task_id: task.id.startsWith('task_') ? null : task.id,
       task_title: task.title,
+      owner_id: state.currentUser?.id || null,
       notes: notes || '',
       links: links ? links.split(',').map(l => l.trim()) : [],
       completed_at: Date.now()
@@ -4054,44 +4098,190 @@ async function deleteIdea(id) {
 
 // ═══════════════════════════════════════
 // DELIVERABLES
+// Supabase schema needed:
+//   create table if not exists deliverable_shares (
+//     id uuid primary key default gen_random_uuid(),
+//     deliverable_id uuid not null,
+//     shared_with text not null,
+//     shared_by text not null,
+//     shared_at bigint default (extract(epoch from now())*1000)::bigint
+//   );
 // ═══════════════════════════════════════
+
+// Returns true if a deliverable has actual content worth displaying
+function delivHasContent(d) {
+  const files = d.deliverable_files || [];
+  const links = Array.isArray(d.links) ? d.links.filter(Boolean) : (d.links ? String(d.links).split(',').map(l=>l.trim()).filter(Boolean) : []);
+  return !!(d.notes?.trim() || links.length || files.length);
+}
+
 async function loadDeliverables() {
   try {
-    const { data, error } = await db.from('deliverables').select('*, deliverable_files(*)').order('completed_at', { ascending: false });
+    let q = db.from('deliverables').select('*, deliverable_files(*)').order('completed_at', { ascending: false });
+    if (state.currentUser?.id) q = q.eq('owner_id', state.currentUser.id);
+    const { data, error } = await q;
     if (error) throw error;
-    state.deliverables = data || [];
+    state.deliverables = (data || []).filter(delivHasContent);
   } catch(e) {
     state.deliverables = JSON.parse(localStorage.getItem('nancy_delivs') || '[]');
   }
 }
 
-async function openDeliverables() {
-  await loadDeliverables();
-  const list = document.getElementById('deliverables-list');
-  if (!state.deliverables.length) {
-    list.innerHTML = '<div style="font-family:sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">No deliverables yet.</div>';
-  } else {
-    list.innerHTML = state.deliverables.map(d => {
-      const files = d.deliverable_files || [];
-      const imgs = files.filter(f => f.mime_type && f.mime_type.startsWith('image/'));
-      const links = Array.isArray(d.links) ? d.links.filter(Boolean) : (d.links ? String(d.links).split(',').map(l=>l.trim()).filter(Boolean) : []);
-      const linksHtml = links.length > 0 ? `<div style="margin-top:.5rem;display:flex;flex-direction:column;gap:.25rem">${links.map(l => {
-        let label = l;
-        try { label = new URL(l).hostname.replace('www.',''); } catch(e) {}
-        return `<a href="${l}" target="_blank" rel="noopener" style="font-family:sans-serif;font-size:.78rem;color:var(--primary);word-break:break-all">🔗 ${esc(label)}</a>`;
-      }).join('')}</div>` : '';
-      return `
-      <div class="deliverable-item">
-        <div class="deliv-task-title">✓ ${esc(d.task_title)}</div>
-        <div class="deliv-date">${new Date(d.completed_at).toLocaleDateString('en-HK', {year:'numeric',month:'short',day:'numeric'})}</div>
-        ${d.notes ? `<div class="deliv-notes">${esc(d.notes)}</div>` : ''}
-        ${linksHtml}
-        ${imgs.length > 0 ? `<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">${imgs.map(f => `<a href="${f.direct_url}" target="_blank"><img src="${f.thumbnail_url || f.embed_url}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'"></a>`).join('')}</div>` : ''}
-        ${files.filter(f => !f.mime_type?.startsWith('image/')).map(f => `<div style="margin-top:.5rem"><a href="${f.direct_url}" target="_blank" style="font-family:sans-serif;font-size:.78rem;color:var(--primary)">📎 ${esc(f.file_name)}</a></div>`).join('')}
-      </div>`;
-    }).join('');
-  }
+async function loadSharedDeliverables() {
+  if (!state.currentUser?.id) return;
+  try {
+    // Get shares directed to me
+    const { data: shares } = await db.from('deliverable_shares').select('*').eq('shared_with', state.currentUser.id).order('shared_at', { ascending: false });
+    if (!shares || !shares.length) { state.sharedDeliverables = []; return; }
+    // Fetch each deliverable
+    const ids = [...new Set(shares.map(s => s.deliverable_id))];
+    const { data: delivs } = await db.from('deliverables').select('*, deliverable_files(*)').in('id', ids);
+    // Attach share metadata
+    state.sharedDeliverables = (delivs || []).map(d => {
+      const share = shares.find(s => s.deliverable_id === d.id) || {};
+      return { ...d, _sharedBy: share.shared_by, _sharedByName: share.shared_by_name, _sharedAt: share.shared_at };
+    });
+  } catch(e) { state.sharedDeliverables = []; }
+}
+
+function delivCardHtml(d, isShared) {
+  const files = d.deliverable_files || [];
+  const imgs = files.filter(f => f.mime_type && f.mime_type.startsWith('image/'));
+  const links = Array.isArray(d.links) ? d.links.filter(Boolean) : (d.links ? String(d.links).split(',').map(l=>l.trim()).filter(Boolean) : []);
+  const dateTs = isShared ? (d._sharedAt || d.completed_at) : d.completed_at;
+  const dateLabel = isShared ? 'Shared' : 'Delivered';
+  const dateStr = new Date(dateTs).toLocaleDateString('en-HK', {year:'numeric', month:'short', day:'numeric'});
+  const timeStr = new Date(dateTs).toLocaleTimeString('en-HK', {hour:'2-digit', minute:'2-digit', hour12:true});
+
+  const linksHtml = links.length > 0 ? `<div style="display:flex;flex-direction:column;gap:.3rem;margin:.5rem 0">${links.map(l => {
+    let label = l;
+    try { label = new URL(l).hostname.replace('www.',''); } catch(e) {}
+    return `<a href="${l}" target="_blank" rel="noopener" style="font-family:sans-serif;font-size:.78rem;color:var(--primary);word-break:break-all">🔗 ${esc(label)}</a>`;
+  }).join('')}</div>` : '';
+
+  const imgsHtml = imgs.length > 0 ? `<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">${imgs.map(f => `<a href="${f.direct_url}" target="_blank"><img src="${f.thumbnail_url || f.embed_url}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'"></a>`).join('')}</div>` : '';
+
+  const docsHtml = files.filter(f => !f.mime_type?.startsWith('image/')).map(f => `<div style="margin-top:.4rem"><a href="${f.direct_url}" target="_blank" style="font-family:sans-serif;font-size:.78rem;color:var(--primary)">📎 ${esc(f.file_name)}</a></div>`).join('');
+
+  const shareBtn = !isShared ? `<button class="deliv-share-btn" onclick="openDeliverableShareModal('${d.id}','${esc(d.task_title).replace(/'/g,"\\'")}')">📤 Share</button>` : '';
+  const fromBadge = isShared && d._sharedByName ? `<span class="deliv-from-badge">📨 from ${esc(d._sharedByName)}</span>` : '';
+
+  return `<div class="deliverable-item">
+    <div class="deliv-task-title">✓ ${esc(d.task_title)}</div>
+    <div class="deliv-date">📅 ${dateLabel} on ${dateStr} · ${timeStr}</div>
+    ${d.notes ? `<div class="deliv-notes">${esc(d.notes)}</div>` : ''}
+    ${linksHtml}${imgsHtml}${docsHtml}
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">${shareBtn}${fromBadge}</div>
+  </div>`;
+}
+
+let delivActiveTab = 'mine';
+
+async function openDeliverables(tab) {
+  delivActiveTab = tab || 'mine';
+  await Promise.all([loadDeliverables(), loadSharedDeliverables()]);
+  switchDelivTab(delivActiveTab);
   openModal('modal-deliverables');
+}
+
+function switchDelivTab(tab) {
+  delivActiveTab = tab;
+  document.getElementById('deliv-tab-mine').classList.toggle('active', tab === 'mine');
+  document.getElementById('deliv-tab-shared').classList.toggle('active', tab === 'shared');
+
+  // Update shared badge
+  const sharedCount = (state.sharedDeliverables || []).length;
+  const badge = document.getElementById('deliv-shared-badge');
+  if (badge) { badge.textContent = sharedCount; badge.style.display = sharedCount > 0 ? 'inline' : 'none'; }
+
+  const list = document.getElementById('deliverables-list');
+  if (!list) return;
+
+  if (tab === 'mine') {
+    const items = state.deliverables || [];
+    list.innerHTML = items.length
+      ? items.map(d => delivCardHtml(d, false)).join('')
+      : '<div style="font-family:sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">No deliverables yet. Complete a task to add one.</div>';
+  } else {
+    const items = state.sharedDeliverables || [];
+    list.innerHTML = items.length
+      ? items.map(d => delivCardHtml(d, true)).join('')
+      : '<div style="font-family:sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Nothing shared with you yet.</div>';
+  }
+}
+
+// ─── Share flow ──────────────────────────────────────────────────────────────
+let delivShareTarget = null; // { id, title }
+let delivShareSelected = [];
+
+function openDeliverableShareModal(delivId, delivTitle) {
+  delivShareTarget = { id: delivId, title: delivTitle };
+  delivShareSelected = [];
+  document.getElementById('deliv-share-task-name').textContent = '📦 ' + delivTitle;
+
+  // Render member chips (exclude self)
+  const me = state.currentUser?.id;
+  const members = (state.members || []).filter(m => m.id !== me);
+  const container = document.getElementById('deliv-share-member-list');
+  container.innerHTML = members.length
+    ? members.map(m => `<div class="assign-chip" id="dsc-${m.id}" onclick="toggleDelivShareMember('${m.id}','${esc(m.name).replace(/'/g,"\\'")}')">
+        <div class="assign-av" style="background:${m.avatar||'#888'}">${(m.name||'?')[0].toUpperCase()}</div>
+        ${esc(m.name)}
+      </div>`).join('')
+    : '<div style="font-family:sans-serif;font-size:.82rem;color:var(--muted)">No team members found.</div>';
+
+  openModal('modal-deliv-share');
+}
+
+function toggleDelivShareMember(id, name) {
+  const chip = document.getElementById('dsc-' + id);
+  const idx = delivShareSelected.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    delivShareSelected.splice(idx, 1);
+    if (chip) chip.classList.remove('selected');
+  } else {
+    delivShareSelected.push({ id, name });
+    if (chip) chip.classList.add('selected');
+  }
+}
+
+async function sendDeliverableShare() {
+  if (!delivShareTarget || !delivShareSelected.length) { showToast('Pick at least one person to share with.'); return; }
+  const btn = document.getElementById('deliv-share-send-btn');
+  btn.disabled = true; btn.textContent = 'Sharing...';
+  const me = state.currentUser;
+  try {
+    for (const recipient of delivShareSelected) {
+      // Insert share record
+      await db.from('deliverable_shares').insert({
+        deliverable_id: delivShareTarget.id,
+        shared_with: recipient.id,
+        shared_by: me.id,
+        shared_by_name: me.name || me.email,
+        shared_at: Date.now()
+      });
+      // Send notification
+      await createNotification({
+        to_user: recipient.id,
+        from_user: me.id,
+        from_name: me.name || me.email,
+        type: 'deliverable_shared',
+        task_id: delivShareTarget.id,
+        task_title: delivShareTarget.title
+      });
+    }
+    closeModal('modal-deliv-share');
+    showToast(`Shared with ${delivShareSelected.map(x=>x.name).join(', ')} ✓`, 'success');
+    delivShareSelected = [];
+  } catch(e) {
+    showToast('Share failed: ' + (e.message || 'unknown error'), 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Share 📤';
+}
+
+function closeAllPanels() {
+  const panel = document.getElementById('notif-panel');
+  if (panel) panel.style.display = 'none';
 }
 
 // ═══════════════════════════════════════
