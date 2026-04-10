@@ -217,6 +217,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 .task-action-btn{background:none;border:none;width:24px;height:24px;border-radius:4px;cursor:pointer;font-size:.75rem;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
 .task-action-btn:hover{background:var(--bg2);color:var(--body)}
 .task-action-btn.del:hover{background:#fee2e2;color:#e53935}
+/* DRAG & DROP */
+.task-drag-handle{width:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;cursor:grab;opacity:0;transition:opacity .15s;line-height:1;margin-left:-2px;padding-right:2px}
+.task-card:hover .task-drag-handle{opacity:.5}
+.task-drag-handle:active{cursor:grabbing}
+.task-card.dragging{opacity:.3;border-style:dashed!important;transform:none!important;box-shadow:none!important}
+.task-card.drag-above{border-top:2.5px solid var(--primary)!important}
+.task-card.drag-below{border-bottom:2.5px solid var(--primary)!important}
+.tier-cards.drag-over-tier{outline:2px dashed rgba(255,48,204,.35);outline-offset:-3px;background:rgba(255,48,204,.04)}
 /* Deliverables toggle in complete modal */
 .deliv-toggle-btn{width:100%;padding:.6rem 1rem;background:var(--bg2);border:1.5px dashed var(--border2);border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;text-align:left;transition:all .15s;display:flex;align-items:center;gap:.4rem}
 .deliv-toggle-btn:hover{border-color:var(--primary);color:var(--primary)}
@@ -1762,6 +1770,116 @@ async function deleteTaskFromDB(id) {
 }
 
 // ═══════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════
+function initDragDrop(card, task, tier) {
+  card.draggable = true;
+
+  card.addEventListener('dragstart', (e) => {
+    state.dragTaskId = task.id;
+    state._dragOverCard = null;
+    setTimeout(() => card.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', task.id);
+  });
+
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    clearDragVisuals();
+    state.dragTaskId = null;
+    state._dragOverCard = null;
+  });
+
+  card.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!state.dragTaskId || state.dragTaskId === task.id) return;
+    e.dataTransfer.dropEffect = 'move';
+    const rect = card.getBoundingClientRect();
+    const pos = e.clientY < rect.top + rect.height / 2 ? 'above' : 'below';
+    if (state._dragOverCard !== card || state._dragPos !== pos) {
+      clearDragVisuals();
+      state._dragOverCard = card;
+      state._dragPos = pos;
+      card.classList.add('drag-' + pos);
+    }
+  });
+
+  card.addEventListener('dragleave', (e) => {
+    if (!card.contains(e.relatedTarget)) {
+      card.classList.remove('drag-above', 'drag-below');
+      if (state._dragOverCard === card) state._dragOverCard = null;
+    }
+  });
+
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!state.dragTaskId || state.dragTaskId === task.id) return;
+    const pos = state._dragPos || 'below';
+    clearDragVisuals();
+    dropTask(task.id, tier, pos);
+  });
+}
+
+function clearDragVisuals() {
+  document.querySelectorAll('.drag-above,.drag-below,.drag-over-tier').forEach(el =>
+    el.classList.remove('drag-above','drag-below','drag-over-tier'));
+  state._dragOverCard = null;
+  state._dragPos = null;
+}
+
+async function dropTask(targetTaskId, targetTier, position) {
+  const dragTask = state.tasks.find(t => t.id === state.dragTaskId);
+  if (!dragTask || dragTask.id === targetTaskId) return;
+
+  // Tier limit check
+  if (targetTier !== dragTask.tier) {
+    const limit = TIER_LIMITS[targetTier];
+    if (limit) {
+      const count = getVisibleTasks().filter(t => t.tier === targetTier && !t.completed && t.id !== dragTask.id).length;
+      if (count >= limit) { showToast(`Max ${limit} in this tier`, 'error'); return; }
+    }
+  }
+
+  dragTask.tier = targetTier;
+
+  // Reorder within target tier
+  const tierTasks = getVisibleTasks()
+    .filter(t => t.tier === targetTier && !t.completed && t.id !== dragTask.id)
+    .sort((a, b) => (a.task_order || 0) - (b.task_order || 0));
+  const idx = tierTasks.findIndex(t => t.id === targetTaskId);
+  tierTasks.splice(position === 'above' ? idx : idx + 1, 0, dragTask);
+  tierTasks.forEach((t, i) => { t.task_order = i; });
+
+  renderBoard();
+  await Promise.all(tierTasks.map(t => updateTaskInDB(t.id, { tier: t.tier, task_order: t.task_order })));
+}
+
+async function dropTaskToEnd(targetTier) {
+  const dragTask = state.tasks.find(t => t.id === state.dragTaskId);
+  if (!dragTask) return;
+
+  if (targetTier !== dragTask.tier) {
+    const limit = TIER_LIMITS[targetTier];
+    if (limit) {
+      const count = getVisibleTasks().filter(t => t.tier === targetTier && !t.completed && t.id !== dragTask.id).length;
+      if (count >= limit) { showToast(`Max ${limit} in this tier`, 'error'); return; }
+    }
+  }
+
+  dragTask.tier = targetTier;
+  const tierTasks = getVisibleTasks()
+    .filter(t => t.tier === targetTier && !t.completed && t.id !== dragTask.id)
+    .sort((a, b) => (a.task_order || 0) - (b.task_order || 0));
+  tierTasks.push(dragTask);
+  tierTasks.forEach((t, i) => { t.task_order = i; });
+
+  renderBoard();
+  await Promise.all(tierTasks.map(t => updateTaskInDB(t.id, { tier: t.tier, task_order: t.task_order })));
+}
+
+// ═══════════════════════════════════════
 // BOARD RENDER
 // ═══════════════════════════════════════
 async function switchBoard(board, el) {
@@ -1826,6 +1944,22 @@ function renderBoard() {
     addBtn.textContent = addLabels[tier];
     addBtn.onclick = () => openAddTask(tier);
     container.appendChild(addBtn);
+
+    // Tier container drop zone (drop at end)
+    container.ondragover = (e) => {
+      e.preventDefault();
+      if (!state.dragTaskId || state._dragOverCard) return;
+      container.classList.add('drag-over-tier');
+    };
+    container.ondragleave = (e) => {
+      if (!container.contains(e.relatedTarget)) container.classList.remove('drag-over-tier');
+    };
+    container.ondrop = (e) => {
+      e.preventDefault();
+      container.classList.remove('drag-over-tier');
+      if (!state.dragTaskId || state._dragOverCard) return;
+      dropTaskToEnd(tier);
+    };
   });
 
   renderSidebar(tasks);
@@ -1856,6 +1990,7 @@ function createTaskCard(task, tier) {
 
   card.innerHTML = `
     <div class="task-top">
+      <div class="task-drag-handle" title="Drag to move">⠿</div>
       <div class="task-check ${task.completed ? 'done' : ''}" onclick="toggleTask('${task.id}')"></div>
       <div class="task-title">${esc(task.title)}</div>
       <div class="task-actions">
@@ -1866,6 +2001,7 @@ function createTaskCard(task, tier) {
     ${task.description ? `<div class="task-desc">${esc(task.description)}</div>` : ''}
     ${metaHtml ? `<div class="task-meta">${metaHtml}</div>` : ''}
   `;
+  initDragDrop(card, task, tier);
   return card;
 }
 
