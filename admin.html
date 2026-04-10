@@ -295,10 +295,10 @@
           <div class="hc-msg" id="hc-slack-msg">Checking...</div>
           <button class="hc-fix-toggle" id="hc-slack-toggle" onclick="toggleFix('slack')">▼ How to fix</button>
           <div class="hc-fix-body" id="hc-slack-fix">
-            <div class="hc-fix-step"><span class="hc-fix-step-num">1.</span><span>Go to the <b>Settings</b> section below on this page.</span></div>
-            <div class="hc-fix-step"><span class="hc-fix-step-num">2.</span><span>Paste a valid Slack user token (starts with <code style="font-size:.7rem;background:var(--bg2);padding:2px 4px;border-radius:3px">xoxp-</code>) into the Slack Token field.</span></div>
-            <div class="hc-fix-step"><span class="hc-fix-step-num">3.</span><span>To get a token: go to <a class="hc-fix-link" href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a>, create an app, add <b>channels:history</b> + <b>channels:read</b> scopes, then install to your workspace.</span></div>
-            <div class="hc-fix-step"><span class="hc-fix-step-num">4.</span><span>Save and click Recheck.</span></div>
+            <div class="hc-fix-step"><span class="hc-fix-step-num">1.</span><span>Click your avatar/name in the top-right to open your profile menu.</span></div>
+            <div class="hc-fix-step"><span class="hc-fix-step-num">2.</span><span>Find the <b>My Slack</b> section and paste your Slack user token (starts with <code style="font-size:.7rem;background:var(--bg2);padding:2px 4px;border-radius:3px">xoxp-</code>).</span></div>
+            <div class="hc-fix-step"><span class="hc-fix-step-num">3.</span><span>To get a token: go to <a class="hc-fix-link" href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a>, create an app, add <b>channels:history</b> + <b>channels:read</b> + <b>users:read</b> scopes, then install to your workspace.</span></div>
+            <div class="hc-fix-step"><span class="hc-fix-step-num">4.</span><span>Click Save in My Slack, then click Recheck below.</span></div>
             <button class="hc-recheck" onclick="checkSlack()">Recheck ↻</button>
           </div>
         </div>
@@ -560,11 +560,17 @@ function toggleFix(id) {
 
 async function checkSupabase() {
   try {
-    var result = await db.from('settings').select('key').limit(1);
-    if (result.error) throw result.error;
-    setOk('supabase', 'Connected — database responding normally');
+    var [settingsRes, tasksRes, boardsRes] = await Promise.all([
+      db.from('settings').select('key').limit(1),
+      db.from('tasks').select('id', { count: 'exact', head: true }),
+      db.from('boards').select('id', { count: 'exact', head: true })
+    ]);
+    if (settingsRes.error) throw settingsRes.error;
+    var taskCount = tasksRes.count || 0;
+    var memberCount = boardsRes.count || 0;
+    setOk('supabase', 'Connected — ' + taskCount + ' tasks, ' + memberCount + ' team members. See Supabase dashboard for storage quota.');
   } catch(e) {
-    setErr('supabase', 'Cannot reach database. Project may be paused.');
+    setErr('supabase', 'Cannot reach database. Project may be paused or key is wrong.');
   }
 }
 
@@ -612,23 +618,36 @@ async function checkGmail() {
 
 async function checkSlack() {
   try {
-    var result = await db.from('settings').select('value').eq('key', 'inbox_slack_token').single();
-    var token = result.data && result.data.value ? result.data.value : '';
+    // Read from current user's boards row (slack_token column, set via My Slack in profile menu)
+    var token = '';
+    var userId = hubState.currentUser && hubState.currentUser.id;
+    if (!userId) { setWarn('slack', 'Not logged in — cannot check Slack token.'); return; }
+
+    // Prefer in-memory first, then fetch from db
+    if (hubState.currentUser.slack_token) {
+      token = hubState.currentUser.slack_token;
+    } else {
+      var result = await db.from('boards').select('slack_token').eq('id', userId).single();
+      token = result.data && result.data.slack_token ? result.data.slack_token : '';
+      if (token) hubState.currentUser.slack_token = token; // cache it
+    }
+
     if (!token) {
-      setWarn('slack', 'No token set. Slack fetch is disabled.');
+      setWarn('slack', 'No token set. Open your profile menu → My Slack to add your xoxp- token.');
       return;
     }
+
     var res = await fetch('https://slack.com/api/auth.test', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     var data = await res.json();
     if (data.ok) {
-      setOk('slack', 'Token valid — connected as ' + (data.user || 'user'));
+      setOk('slack', 'Connected as @' + (data.user || 'user') + ' in ' + (data.team || 'workspace'));
     } else {
-      setErr('slack', 'Token invalid or expired: ' + (data.error || 'unknown error'));
+      setErr('slack', 'Token invalid or expired: ' + (data.error || 'unknown'));
     }
   } catch(e) {
-    setErr('slack', 'Could not verify Slack token.');
+    setErr('slack', 'Could not verify Slack token: ' + (e.message || 'network error'));
   }
 }
 
@@ -637,12 +656,53 @@ async function checkGroq() {
     var result = await db.from('settings').select('value').eq('key', 'groq_api_key').single();
     var key = result.data && result.data.value ? result.data.value : '';
     if (!key) {
-      setWarn('groq', 'No API key set. AI features are disabled.');
+      setWarn('groq', 'No API key set. AI features (Nancy chat, summaries) are disabled.');
       return;
     }
-    setOk('groq', 'API key is configured');
+
+    // Actually verify the key by calling Groq's models endpoint
+    var res = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+
+    if (res.status === 401) {
+      setErr('groq', 'API key invalid or revoked. Update it in Settings below.');
+      return;
+    }
+    if (!res.ok) {
+      setWarn('groq', 'Groq returned HTTP ' + res.status + '. Key may be rate-limited.');
+      return;
+    }
+
+    var data = await res.json();
+    var modelCount = data.data ? data.data.length : 0;
+
+    // Try fetching today's usage from Groq usage endpoint
+    try {
+      var today = new Date().toISOString().split('T')[0];
+      var usageRes = await fetch('https://api.groq.com/openai/v1/usage?start_date=' + today + '&end_date=' + today, {
+        headers: { 'Authorization': 'Bearer ' + key }
+      });
+      if (usageRes.ok) {
+        var usageData = await usageRes.json();
+        var tokensToday = 0;
+        if (usageData.data && Array.isArray(usageData.data)) {
+          usageData.data.forEach(function(entry) {
+            tokensToday += (entry.total_tokens || 0);
+          });
+        } else if (usageData.total_tokens) {
+          tokensToday = usageData.total_tokens;
+        }
+        if (tokensToday > 0) {
+          setOk('groq', 'API key valid — ' + modelCount + ' models. Today: ' + tokensToday.toLocaleString() + ' tokens used.');
+          return;
+        }
+      }
+    } catch(usageErr) { /* usage endpoint may not be available */ }
+
+    setOk('groq', 'API key valid — ' + modelCount + ' models available. Nancy AI is ready.');
   } catch(e) {
-    setWarn('groq', 'Could not check Groq key. Check settings below.');
+    setWarn('groq', 'Could not verify Groq key: ' + (e.message || 'network error'));
   }
 }
 
@@ -651,15 +711,27 @@ async function loadUsage() {
   var grid = document.getElementById('usage-grid');
   if (!grid) return;
   try {
-    var [membersRes, sessionsRes] = await Promise.all([
-      db.from('boards').select('id', { count: 'exact' }),
-      db.from('inbox_sessions').select('id', { count: 'exact' })
+    var [membersRes, sessionsRes, tasksRes, delivRes] = await Promise.all([
+      db.from('boards').select('id', { count: 'exact', head: true }),
+      db.from('inbox_sessions').select('id', { count: 'exact', head: true }),
+      db.from('tasks').select('id', { count: 'exact', head: true }),
+      db.from('deliverables').select('id', { count: 'exact', head: true }).catch(function() { return { count: 0 }; })
     ]);
     var memberCount = membersRes.count || 0;
     var sessionCount = sessionsRes.count || 0;
+    var taskCount = tasksRes.count || 0;
+    var delivCount = delivRes.count || 0;
 
-    // Drive usage from GAS (already checked in health)
-    var driveHtml = renderUsageStat('Google Drive', '—', 'Checking...', 0);
+    // Supabase free tier: 500MB database
+    // Estimate rough usage from row counts (tasks ~2KB avg, boards ~1KB, etc.)
+    var estimatedKB = (taskCount * 2) + (memberCount * 1) + (sessionCount * 3) + (delivCount * 1);
+    var estimatedMB = (estimatedKB / 1024).toFixed(1);
+    var supaPct = Math.min(Math.round((estimatedKB / 1024 / 500) * 100), 100);
+    var supaClass = supaPct >= 80 ? 'danger' : supaPct >= 50 ? 'warn' : '';
+    var supaHtml = renderUsageStat('Supabase DB', estimatedMB + ' MB', 'est. of 500 MB free tier', supaPct, supaClass);
+
+    // Drive usage from GAS
+    var driveHtml = renderUsageStat('Google Drive', '—', 'GAS script unreachable', 0);
     try {
       var controller = new AbortController();
       setTimeout(function() { controller.abort(); }, 5000);
@@ -668,13 +740,15 @@ async function loadUsage() {
       if (gasData && gasData.success) {
         var pct = gasData.percentage || 0;
         var cls = pct >= 90 ? 'danger' : pct >= 75 ? 'warn' : '';
-        driveHtml = renderUsageStat('Google Drive', pct + '%', gasData.usedFormatted + ' used of ' + gasData.totalFormatted, pct, cls);
+        driveHtml = renderUsageStat('Google Drive', pct + '%', gasData.usedFormatted + ' of ' + gasData.totalFormatted, pct, cls);
       }
     } catch(e) {}
 
     grid.innerHTML =
-      renderUsageStat('Team Members', memberCount, '@carenbloom.com accounts', 0) +
+      renderUsageStat('Team Members', memberCount, 'accounts in boards table', 0) +
+      renderUsageStat('Tasks Created', taskCount, delivCount + ' deliverables tracked', 0) +
       renderUsageStat('Inbox Sessions', sessionCount, 'AI triage runs total', 0) +
+      supaHtml +
       driveHtml;
   } catch(e) {
     grid.innerHTML = '<div style="font-family:sans-serif;font-size:.82rem;color:var(--muted)">Could not load stats.</div>';
