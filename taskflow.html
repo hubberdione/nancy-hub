@@ -2576,7 +2576,7 @@ async function slackSummarize() {
 
   try {
     var userPrompt = 'Summarize this Slack channel (#' + slackState.activeChannelName + ') conversation from today:\n\n' + transcript;
-    var raw = await window.callClaude(
+    var raw = await window.callGroqLight(
       [{ role: 'user', content: userPrompt }],
       SLACK_SUMMARY_SYSTEM,
       600
@@ -2748,7 +2748,7 @@ async function slackBulkSummarize() {
         var t = (m.text||'').replace(/<@([A-Z0-9]+)>/g,function(_,u){ return '@'+(slackState.userCache[u]||u); }).replace(/<[^>]+>/g,'').trim();
         return t ? n + ': ' + t : '';
       }).filter(Boolean).join('\n');
-      var raw = await window.callClaude(
+      var raw = await window.callGroqLight(
         [{ role: 'user', content: 'Summarize #' + ch.name + ':\n\n' + transcript }],
         SLACK_SUMMARY_SYSTEM,
         600
@@ -4396,7 +4396,7 @@ async function generateDailyRecap(completedToday) {
   const prompt = `The team at CareNBloom completed these tasks today:\n${taskList}\n\nWrite a warm, energetic 2-sentence recap of what was accomplished. Be specific, mention task highlights. Keep it under 40 words. No bullet points.`;
 
   try {
-    var summary = await window.callClaude(
+    var summary = await window.callGroqLight(
       [{ role: 'user', content: prompt }],
       null,
       80

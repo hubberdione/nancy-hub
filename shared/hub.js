@@ -524,6 +524,51 @@ async function saveMySlackToken() {
 }
 window.saveMySlackToken = saveMySlackToken;
 
+// ── GROQ HELPERS ──
+// Smart model (Nancy chat, complex tasks)
+async function callGroq(messages, systemPrompt, maxTokens) {
+  maxTokens = maxTokens || 1024;
+  if (!GROQ_API_KEY) {
+    try {
+      var r = await db.from('settings').select('value').eq('key','groq_api_key').single();
+      if (r.data && r.data.value) GROQ_API_KEY = r.data.value;
+    } catch(e) {}
+  }
+  if (!GROQ_API_KEY) throw new Error('Groq API key not set.');
+  var msgs = systemPrompt ? [{ role: 'system', content: systemPrompt }].concat(messages) : messages;
+  var res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + GROQ_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: GROQ_MODEL, messages: msgs, max_tokens: maxTokens, temperature: 0.7 })
+  });
+  var data = await res.json();
+  if (!res.ok) throw new Error(data.error && data.error.message ? data.error.message : 'Groq error ' + res.status);
+  return data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+}
+
+// Light model (summaries, recap, hashtags) — 8x cheaper tokens
+async function callGroqLight(messages, systemPrompt, maxTokens) {
+  maxTokens = maxTokens || 512;
+  if (!GROQ_API_KEY) {
+    try {
+      var r = await db.from('settings').select('value').eq('key','groq_api_key').single();
+      if (r.data && r.data.value) GROQ_API_KEY = r.data.value;
+    } catch(e) {}
+  }
+  if (!GROQ_API_KEY) throw new Error('Groq API key not set.');
+  var msgs = systemPrompt ? [{ role: 'system', content: systemPrompt }].concat(messages) : messages;
+  var res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + GROQ_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: msgs, max_tokens: maxTokens, temperature: 0.6 })
+  });
+  var data = await res.json();
+  if (!res.ok) throw new Error(data.error && data.error.message ? data.error.message : 'Groq error ' + res.status);
+  return data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+}
+window.callGroq = callGroq;
+window.callGroqLight = callGroqLight;
+
 // ── CLAUDE COST TRACKING ──
 async function trackClaudeCost(inputTokens, outputTokens) {
   var cost = (inputTokens / 1000000 * 1.00) + (outputTokens / 1000000 * 5.00);

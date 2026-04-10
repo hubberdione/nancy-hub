@@ -210,7 +210,7 @@ function injectHTML() {
         '<div class="nc-hdr-dot"></div>',
         '<div class="nc-hdr-info">',
           '<div class="nc-hdr-name">Nancy AI</div>',
-          '<div class="nc-hdr-sub">Powered by Claude · Haiku</div>',
+          '<div class="nc-hdr-sub">Powered by Groq · llama-3.3-70b</div>',
         '</div>',
         '<div class="nc-hdr-btns">',
           '<button class="nc-hdr-btn" onclick="ncClearChat()" title="New conversation">New chat</button>',
@@ -263,7 +263,7 @@ function ncRenderStarters() {
     '<div class="nc-info">',
       '<div class="nc-info-row">',
         '<svg class="nc-info-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-        '<span class="nc-info-val"><strong>Model:</strong> claude-3-5-haiku via Anthropic &nbsp;·&nbsp; Knowledge cutoff: <strong>early 2025</strong></span>',
+        '<span class="nc-info-val"><strong>Model:</strong> llama-3.3-70b via Groq &nbsp;·&nbsp; Knowledge cutoff: <strong>early 2024</strong></span>',
       '</div>',
       '<div class="nc-info-row">',
         '<svg class="nc-info-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
@@ -505,11 +505,16 @@ async function ncSend() {
   var text = (input.value || '').trim();
   if (!text || nc.typing) return;
 
-  // Check Claude key is available (callClaude handles lazy loading)
-  var claudeReady = (typeof CLAUDE_API_KEY !== 'undefined' && CLAUDE_API_KEY) ||
-                    (typeof window.callClaude === 'function');
-  if (!claudeReady && typeof GROQ_API_KEY === 'undefined') {
-    ncAppendMsg('assistant', 'Hey! The Claude API key hasn\'t been added yet. Go to **Admin → Settings** and paste your Claude API key there — then I\'ll be ready to help! 🔑');
+  // Ensure Groq key is loaded
+  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
+  if (!key) {
+    try {
+      var gkr = await db.from('settings').select('value').eq('key','groq_api_key').single();
+      if (gkr.data && gkr.data.value) { GROQ_API_KEY = gkr.data.value; key = GROQ_API_KEY; }
+    } catch(e) {}
+  }
+  if (!key) {
+    ncAppendMsg('assistant', 'Nancy needs a Groq API key to work. Ask your admin to add it under **Admin → Settings → Groq API Key**. Get one free at groq.com 🔑');
     return;
   }
 
@@ -526,10 +531,17 @@ async function ncSend() {
   document.getElementById('nc-send').disabled = true;
 
   try {
-    // Convert messages format: extract system from messages array for Claude
-    var sysMsg = nc.messages.find(function(m){ return m.role === 'system'; });
-    var chatMsgs = nc.messages.filter(function(m){ return m.role !== 'system'; });
-    var reply = await window.callClaude(chatMsgs, sysMsg ? sysMsg.content : NANCY_SYSTEM, 1200);
+    // Nancy chat uses the full smart model
+    var model = (typeof GROQ_MODEL !== 'undefined') ? GROQ_MODEL : 'llama-3.3-70b-versatile';
+    var msgs = [{ role: 'system', content: NANCY_SYSTEM }].concat(nc.messages.filter(function(m){ return m.role !== 'system'; }));
+    var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: model, messages: msgs, max_tokens: 1200, temperature: 0.7 })
+    });
+    var rdata = await resp.json();
+    if (!resp.ok) throw new Error(rdata.error && rdata.error.message ? rdata.error.message : 'API error ' + resp.status);
+    var reply = rdata.choices && rdata.choices[0] && rdata.choices[0].message ? rdata.choices[0].message.content : '';
     if (!reply) reply = 'I ran into an issue processing that. Please try again.';
     nc.messages.push({ role: 'assistant', content: reply });
     ncHideTyping();
@@ -542,7 +554,7 @@ async function ncSend() {
     }
   } catch(e) {
     ncHideTyping();
-    ncAppendMsg('assistant', 'Something went wrong — ' + (e.message || 'please try again. Check that the Claude API key is set in Admin → Settings.'));
+    ncAppendMsg('assistant', 'Something went wrong — ' + (e.message || 'please try again.'));
   }
 
   nc.typing = false;
