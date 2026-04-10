@@ -360,11 +360,11 @@ var NC_TOOLS = [
     type: 'function',
     function: {
       name: 'get_slack_messages',
-      description: 'Pull recent messages from a Slack channel. Use when asked about Slack activity, channel updates, conversations, or to find messages mentioning a person or topic.',
+      description: 'Pull recent messages from a Slack channel OR a direct message (DM) conversation. Use when asked about Slack activity, DMs, conversations with a specific person, or channel updates. For DMs, pass the person\'s name as channel_name.',
       parameters: {
         type: 'object',
         properties: {
-          channel_name: { type: 'string', description: 'Slack channel name (e.g. "cs-logistics-mfg-nancy", "general")' },
+          channel_name: { type: 'string', description: 'Channel name (e.g. "general") or person\'s name for DMs (e.g. "Crystal", "Crystal Lo")' },
           search_term: { type: 'string', description: 'Optional keyword or name to filter messages by' },
           limit: { type: 'number', description: 'How many recent messages to fetch (default 30, max 80)' }
         },
@@ -436,11 +436,22 @@ async function ncRunTool(name, args) {
       var token = slackState.ownToken;
       if (!token) return { error: 'Slack not connected. Please add your Slack token in the Task Hub settings.' };
 
-      var channels = slackState.channels || [];
-      var ch = channels.find(function(c) {
-        return c.name && c.name.toLowerCase().includes((args.channel_name || '').toLowerCase());
+      var query = (args.channel_name || '').toLowerCase();
+      // Search regular channels first
+      var ch = (slackState.channels || []).find(function(c) {
+        return c.name && c.name.toLowerCase().includes(query);
       });
-      if (!ch) return { error: 'Channel "' + args.channel_name + '" not found. Try get_slack_channels to see available ones.' };
+      // If not found, search DMs by display name stored in slackState.dmNames
+      if (!ch) {
+        var dmNames = slackState.dmNames || {};
+        var dms = slackState.dms || [];
+        var dmMatch = dms.find(function(d) {
+          var n = (dmNames[d.id] || '').toLowerCase();
+          return n && n.includes(query);
+        });
+        if (dmMatch) ch = { id: dmMatch.id, name: dmNames[dmMatch.id] || dmMatch.id, isDM: true };
+      }
+      if (!ch) return { error: 'No channel or DM matching "' + args.channel_name + '" found. Use get_slack_channels to see what\'s available.' };
 
       var data = await slackAPI(token, 'conversations.history', { channel: ch.id, limit: Math.min(args.limit || 30, 80) });
       if (!data.ok) return { error: 'Slack API error: ' + (data.error || 'unknown') };
@@ -468,7 +479,9 @@ async function ncRunTool(name, args) {
     if (name === 'get_slack_channels') {
       if (typeof slackState === 'undefined') return { error: 'Slack only available on Task Hub page.' };
       var chs = (slackState.channels || []).map(function(c){ return c.name; });
-      return { channels: chs };
+      var dmNames = slackState.dmNames || {};
+      var dms = (slackState.dms || []).map(function(d){ return dmNames[d.id] || d.id; }).filter(Boolean);
+      return { channels: chs, dms: dms };
     }
 
     return { error: 'Unknown tool: ' + name };
