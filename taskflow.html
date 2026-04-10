@@ -4117,16 +4117,24 @@ function delivHasContent(d) {
 
 async function loadDeliverables() {
   try {
-    let q = db.from('deliverables').select('*, deliverable_files(*)').order('completed_at', { ascending: false });
-    // Include rows owned by me OR rows where owner_id is null (legacy records)
+    // Try filtered by owner_id first (works once column exists in Supabase)
+    let data, error;
     if (state.currentUser?.id) {
-      q = q.or(`owner_id.eq.${state.currentUser.id},owner_id.is.null`);
+      ({ data, error } = await db.from('deliverables')
+        .select('*, deliverable_files(*)')
+        .or(`owner_id.eq.${state.currentUser.id},owner_id.is.null`)
+        .order('completed_at', { ascending: false }));
     }
-    const { data, error } = await q;
+    // If that fails (column not yet in DB), fetch all without filter
+    if (error || !state.currentUser?.id) {
+      ({ data, error } = await db.from('deliverables')
+        .select('*, deliverable_files(*)')
+        .order('completed_at', { ascending: false }));
+    }
     if (error) throw error;
     state.deliverables = (data || []).filter(delivHasContent);
   } catch(e) {
-    state.deliverables = JSON.parse(localStorage.getItem('nancy_delivs') || '[]');
+    state.deliverables = [];
   }
 }
 
@@ -4633,27 +4641,17 @@ async function refreshRecurring() {
   const phtHour = pht.getUTCHours();
   const phtDay = pht.getUTCDay();
 
-  // Before 7 AM HKT — nothing to reset yet
+  // Nothing to reset before 7 AM HKT
   if (phtHour < 7) return;
 
-  // Use localStorage to track which tasks were already reset today
-  // Key format: "rec_reset_YYYY-MM-DD_taskId"
-  const todayKey = `${pht.getUTCFullYear()}-${String(pht.getUTCMonth()+1).padStart(2,'0')}-${String(pht.getUTCDate()).padStart(2,'0')}`;
-
-  function wasResetToday(taskId) {
-    return localStorage.getItem(`rec_reset_${todayKey}_${taskId}`) === '1';
-  }
-  function markResetToday(taskId) {
-    localStorage.setItem(`rec_reset_${todayKey}_${taskId}`, '1');
-    // Clean up old keys (keep only today's)
-    for (const k of Object.keys(localStorage)) {
-      if (k.startsWith('rec_reset_') && !k.includes(todayKey)) localStorage.removeItem(k);
-    }
-  }
+  // Today's 7 AM HKT as UTC ms — tasks completed AFTER this are "done for today"
+  const todayWindow = getDayStart7am();
 
   for (const task of state.tasks) {
     if (!task.recurring || !task.completed) continue;
-    if (wasResetToday(task.id)) continue; // already reset this task today — skip
+
+    // If the task was completed after today's 7 AM HKT — user already did it today, skip
+    if ((task.completed_at || 0) >= todayWindow) continue;
 
     const isDaily = task.recurring_freq === 'daily' || task.freq === 'daily';
     const isWeekly = (task.recurring_freq === 'weekly' || task.freq === 'weekly') && phtDay === 1;
@@ -4662,7 +4660,6 @@ async function refreshRecurring() {
       task.completed = false;
       task.completed_at = null;
       task.last_refreshed_at = Date.now();
-      markResetToday(task.id);
       await updateTaskInDB(task.id, { completed: false, completed_at: null, last_refreshed_at: Date.now() });
     }
   }
