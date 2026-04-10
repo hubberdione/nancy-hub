@@ -3369,7 +3369,7 @@ function renderBoard() {
   };
 
   tiers.forEach(tier => {
-    const tierTasks = tasks.filter(t => t.tier === tier);
+    const tierTasks = tasks.filter(t => t.tier === tier && !t.completed);
     const container = document.getElementById(containerIds[tier]);
     if (!container) return;
 
