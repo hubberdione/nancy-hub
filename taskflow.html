@@ -404,10 +404,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 .mood-dead .rtp-mouth{width:5px;border-top:1px solid #1a1a1a;border-radius:3px 3px 0 0;margin-top:1px}
 .mood-ok .rtp-mouth{width:4px;height:2px;border-bottom:1px solid #1a1a1a;border-radius:0 0 3px 3px;margin-top:1px}
 .mood-happy .rtp-mouth{width:6px;height:2px;border-bottom:1px solid #1a1a1a;border-radius:0 0 3px 3px;margin-top:1px}
-/* Lemonade: happy squint eyes (^_^) */
-.mood-ecstatic .rtp-eye{width:4px;height:2px;background:transparent;border-top:1.5px solid #1a1a1a;border-radius:3px 3px 0 0}
-/* Lemonade: puckered kiss mouth — small oval, taller than wide */
-.mood-ecstatic .rtp-mouth{width:3px;height:5px;border:1.5px solid #1a1a1a;border-radius:50%;background:none;margin-top:1px}
+/* Lemonade: left eye = wink (closed line), right eye = normal dot */
+.mood-ecstatic .rtp-eye:first-child{width:4px;height:0;background:transparent;border-bottom:1.5px solid #1a1a1a;border-radius:0}
+/* Lemonade: small smile */
+.mood-ecstatic .rtp-mouth{width:5px;height:2px;border-bottom:1px solid #1a1a1a;border-radius:0 0 3px 3px;margin-top:1px}
 /* BODY SECTION */
 .rtp-body-section{display:flex;align-items:center;gap:1px;margin-top:1px}
 .rtp-torso{width:10px;height:9px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 45%,#ec4899 100%);border-radius:2px;box-shadow:0 1px 3px rgba(236,72,153,.2)}
