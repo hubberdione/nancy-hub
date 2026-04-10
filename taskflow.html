@@ -7,7 +7,7 @@
 <title>Nancy — Task Hub v2</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="shared/chat.js?v=5"></script>
+<script src="shared/chat.js?v=6"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -584,8 +584,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 ══════════════════════════════════════ */
 :root{--radius-pill:100px;--green:#3bb273}
 /* Slack floating transparent bubble — matches chat bubble style */
-.slack-open-btn{position:fixed;right:1.75rem;bottom:8rem;z-index:350;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,rgba(217,70,171,.88),rgba(236,72,153,.92));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid rgba(255,255,255,.25);cursor:pointer;display:none;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;box-shadow:0 4px 18px rgba(236,72,153,.45);padding:0}
-.slack-open-btn:hover{transform:scale(1.08) translateY(-2px);box-shadow:0 6px 24px rgba(236,72,153,.62)}
+.slack-open-btn{position:fixed;right:1.75rem;bottom:8rem;z-index:350;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,rgba(217,70,171,.88),rgba(236,72,153,.92));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid rgba(255,255,255,.2);cursor:pointer;display:none;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:transform .2s cubic-bezier(.34,1.56,.64,1);box-shadow:none;padding:0}
+.slack-open-btn:hover{transform:scale(1.06) translateY(-2px)}
 .slack-side-icon{color:rgba(255,255,255,.92);transition:color .15s;line-height:1;display:flex;align-items:center;justify-content:center}
 .slack-open-btn:hover .slack-side-icon{color:#fff}
 .slack-side-label{font-family:'Inter',sans-serif;font-size:.55rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.78);transition:color .15s;line-height:1}
@@ -4919,5 +4919,6 @@ async function slackLoadSharedSummaries() {
 </script>
 </body>
 </html>
+
 
 

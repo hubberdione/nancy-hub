@@ -71,50 +71,49 @@ var STARTERS = [
 function injectStyles() {
   var s = document.createElement('style');
   s.textContent = [
-    // ── Compact yellow EVE bot — floating + waving ───────────────────
-    // Wrapper — wide enough for arms
-    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:900;width:60px;height:66px;background:transparent;border:none;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;transition:transform .2s ease;overflow:visible}',
-    '.nc-bubble:hover{transform:translateY(-3px)}',
+    // ── Tiny magenta bot — no glow, black eyes, "Hi" label ──────────
+    // Wrapper — row: "Hi" left, bot right
+    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:900;width:auto;height:auto;background:transparent;border:none;cursor:pointer;padding:0;display:flex;flex-direction:row;align-items:flex-end;gap:5px;transition:transform .2s ease;overflow:visible}',
+    '.nc-bubble:hover{transform:translateY(-2px)}',
     '.nc-bubble.open{transform:none}',
 
-    // "Hi" label
-    '.nc-bbl{display:none}',
-    '.nc-bbl-lbl{font-family:Inter,sans-serif;font-size:.65rem;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.05em;line-height:1;flex-shrink:0}',
+    // "Hi" pill — always visible, no glow
+    '.nc-bbl{display:flex;align-items:center;margin-bottom:6px}',
+    '.nc-bbl-lbl{font-family:Inter,sans-serif;font-size:.68rem;font-weight:600;color:rgba(255,255,255,.75);letter-spacing:.02em;line-height:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:.25rem .55rem;white-space:nowrap}',
 
     // Unread dot
-    '.nc-bubble-dot{position:absolute;top:4px;right:6px;width:6px;height:6px;background:#e53935;border-radius:50%;border:1.5px solid rgba(0,0,0,.5);display:none;z-index:10}',
+    '.nc-bubble-dot{position:absolute;top:0;right:0;width:6px;height:6px;background:#e53935;border-radius:50%;border:1.5px solid rgba(0,0,0,.5);display:none;z-index:10}',
     '.nc-bubble-dot.show{display:block}',
 
-    // Outer column — floats up and down
-    '.nc-lemon{display:flex;flex-direction:column;align-items:center;flex-shrink:0;gap:0;animation:ncFloat 2.6s ease-in-out infinite}',
-    '@keyframes ncFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}',
+    // Bot column — floats
+    '.nc-lemon{display:flex;flex-direction:column;align-items:center;flex-shrink:0;gap:0;animation:ncFloat 2.8s ease-in-out infinite}',
+    '@keyframes ncFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}',
 
-    // No leaf
     '.nc-lemon-leaf{display:none}',
 
-    // HEAD — smooth oval, magenta pink
-    '.nc-eve-head{width:30px;height:27px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 50%,#ec4899 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(236,72,153,.35),inset 0 2px 4px rgba(255,255,255,.45)}',
+    // HEAD — smaller, no glow
+    '.nc-eve-head{width:24px;height:22px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 45%,#ec4899 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}',
 
-    // Blue oval eyes with screen lines (EVE signature)
-    '.nc-lemon-eyes{display:flex;gap:3px}',
-    '.nc-lemon-eye{width:9px;height:7px;background:#1e3a5f;border-radius:50%;position:relative;overflow:hidden;box-shadow:0 0 5px rgba(59,130,246,.7)}',
-    '.nc-lemon-eye::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(96,165,250,.6) 0px,rgba(96,165,250,.6) 1.5px,transparent 1.5px,transparent 3px)}',
+    // Eyes — tiny solid black dots, no glow
+    '.nc-lemon-eyes{display:flex;gap:4px}',
+    '.nc-lemon-eye{width:5px;height:5px;background:#111;border-radius:50%}',
+    '.nc-lemon-eye::before{display:none}',
 
-    // BODY — smaller oval, magenta pink
-    '.nc-lemon-body{width:24px;height:22px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 50%,#ec4899 100%);border-radius:50% 50% 48% 48%/44% 44% 56% 56%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(236,72,153,.3),inset 0 2px 3px rgba(255,255,255,.4);margin-top:-3px}',
-    '.nc-lemon-body::after{content:"";width:11px;height:8px;background:rgba(255,255,255,.22);border-radius:50%;display:block}',
+    // BODY — smaller, no glow
+    '.nc-lemon-body{width:18px;height:16px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 45%,#ec4899 100%);border-radius:50% 50% 48% 48%/44% 44% 56% 56%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.18);margin-top:-2px}',
+    '.nc-lemon-body::after{display:none}',
 
     // Arms row
-    '.nc-eve-row{display:flex;align-items:center;gap:2px}',
+    '.nc-eve-row{display:flex;align-items:center;gap:1px}',
 
-    // EVE paddle arms — magenta pink
-    '.nc-eve-arm{width:11px;height:18px;background:linear-gradient(160deg,#f472b6,#ec4899);border-radius:50%;box-shadow:0 2px 6px rgba(236,72,153,.28)}',
+    // Arms — smaller, no glow
+    '.nc-eve-arm{width:7px;height:13px;background:linear-gradient(160deg,#f472b6,#ec4899);border-radius:50%;box-shadow:none}',
     '.nc-eve-arm-l{transform:rotate(12deg);transform-origin:top center}',
-    '.nc-eve-arm-r{transform-origin:top center;animation:ncWave 1.1s ease-in-out infinite}',
-    '@keyframes ncWave{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(-36deg)}}',
+    '.nc-eve-arm-r{transform-origin:top center;animation:ncWave 1.2s ease-in-out infinite}',
+    '@keyframes ncWave{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(-34deg)}}',
 
     '.nc-lemon-smile,.nc-bot-neck,.nc-bot-shoulders{display:none}',
-    // ── end EVE bot ──────────────────────────────────────────────────
+    // ── end bot ──────────────────────────────────────────────────────
 
     // Panel
     '.nc-panel{position:fixed;bottom:calc(1.75rem + 80px + .75rem);right:1.75rem;z-index:900;width:380px;max-height:560px;background:var(--card,#1a1a1a);border:1px solid var(--border2,rgba(255,255,255,.12));border-radius:20px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(12px) scale(.97);transition:opacity .22s ease,transform .25s cubic-bezier(.34,1.3,.64,1);overflow:hidden}',
