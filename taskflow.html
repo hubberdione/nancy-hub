@@ -3333,8 +3333,10 @@ async function switchBoard(board, el) {
     // Reset shared board tab label and reload own tasks fresh
     document.getElementById('shared-boards-tab').textContent = 'Shared Boards ▾';
     await loadTasks();
+    checkRewards();
   } else {
     renderBoard();
+    checkRewards();
   }
 }
 
@@ -5030,6 +5032,7 @@ async function viewSharedBoard(boardId, boardName) {
     var seen = new Set();
     state.tasks = combined.filter(function(t) { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
     renderBoard();
+    checkRewards();
     showToast('Viewing ' + boardName + "'s board");
   } catch(e) {
     showToast('Could not load board tasks.', 'error');
