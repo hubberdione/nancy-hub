@@ -399,17 +399,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 .mood-dead .rtp-eye::before,.mood-dead .rtp-eye::after{content:'';position:absolute;width:3.5px;height:1px;background:#1a1a1a;border-radius:1px;top:50%;left:0;transform-origin:center}
 .mood-dead .rtp-eye::before{transform:translateY(-50%) rotate(45deg)}
 .mood-dead .rtp-eye::after{transform:translateY(-50%) rotate(-45deg)}
-/* Ecstatic right eye stays as normal dot (left eye becomes wink via :first-child) */
 /* MOUTH */
 .rtp-mouth{display:block}
 .mood-dead .rtp-mouth{width:5px;border-top:1px solid #1a1a1a;border-radius:3px 3px 0 0;margin-top:1px}
 .mood-ok .rtp-mouth{width:4px;height:2px;border-bottom:1px solid #1a1a1a;border-radius:0 0 3px 3px;margin-top:1px}
 .mood-happy .rtp-mouth{width:6px;height:2px;border-bottom:1px solid #1a1a1a;border-radius:0 0 3px 3px;margin-top:1px}
-/* Lemonade: kiss mouth — small pout circle */
-.mood-ecstatic .rtp-mouth{width:4px;height:4px;border:1px solid #1a1a1a;border-radius:50%;margin-top:1px}
-/* Lemonade: wink — left eye closes */
-.mood-ecstatic .rtp-eye:first-child{height:0;border-bottom:1px solid #1a1a1a;border-radius:0;background:transparent;width:4px}
-/* Ecstatic: squint override removed — wink takes left, right stays dot */
+/* Lemonade: happy squint eyes (^_^) */
+.mood-ecstatic .rtp-eye{width:4px;height:2px;background:transparent;border-top:1.5px solid #1a1a1a;border-radius:3px 3px 0 0}
+/* Lemonade: puckered kiss mouth — small oval, taller than wide */
+.mood-ecstatic .rtp-mouth{width:3px;height:5px;border:1.5px solid #1a1a1a;border-radius:50%;background:none;margin-top:1px}
 /* BODY SECTION */
 .rtp-body-section{display:flex;align-items:center;gap:1px;margin-top:1px}
 .rtp-torso{width:10px;height:9px;background:linear-gradient(160deg,#fce4f6 0%,#f472b6 45%,#ec4899 100%);border-radius:2px;box-shadow:0 1px 3px rgba(236,72,153,.2)}
