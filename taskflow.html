@@ -576,6 +576,30 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 .tier-two-col{}
 @media(max-width:768px){.tier-two-col{display:flex !important;flex-direction:column !important}}
 
+/* SLACK FLOAT BUBBLE */
+#slack-float{
+  position:fixed;bottom:1.75rem;right:calc(1.75rem + 62px + .85rem);
+  z-index:899;display:none;flex-direction:column;align-items:center;gap:0;
+  animation:ncFloat 3.2s ease-in-out infinite;cursor:pointer;
+  background:transparent;border:none;padding:0;
+}
+#slack-float:hover{animation:none;transform:translateY(-3px);transition:transform .2s}
+#slack-float-lbl{
+  font-family:Inter,sans-serif;font-size:.65rem;font-weight:600;
+  color:rgba(255,255,255,.7);background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);border-radius:20px;
+  padding:.2rem .5rem;margin-bottom:4px;white-space:nowrap;
+}
+#slack-float-head{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,#4A154B,#611f69);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(74,21,75,.45);
+  position:relative;
+}
+#slack-float-head svg{opacity:.95}
+@keyframes ncFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
 /* STORAGE ALERT BANNER */
 #storage-alert-banner{
   display:none;
@@ -1700,11 +1724,12 @@ async function showTaskHub() {
   refreshRecurring();
   // Refresh notifications every 60s
   setInterval(loadNotifications, 60000);
-  // Show Slack button for admins
+  // Show Slack button + float bubble for admins
+  var isAdminUser = state.currentUser && state.currentUser.role === 'admin';
   var slackBtn = document.getElementById('slack-open-btn');
-  if (slackBtn && state.currentUser && state.currentUser.role === 'admin') {
-    slackBtn.style.display = 'flex';
-  }
+  if (slackBtn && isAdminUser) slackBtn.style.display = 'flex';
+  var slackFloat = document.getElementById('slack-float');
+  if (slackFloat && isAdminUser) slackFloat.style.display = 'flex';
 }
 
 // ─── SLACK DRAWER (stub — full implementation pending) ───
@@ -1918,11 +1943,19 @@ function getVisibleTasks() {
     // Show all tasks fetched for this board (already filtered by viewSharedBoard query)
     return state.tasks;
   }
-  // Personal board = tasks I own + tasks assigned to me
+  // Personal board = tasks I own (not assigned out to others) + tasks assigned to me
   const uid = state.currentUser?.id;
   return state.tasks.filter(t => {
-    if (t.owner_id === uid || t.owner_id === null || t.owner_id === undefined) return true;
-    return parseAssignees(t.assigned_to).includes(uid);
+    const assignees = parseAssignees(t.assigned_to);
+    const assignedToMe = assignees.includes(uid);
+    // Task owned by me
+    if (t.owner_id === uid || t.owner_id === null || t.owner_id === undefined) {
+      // If assigned to someone else and NOT to me → hide from my board
+      if (assignees.length > 0 && !assignedToMe) return false;
+      return true;
+    }
+    // Task created by someone else but assigned to me → show it
+    return assignedToMe;
   });
 }
 
@@ -4019,6 +4052,23 @@ function goAdmin() {
 boot();
 initMobileNav();
 </script>
+<!-- SLACK FLOAT BUBBLE -->
+<button id="slack-float" onclick="openSlackDrawer()" title="Slack">
+  <span id="slack-float-lbl">Slack</span>
+  <div id="slack-float-head">
+    <svg width="22" height="22" viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.712 33.752a4.08 4.08 0 01-4.08 4.08 4.08 4.08 0 01-4.08-4.08 4.08 4.08 0 014.08-4.08h4.08v4.08z" fill="#E01E5A"/>
+      <path d="M21.752 33.752a4.08 4.08 0 014.08-4.08 4.08 4.08 0 014.08 4.08v10.2a4.08 4.08 0 01-4.08 4.08 4.08 4.08 0 01-4.08-4.08v-10.2z" fill="#E01E5A"/>
+      <path d="M25.832 19.712a4.08 4.08 0 01-4.08-4.08 4.08 4.08 0 014.08-4.08 4.08 4.08 0 014.08 4.08v4.08h-4.08z" fill="#36C5F0"/>
+      <path d="M25.832 21.752a4.08 4.08 0 014.08 4.08 4.08 4.08 0 01-4.08 4.08H15.632a4.08 4.08 0 01-4.08-4.08 4.08 4.08 0 014.08-4.08h10.2z" fill="#36C5F0"/>
+      <path d="M39.872 25.832a4.08 4.08 0 014.08 4.08 4.08 4.08 0 01-4.08 4.08 4.08 4.08 0 01-4.08-4.08v-4.08h4.08z" fill="#2EB67D"/>
+      <path d="M37.832 25.832a4.08 4.08 0 01-4.08-4.08 4.08 4.08 0 014.08-4.08h10.2a4.08 4.08 0 014.08 4.08 4.08 4.08 0 01-4.08 4.08h-10.2z" fill="#2EB67D"/>
+      <path d="M33.752 39.872a4.08 4.08 0 01-4.08 4.08 4.08 4.08 0 01-4.08-4.08 4.08 4.08 0 014.08-4.08h4.08v4.08z" fill="#ECB22E"/>
+      <path d="M33.752 37.832a4.08 4.08 0 014.08-4.08 4.08 4.08 0 014.08 4.08v10.2a4.08 4.08 0 01-4.08 4.08 4.08 4.08 0 01-4.08-4.08v-10.2z" fill="#ECB22E"/>
+    </svg>
+  </div>
+</button>
+
 <script src="shared/hub.js"></script>
 <script src="shared/chat.js?v=11"></script>
 <script>if(typeof initNancyChat==='function')initNancyChat();</script>
