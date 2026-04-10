@@ -2551,10 +2551,6 @@ async function slackSummarize() {
     showToast('No messages to summarize.');
     return;
   }
-  if (!GROQ_API_KEY) {
-    showToast('Groq API key not set.');
-    return;
-  }
 
   var btn = document.getElementById('slack-summarize-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Summarizing...'; }
@@ -2579,22 +2575,13 @@ async function slackSummarize() {
   }).filter(Boolean).join('\n');
 
   try {
-    var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + GROQ_API_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        temperature: 0.25,
-        max_tokens: 700,
-        messages: [
-          { role: 'system', content: SLACK_SUMMARY_SYSTEM },
-          { role: 'user', content: 'Summarize this Slack channel (#' + slackState.activeChannelName + ') conversation from today:\n\n' + transcript }
-        ]
-      })
-    });
-    var data = await resp.json();
-    var raw = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content
-      ? data.choices[0].message.content.trim() : '';
+    var userPrompt = 'Summarize this Slack channel (#' + slackState.activeChannelName + ') conversation from today:\n\n' + transcript;
+    var raw = await window.callClaude(
+      [{ role: 'user', content: userPrompt }],
+      SLACK_SUMMARY_SYSTEM,
+      600
+    );
+    raw = raw ? raw.trim() : '';
 
     // Extract JSON
     var parsed;
@@ -2735,7 +2722,6 @@ function slackToggleChannelSelect(id, event) {
 
 async function slackBulkSummarize() {
   if (!slackState.selectedChannels.length) return;
-  if (!GROQ_API_KEY) { showToast('Groq API key not set.'); return; }
   var token = slackState.ownToken;
   if (!token) return;
   var oldest = slackGetSelectedOldest();
@@ -2762,15 +2748,12 @@ async function slackBulkSummarize() {
         var t = (m.text||'').replace(/<@([A-Z0-9]+)>/g,function(_,u){ return '@'+(slackState.userCache[u]||u); }).replace(/<[^>]+>/g,'').trim();
         return t ? n + ': ' + t : '';
       }).filter(Boolean).join('\n');
-      var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + GROQ_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: GROQ_MODEL, temperature: 0.25, max_tokens: 600,
-          messages: [{ role: 'system', content: SLACK_SUMMARY_SYSTEM },
-            { role: 'user', content: 'Summarize #' + ch.name + ':\n\n' + transcript }] })
-      });
-      var sData = await resp.json();
-      var raw = sData.choices && sData.choices[0] && sData.choices[0].message ? sData.choices[0].message.content.trim() : '';
+      var raw = await window.callClaude(
+        [{ role: 'user', content: 'Summarize #' + ch.name + ':\n\n' + transcript }],
+        SLACK_SUMMARY_SYSTEM,
+        600
+      );
+      raw = raw ? raw.trim() : '';
       var parsed;
       try { var m = raw.match(/\{[\s\S]*\}/); parsed = m ? JSON.parse(m[0]) : { summary: raw, items: [] }; } catch(e) { parsed = { summary: raw, items: [] }; }
       var fromStr = document.getElementById('slack-date-from') ? document.getElementById('slack-date-from').value : '';
@@ -4408,29 +4391,20 @@ async function openRewards() {
 async function generateDailyRecap(completedToday) {
   const el = document.getElementById('rwd-ai-recap');
   if (!el) return;
-  if (!window.GROQ_API_KEY) {
-    try {
-      const r = await db.from('settings').select('value').eq('key','groq_api_key').single();
-      if (r.data && r.data.value) window.GROQ_API_KEY = r.data.value;
-    } catch(e) {}
-  }
-  if (!window.GROQ_API_KEY) { el.textContent = ''; return; }
 
   const taskList = completedToday.map(t => `- ${t.title} (${t.tier})`).join('\n');
   const prompt = `The team at CareNBloom completed these tasks today:\n${taskList}\n\nWrite a warm, energetic 2-sentence recap of what was accomplished. Be specific, mention task highlights. Keep it under 40 words. No bullet points.`;
 
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + window.GROQ_API_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }], max_tokens: 80, temperature: 0.7 })
-    });
-    const data = await res.json();
-    const summary = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    var summary = await window.callClaude(
+      [{ role: 'user', content: prompt }],
+      null,
+      80
+    );
     if (summary && el) {
       el.style.fontStyle = 'normal';
       el.style.color = 'var(--body)';
-      el.innerHTML = `<div style="background:var(--bg2);border-radius:10px;padding:.65rem .85rem;border-left:3px solid var(--primary);margin-top:.25rem">✨ ${esc(summary.trim())}</div>`;
+      el.innerHTML = '<div style="background:var(--bg2);border-radius:10px;padding:.65rem .85rem;border-left:3px solid var(--primary);margin-top:.25rem">✨ ' + esc(summary.trim()) + '</div>';
     }
   } catch(e) { if (el) el.textContent = ''; }
 }

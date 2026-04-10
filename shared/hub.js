@@ -13,6 +13,9 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8IiG-k3J2lcQR38unRpO2cHyRidAlQTM8FLWCIbHy9JjdvmeB6MrKo_vNVaqsi3Th/exec';
 var GROQ_API_KEY = ''; // Loaded from Supabase settings after login — set via Admin panel
 const GROQ_MODEL = 'llama-3.3-70b-versatile'; // AI brain for the entire hub
+var CLAUDE_API_KEY = '';
+var CLAUDE_MODEL = 'claude-3-5-haiku-20241022';
+var CLAUDE_COST_CAP = 4.50; // monthly cap in USD
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -247,6 +250,11 @@ async function onAuthSuccess(authUser) {
   try {
     var gkResult = await db.from('settings').select('value').eq('key', 'groq_api_key').single();
     if (gkResult.data && gkResult.data.value) GROQ_API_KEY = gkResult.data.value;
+  } catch(e) {}
+  // Load Claude API key from settings
+  try {
+    var ckr = await db.from('settings').select('value').eq('key','claude_api_key').single();
+    if (ckr.data && ckr.data.value) CLAUDE_API_KEY = ckr.data.value;
   } catch(e) {}
   updateNavUser();
   var app = document.getElementById('app');
@@ -515,6 +523,90 @@ async function saveMySlackToken() {
   }
 }
 window.saveMySlackToken = saveMySlackToken;
+
+// ── CLAUDE COST TRACKING ──
+async function trackClaudeCost(inputTokens, outputTokens) {
+  var cost = (inputTokens / 1000000 * 1.00) + (outputTokens / 1000000 * 5.00);
+  var month = new Date().toISOString().slice(0,7); // "2026-04"
+  try {
+    var r = await db.from('settings').select('value').eq('key','claude_usage').single();
+    var usage = r.data && r.data.value ? JSON.parse(r.data.value) : {};
+    if (usage.month !== month) { usage = { month: month, cost: 0, disabled: false }; }
+    usage.cost = Math.round((usage.cost + cost) * 100000) / 100000;
+    await db.from('settings').upsert({ key: 'claude_usage', value: JSON.stringify(usage) }, { onConflict: 'key' });
+    // Warn if hitting cap
+    if (usage.cost >= CLAUDE_COST_CAP && !usage._warned) {
+      usage._warned = true;
+      showToast('⚠️ Claude AI has reached your $' + CLAUDE_COST_CAP + ' monthly cap. Visit Admin → Settings to manage.', 'error');
+    }
+    return usage;
+  } catch(e) { return null; }
+}
+
+async function getClaudeUsage() {
+  var month = new Date().toISOString().slice(0,7);
+  try {
+    var r = await db.from('settings').select('value').eq('key','claude_usage').single();
+    var usage = r.data && r.data.value ? JSON.parse(r.data.value) : {};
+    if (usage.month !== month) return { month: month, cost: 0, disabled: false };
+    return usage;
+  } catch(e) { return { month: month, cost: 0, disabled: false }; }
+}
+
+async function isClaudeDisabled() {
+  var usage = await getClaudeUsage();
+  return usage.disabled || usage.cost >= CLAUDE_COST_CAP;
+}
+
+// ── CALL CLAUDE (primary AI helper) ──
+async function callClaude(messages, systemPrompt, maxTokens) {
+  maxTokens = maxTokens || 1024;
+  // Load key if not set
+  if (!CLAUDE_API_KEY) {
+    try {
+      var r = await db.from('settings').select('value').eq('key','claude_api_key').single();
+      if (r.data && r.data.value) CLAUDE_API_KEY = r.data.value;
+    } catch(e) {}
+  }
+  if (!CLAUDE_API_KEY) throw new Error('Claude API key not set. Add it in Admin → Settings.');
+
+  // Check if disabled
+  var usage = await getClaudeUsage();
+  if (usage.disabled) throw new Error('Claude AI is disabled. Enable it in Admin → Settings.');
+  if (usage.cost >= CLAUDE_COST_CAP) throw new Error('Monthly cap of $' + CLAUDE_COST_CAP + ' reached. Manage in Admin → Settings.');
+
+  var body = {
+    model: CLAUDE_MODEL,
+    max_tokens: maxTokens,
+    messages: messages
+  };
+  if (systemPrompt) body.system = systemPrompt;
+
+  var res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': CLAUDE_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    var err = await res.json().catch(function(){ return {}; });
+    throw new Error('Claude error: ' + (err.error && err.error.message ? err.error.message : res.status));
+  }
+
+  var data = await res.json();
+  var text = data.content && data.content[0] && data.content[0].text ? data.content[0].text : '';
+  // Track cost in background
+  if (data.usage) trackClaudeCost(data.usage.input_tokens || 0, data.usage.output_tokens || 0);
+  return text;
+}
+window.callClaude = callClaude;
+window.getClaudeUsage = getClaudeUsage;
+window.isClaudeDisabled = isClaudeDisabled;
 
 // ── BOOT ──
 async function bootHub() {

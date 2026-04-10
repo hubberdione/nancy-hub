@@ -303,17 +303,17 @@
           </div>
         </div>
 
-        <!-- Groq -->
+        <!-- AI Engine (Claude primary, Groq fallback) -->
         <div class="hc checking" id="hc-groq">
           <div class="hc-top">
             <div class="hc-dot checking" id="hc-groq-dot"></div>
-            <div class="hc-name">Groq AI</div>
+            <div class="hc-name">AI Engine</div>
           </div>
           <div class="hc-msg" id="hc-groq-msg">Checking...</div>
           <button class="hc-fix-toggle" id="hc-groq-toggle" onclick="toggleFix('groq')">▼ How to fix</button>
           <div class="hc-fix-body" id="hc-groq-fix">
-            <div class="hc-fix-step"><span class="hc-fix-step-num">1.</span><span>Go to <a class="hc-fix-link" href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> and create a free API key.</span></div>
-            <div class="hc-fix-step"><span class="hc-fix-step-num">2.</span><span>Paste it into the <b>Groq API Key</b> field in the Settings section below.</span></div>
+            <div class="hc-fix-step"><span class="hc-fix-step-num">1.</span><span>Go to <a class="hc-fix-link" href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> and create a Claude API key.</span></div>
+            <div class="hc-fix-step"><span class="hc-fix-step-num">2.</span><span>Paste it into the <b>Claude API Key</b> field in the Settings section below.</span></div>
             <div class="hc-fix-step"><span class="hc-fix-step-num">3.</span><span>Click Save, then come back here and Recheck.</span></div>
             <button class="hc-recheck" onclick="checkGroq()">Recheck ↻</button>
           </div>
@@ -329,6 +329,17 @@
       </div>
       <div class="usage-grid" id="usage-grid">
         <div class="admin-loading">Loading stats...</div>
+      </div>
+    </div>
+
+    <!-- ── CLAUDE AI SPENDING ── -->
+    <div class="admin-section" id="claude-spend-section">
+      <div class="admin-section-header">
+        <div class="admin-section-title">🤖 Claude AI Spending</div>
+        <button class="admin-section-action" onclick="loadClaudeSpending()">↻ Refresh</button>
+      </div>
+      <div id="claude-spend-body">
+        <div class="admin-loading">Loading...</div>
       </div>
     </div>
 
@@ -349,6 +360,19 @@
         <div class="admin-section-title">⚙️ Settings</div>
       </div>
       <div class="settings-grid">
+
+        <!-- Claude API Key -->
+        <div class="settings-row">
+          <div class="settings-row-inner">
+            <div class="settings-key">Claude API Key</div>
+            <div class="settings-desc">Powers Nancy AI chat, content tools, daily recap. Get yours free at <a href="https://console.anthropic.com" target="_blank" style="color:var(--primary)">console.anthropic.com</a> · Pay-as-you-go, ~$2–5/month at normal usage.</div>
+            <div class="settings-input-wrap">
+              <input class="settings-input" type="password" id="setting-claude" placeholder="sk-ant-••••••••" autocomplete="off"/>
+            </div>
+            <div class="settings-saved" id="saved-claude">✓ Saved</div>
+          </div>
+          <button class="settings-save-btn" onclick="saveSetting('claude_api_key','setting-claude','saved-claude')">Save</button>
+        </div>
 
         <!-- Groq API Key -->
         <div class="settings-row">
@@ -476,9 +500,64 @@ async function onPageReady() {
   loadCurrentSettings();
   runAllChecks();
   loadUsage();
+  loadClaudeSpending();
   loadTeam();
   loadActivity();
   loadClientWorkspaces();
+}
+
+// ── CLAUDE AI SPENDING ──
+async function loadClaudeSpending() {
+  var el = document.getElementById('claude-spend-body');
+  if (!el) return;
+  var usage = await getClaudeUsage();
+  var cost = usage.cost || 0;
+  var cap = 4.50;
+  var pct = Math.min(Math.round((cost / cap) * 100), 100);
+  var barCls = pct >= 90 ? 'danger' : pct >= 70 ? 'warn' : '';
+  var disabled = usage.disabled || cost >= cap;
+  var month = usage.month || new Date().toISOString().slice(0,7);
+
+  el.innerHTML = '<div style="display:flex;flex-direction:column;gap:1rem">' +
+    '<div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem">' +
+        '<span style="font-family:sans-serif;font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Monthly Spend (' + month + ')</span>' +
+        '<span style="font-family:\'Fraunces\',serif;font-size:1.4rem;font-weight:600;color:var(--h2)">$' + cost.toFixed(4) + '</span>' +
+      '</div>' +
+      '<div style="height:8px;background:var(--bg3);border-radius:10px;overflow:hidden">' +
+        '<div style="height:100%;border-radius:10px;background:' + (barCls === 'danger' ? '#e53935' : barCls === 'warn' ? '#f7b731' : 'var(--primary)') + ';width:' + pct + '%;transition:width .6s ease"></div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;font-family:sans-serif;font-size:.72rem;color:var(--muted);margin-top:.3rem">' +
+        '<span>' + pct + '% of $' + cap + ' cap used</span>' +
+        '<span>Resets ' + month + '-01 next month</span>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">' +
+      '<div>' +
+        '<div style="font-family:sans-serif;font-size:.85rem;font-weight:600;color:var(--h2)">AI Features ' + (disabled ? '🔴 Disabled' : '🟢 Enabled') + '</div>' +
+        '<div style="font-family:sans-serif;font-size:.75rem;color:var(--muted);margin-top:.2rem">' + (cost >= cap ? 'Cap reached — re-enable after reviewing charges' : 'Nancy chat, content tools, daily recap') + '</div>' +
+      '</div>' +
+      '<button onclick="toggleClaudeDisabled(' + (!disabled) + ')" style="font-family:sans-serif;font-size:.78rem;font-weight:600;padding:.45rem 1rem;border-radius:var(--radius-sm);border:1.5px solid ' + (disabled ? 'var(--primary)' : '#e53935') + ';background:none;color:' + (disabled ? 'var(--primary)' : '#e53935') + ';cursor:pointer">' +
+        (disabled ? 'Enable AI' : 'Disable AI') +
+      '</button>' +
+    '</div>' +
+    '<div style="font-family:sans-serif;font-size:.72rem;color:var(--muted);line-height:1.6">' +
+      '💡 <strong>Pricing:</strong> claude-3-5-haiku · $1.00 per 1M input tokens · $5.00 per 1M output tokens. ' +
+      'A typical Nancy chat message costs ~$0.001–0.003. At normal usage, expect $2–5/month.' +
+    '</div>' +
+  '</div>';
+}
+
+async function toggleClaudeDisabled(disable) {
+  var month = new Date().toISOString().slice(0,7);
+  try {
+    var r = await db.from('settings').select('value').eq('key','claude_usage').single();
+    var usage = r.data && r.data.value ? JSON.parse(r.data.value) : { month: month, cost: 0 };
+    usage.disabled = disable;
+    await db.from('settings').upsert({ key: 'claude_usage', value: JSON.stringify(usage) }, { onConflict: 'key' });
+    showToast(disable ? 'Claude AI disabled' : 'Claude AI enabled', disable ? 'error' : 'success');
+    loadClaudeSpending();
+  } catch(e) { showToast('Could not update setting', 'error'); }
 }
 
 // ── RUN ALL CHECKS ──
@@ -655,56 +734,71 @@ async function checkSlack() {
 
 async function checkGroq() {
   try {
+    // Check Claude key first (primary AI engine)
+    var claudeResult = await db.from('settings').select('value').eq('key', 'claude_api_key').single();
+    var claudeKey = claudeResult.data && claudeResult.data.value ? claudeResult.data.value : '';
+
+    if (claudeKey) {
+      // Verify Claude key by making a minimal API call
+      try {
+        var res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': claudeKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({ model: 'claude-3-5-haiku-20241022', max_tokens: 5, messages: [{ role: 'user', content: 'Hi' }] })
+        });
+        if (res.status === 401) {
+          setErr('groq', 'Claude API key invalid or revoked. Update it in Settings below.');
+          return;
+        }
+        if (res.ok || res.status === 529) {
+          var usage = await getClaudeUsage();
+          var cost = (usage && usage.cost) ? usage.cost.toFixed(4) : '0.0000';
+          var disabled = usage && (usage.disabled || usage.cost >= 4.50);
+          if (disabled) {
+            setWarn('groq', 'Claude AI key valid but AI is currently disabled or cap reached. Manage in Claude AI Spending section.');
+          } else {
+            setOk('groq', 'Claude API key valid · claude-3-5-haiku · $' + cost + ' used this month · Nancy AI is ready.');
+          }
+          return;
+        }
+        setWarn('groq', 'Claude returned HTTP ' + res.status + '. Key may have an issue.');
+        return;
+      } catch(e) {
+        setWarn('groq', 'Could not verify Claude key: ' + (e.message || 'network error'));
+        return;
+      }
+    }
+
+    // Fall back to checking Groq key
     var result = await db.from('settings').select('value').eq('key', 'groq_api_key').single();
     var key = result.data && result.data.value ? result.data.value : '';
     if (!key) {
-      setWarn('groq', 'No API key set. AI features (Nancy chat, summaries) are disabled.');
+      setWarn('groq', 'No AI API key set. Add a Claude API key in Settings to enable Nancy AI.');
       return;
     }
 
-    // Actually verify the key by calling Groq's models endpoint
-    var res = await fetch('https://api.groq.com/openai/v1/models', {
+    // Verify Groq key
+    var groqRes = await fetch('https://api.groq.com/openai/v1/models', {
       headers: { 'Authorization': 'Bearer ' + key }
     });
-
-    if (res.status === 401) {
-      setErr('groq', 'API key invalid or revoked. Update it in Settings below.');
+    if (groqRes.status === 401) {
+      setErr('groq', 'Groq API key invalid or revoked. Add a Claude key or update Groq key in Settings.');
       return;
     }
-    if (!res.ok) {
-      setWarn('groq', 'Groq returned HTTP ' + res.status + '. Key may be rate-limited.');
+    if (!groqRes.ok) {
+      setWarn('groq', 'Groq returned HTTP ' + groqRes.status + '. Key may be rate-limited.');
       return;
     }
-
-    var data = await res.json();
-    var modelCount = data.data ? data.data.length : 0;
-
-    // Try fetching today's usage from Groq usage endpoint
-    try {
-      var today = new Date().toISOString().split('T')[0];
-      var usageRes = await fetch('https://api.groq.com/openai/v1/usage?start_date=' + today + '&end_date=' + today, {
-        headers: { 'Authorization': 'Bearer ' + key }
-      });
-      if (usageRes.ok) {
-        var usageData = await usageRes.json();
-        var tokensToday = 0;
-        if (usageData.data && Array.isArray(usageData.data)) {
-          usageData.data.forEach(function(entry) {
-            tokensToday += (entry.total_tokens || 0);
-          });
-        } else if (usageData.total_tokens) {
-          tokensToday = usageData.total_tokens;
-        }
-        if (tokensToday > 0) {
-          setOk('groq', 'API key valid — ' + modelCount + ' models. Today: ' + tokensToday.toLocaleString() + ' tokens used.');
-          return;
-        }
-      }
-    } catch(usageErr) { /* usage endpoint may not be available */ }
-
-    setOk('groq', 'API key valid — ' + modelCount + ' models available. Nancy AI is ready.');
+    var groqData = await groqRes.json();
+    var modelCount = groqData.data ? groqData.data.length : 0;
+    setWarn('groq', 'Using Groq as fallback (' + modelCount + ' models). Add a Claude API key for the primary AI engine.');
   } catch(e) {
-    setWarn('groq', 'Could not verify Groq key: ' + (e.message || 'network error'));
+    setWarn('groq', 'Could not verify AI key: ' + (e.message || 'network error'));
   }
 }
 
@@ -845,8 +939,8 @@ async function deleteUser(memberId, memberName) {
 // ── SETTINGS ──
 async function loadCurrentSettings() {
   try {
-    var keys = ['groq_api_key', 'inbox_slack_token', 'hub_password', 'slack_monitor_keywords'];
-    var fieldMap = { groq_api_key: 'setting-groq', inbox_slack_token: 'setting-slack', hub_password: 'setting-hubpw', slack_monitor_keywords: 'setting-slack-keywords' };
+    var keys = ['claude_api_key', 'groq_api_key', 'inbox_slack_token', 'hub_password', 'slack_monitor_keywords'];
+    var fieldMap = { claude_api_key: 'setting-claude', groq_api_key: 'setting-groq', inbox_slack_token: 'setting-slack', hub_password: 'setting-hubpw', slack_monitor_keywords: 'setting-slack-keywords' };
     var result = await db.from('settings').select('key,value').in('key', keys);
     if (result.data) {
       result.data.forEach(function(row) {
@@ -882,6 +976,7 @@ async function saveSetting(key, inputId, savedId) {
     // Recheck relevant service after saving
     if (key === 'inbox_slack_token') checkSlack();
     if (key === 'groq_api_key') checkGroq();
+    if (key === 'claude_api_key') { checkGroq(); loadClaudeSpending(); }
   } catch(e) {
     showToast('Could not save: ' + (e.message || 'unknown error'), 'error');
   }

@@ -210,7 +210,7 @@ function injectHTML() {
         '<div class="nc-hdr-dot"></div>',
         '<div class="nc-hdr-info">',
           '<div class="nc-hdr-name">Nancy AI</div>',
-          '<div class="nc-hdr-sub">Powered by Groq · llama-3.3-70b</div>',
+          '<div class="nc-hdr-sub">Powered by Claude · Haiku</div>',
         '</div>',
         '<div class="nc-hdr-btns">',
           '<button class="nc-hdr-btn" onclick="ncClearChat()" title="New conversation">New chat</button>',
@@ -263,7 +263,7 @@ function ncRenderStarters() {
     '<div class="nc-info">',
       '<div class="nc-info-row">',
         '<svg class="nc-info-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-        '<span class="nc-info-val"><strong>Model:</strong> llama-3.3-70b via Groq &nbsp;·&nbsp; Knowledge cutoff: <strong>early 2024</strong></span>',
+        '<span class="nc-info-val"><strong>Model:</strong> claude-3-5-haiku via Anthropic &nbsp;·&nbsp; Knowledge cutoff: <strong>early 2025</strong></span>',
       '</div>',
       '<div class="nc-info-row">',
         '<svg class="nc-info-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
@@ -505,19 +505,11 @@ async function ncSend() {
   var text = (input.value || '').trim();
   if (!text || nc.typing) return;
 
-  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
-  // If key not loaded yet (boot() still running), try fetching it now
-  if (!key && typeof db !== 'undefined') {
-    try {
-      var gkr = await db.from('settings').select('value').eq('key', 'groq_api_key').single();
-      if (gkr.data && gkr.data.value) {
-        GROQ_API_KEY = gkr.data.value;
-        key = gkr.data.value;
-      }
-    } catch(e) {}
-  }
-  if (!key) {
-    ncAppendMsg('assistant', 'Hey! The Groq API key hasn\'t been added yet. Go to **Admin → Settings** and paste your Groq API key there — then I\'ll be ready to help! 🔑');
+  // Check Claude key is available (callClaude handles lazy loading)
+  var claudeReady = (typeof CLAUDE_API_KEY !== 'undefined' && CLAUDE_API_KEY) ||
+                    (typeof window.callClaude === 'function');
+  if (!claudeReady && typeof GROQ_API_KEY === 'undefined') {
+    ncAppendMsg('assistant', 'Hey! The Claude API key hasn\'t been added yet. Go to **Admin → Settings** and paste your Claude API key there — then I\'ll be ready to help! 🔑');
     return;
   }
 
@@ -533,76 +525,11 @@ async function ncSend() {
   nc.typing = true;
   document.getElementById('nc-send').disabled = true;
 
-  var model = (typeof GROQ_MODEL !== 'undefined') ? GROQ_MODEL : 'llama-3.3-70b-versatile';
-
   try {
-    var messages = [{ role: 'system', content: NANCY_SYSTEM }].concat(nc.messages);
-    var reply = null;
-    var maxLoops = 5;
-    var useTools = true; // may be disabled if Groq rejects tool schema
-
-    for (var loop = 0; loop < maxLoops; loop++) {
-      var payload = {
-        model: model,
-        max_tokens: 1024,
-        messages: messages
-      };
-      if (useTools) {
-        payload.tools = NC_TOOLS;
-        payload.tool_choice = 'auto';
-      }
-
-      var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify(payload)
-      });
-
-      // If Groq rejects tool schema (400), retry without tools
-      if (!resp.ok) {
-        if (resp.status === 400 && useTools) {
-          useTools = false;
-          continue;
-        }
-        throw new Error('API error ' + resp.status);
-      }
-      var data = await resp.json();
-
-      var choice = data.choices && data.choices[0];
-      if (!choice) throw new Error('No response from AI');
-
-      var msg = choice.message;
-      var finishReason = choice.finish_reason;
-
-      // If the model wants to call tools
-      if (finishReason === 'tool_calls' && msg.tool_calls && msg.tool_calls.length) {
-        messages.push(msg); // add assistant message with tool_calls
-
-        // Execute each tool call
-        for (var t = 0; t < msg.tool_calls.length; t++) {
-          var tc = msg.tool_calls[t];
-          var toolName = tc.function.name;
-          var toolArgs = {};
-          try { toolArgs = JSON.parse(tc.function.arguments || '{}'); } catch(e) {}
-
-          ncUpdateTyping('Looking up ' + toolName.replace(/_/g,' ') + '…');
-          var result = await ncRunTool(toolName, toolArgs);
-
-          messages.push({
-            role: 'tool',
-            tool_call_id: tc.id,
-            content: JSON.stringify(result)
-          });
-        }
-        // Loop again with tool results
-        continue;
-      }
-
-      // Normal text response
-      reply = msg.content ? msg.content.trim() : 'Sorry, I didn\'t get a response. Try again.';
-      break;
-    }
-
+    // Convert messages format: extract system from messages array for Claude
+    var sysMsg = nc.messages.find(function(m){ return m.role === 'system'; });
+    var chatMsgs = nc.messages.filter(function(m){ return m.role !== 'system'; });
+    var reply = await window.callClaude(chatMsgs, sysMsg ? sysMsg.content : NANCY_SYSTEM, 1200);
     if (!reply) reply = 'I ran into an issue processing that. Please try again.';
     nc.messages.push({ role: 'assistant', content: reply });
     ncHideTyping();
@@ -615,7 +542,7 @@ async function ncSend() {
     }
   } catch(e) {
     ncHideTyping();
-    ncAppendMsg('assistant', 'Something went wrong — ' + (e.message || 'please try again.'));
+    ncAppendMsg('assistant', 'Something went wrong — ' + (e.message || 'please try again. Check that the Claude API key is set in Admin → Settings.'));
   }
 
   nc.typing = false;
