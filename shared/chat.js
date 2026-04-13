@@ -5,9 +5,27 @@
 
 (function() {
 
+var NC_STORAGE_KEY = 'nancy_chat_history';
+
+function ncSaveHistory() {
+  try {
+    // Only persist user/assistant messages (not tool messages)
+    var toSave = nc.messages.filter(function(m){ return m.role === 'user' || m.role === 'assistant'; });
+    localStorage.setItem(NC_STORAGE_KEY, JSON.stringify(toSave.slice(-80))); // keep last 80 msgs
+  } catch(e) {}
+}
+
+function ncLoadHistory() {
+  try {
+    var raw = localStorage.getItem(NC_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return [];
+}
+
 var nc = {
   open: false,
-  messages: [],   // {role:'user'|'assistant', content:'...'}
+  messages: ncLoadHistory(),   // {role:'user'|'assistant', content:'...'}
   typing: false,
   unread: false
 };
@@ -320,6 +338,7 @@ function ncToggle() {
 
 function ncClearChat() {
   nc.messages = [];
+  try { localStorage.removeItem(NC_STORAGE_KEY); } catch(e) {}
   var msgsEl = document.getElementById('nc-msgs');
   if (msgsEl) msgsEl.innerHTML = ncRenderStarters();
 }
@@ -521,6 +540,7 @@ async function ncSend() {
   input.value = '';
   input.style.height = 'auto';
   nc.messages.push({ role: 'user', content: text });
+  ncSaveHistory();
 
   var startersEl = document.querySelector('#nc-msgs .nc-starters');
   if (startersEl) startersEl.remove();
@@ -584,6 +604,7 @@ async function ncSend() {
 
     if (!reply) reply = 'I ran into an issue processing that. Please try again.';
     nc.messages.push({ role: 'assistant', content: reply });
+    ncSaveHistory();
     ncHideTyping();
     ncAppendMsg('assistant', reply);
 
@@ -711,6 +732,17 @@ function initNancyChat() {
   if (document.getElementById('nc-wrap')) return; // already mounted
   injectStyles();
   injectHTML();
+
+  // Restore persisted conversation
+  if (nc.messages.length) {
+    var msgsEl = document.getElementById('nc-msgs');
+    if (msgsEl) {
+      msgsEl.innerHTML = ''; // remove starters
+      nc.messages.forEach(function(m) {
+        if (m.role === 'user' || m.role === 'assistant') ncAppendMsg(m.role, m.content);
+      });
+    }
+  }
 }
 
 // Expose globally
