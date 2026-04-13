@@ -791,11 +791,14 @@ function buildAssigneeCell(id, val) {
   var bubbles = resolveAssigneeBubbles(text);
   var CHIP_LIST = [
     {key:'momo',label:'MO'},{key:'sam',label:'SA'},{key:'rahul',label:'RA'},
-    {key:'andrea',label:'AN'},{key:'daphnie',label:'DA'},{key:'ben',label:'BE'},{key:'arvin',label:'AR'}
+    {key:'andrea',label:'AN'},{key:'daphnie',label:'DA'},{key:'ben',label:'BE'},{key:'arvin',label:'AR'},
+    {key:'_add',label:'+',color:'#888',title:'Add member'},
+    {key:'_clear',label:'✕',color:'#ccc',title:'Clear'}
   ];
   var chips = CHIP_LIST.map(function(c) {
-    return '<span class="assignee-chip" style="background:' + (ASSIGNEE_COLORS[c.key]||'#999') + '"'
-      + ' title="' + c.key.charAt(0).toUpperCase()+c.key.slice(1) + '"'
+    var bg = c.color || ASSIGNEE_COLORS[c.key] || '#999';
+    return '<span class="assignee-chip" style="background:' + bg + ';' + (c.key==='_clear'?'color:#666':'') + '"'
+      + ' title="' + (c.title || c.key.charAt(0).toUpperCase()+c.key.slice(1)) + '"'
       + ' onmousedown="event.preventDefault();addAssigneeChip(this,\'' + c.key + '\')">'
       + c.label + '</span>';
   }).join('');
@@ -842,12 +845,25 @@ function showAssigneeChips(el) {
 }
 
 function addAssigneeChip(chipEl, key) {
-  var nameMap = {momo:'Momo',sam:'Sam',rahul:'Rahul',andrea:'Andrea',daphnie:'Daphnie',ben:'Ben',arvin:'Arvin'};
-  var name = nameMap[key] || (key.charAt(0).toUpperCase() + key.slice(1));
   var wrap = chipEl.closest('.assignee-wrap');
   if (!wrap) return;
   var editEl = wrap.querySelector('[contenteditable]');
   if (!editEl) return;
+  if (key === '_clear') {
+    editEl.innerText = '';
+    saveAssignee(editEl);
+    return;
+  }
+  if (key === '_add') {
+    var custom = prompt('Enter team member name:');
+    if (!custom || !custom.trim()) return;
+    var cur2 = editEl.innerText.trim();
+    editEl.innerText = cur2 ? cur2 + ' / ' + custom.trim() : custom.trim();
+    saveAssignee(editEl);
+    return;
+  }
+  var nameMap = {momo:'Momo',sam:'Sam',rahul:'Rahul',andrea:'Andrea',daphnie:'Daphnie',ben:'Ben',arvin:'Arvin'};
+  var name = nameMap[key] || (key.charAt(0).toUpperCase() + key.slice(1));
   var cur = editEl.innerText.trim();
   editEl.innerText = cur ? cur + ' / ' + name : name;
   // Move cursor to end
@@ -871,14 +887,15 @@ function switchPipeTracker(type) {
 }
 
 async function addPipelineRow() {
+  // Insert only original stable columns — new columns require the SQL migration to be run first
   var { data, error } = await db.from('partnership_pipeline').insert({
-    company: 'New Entry', source: '', stage: '1-Outreach', status: 'Active',
-    tracker_type: PS.pipeTrackerType,
-    assignee: '', next_step: '', next_step_due: null,
-    lead_contact: '', contact_name: '', contact_email: '',
-    touchpoint_date: null, touchpoint_type: '', notes: '', link_to_folder: ''
+    company: 'New Entry', source: '', stage: '1-Outreach',
+    assignee: '', next_step: '', last_update: '', status: 'Active'
   }).select().single();
   if (error) { showToast('Could not add row: ' + error.message, 'error'); return; }
+  // Silently attempt tracker_type update (no-op if migration hasn't run yet)
+  await db.from('partnership_pipeline').update({ tracker_type: PS.pipeTrackerType }).eq('id', data.id);
+  data.tracker_type = PS.pipeTrackerType;
   PS.pipeline.push(data);
   renderPipeline();
   focusLastRow('pipe-tbody', 0);

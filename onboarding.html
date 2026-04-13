@@ -59,6 +59,13 @@
 .ok-agency-tile.active .ok-tile-count{background:rgba(0,0,0,.06)}
 .ok-active-section{margin-top:.25rem}
 
+/* Card footer — link field */
+.ok-card-foot{padding:.55rem 1rem .7rem;border-top:1px solid var(--border)}
+.ok-link-open{display:inline-flex;align-items:center;gap:.3rem;padding:3px 9px;background:rgba(45,125,210,.1);color:#2d7dd2;border-radius:6px;font-family:'Inter',sans-serif;font-size:.73rem;font-weight:600;text-decoration:none;margin-bottom:.35rem}
+.ok-link-input{width:100%;font-family:'Inter',sans-serif;font-size:.74rem;color:var(--muted);background:none;border:none;outline:none;padding:0;cursor:text}
+.ok-link-input::placeholder{color:var(--border2);font-style:italic}
+.ok-link-input:focus{color:var(--body)}
+
 /* Empty state */
 .ok-empty{grid-column:1/-1;font-family:'Inter',sans-serif;font-size:.84rem;color:var(--muted);padding:1.5rem;text-align:center;border:1.5px dashed var(--border);border-radius:var(--radius)}
 
@@ -264,6 +271,9 @@ function renderKit() {
           + '<span class="ok-tile-count">' + count + '</span>'
           + '</button>';
       }).join('')
+    + '<button class="ok-agency-tile" onclick="addKitAgency()" style="border-style:dashed;gap:.4rem">'
+    + '<span style="font-size:1rem;line-height:1">+</span>'
+    + '<span class="ok-tile-name">New Type</span></button>'
     + '</div>';
 
   // Active agency card grid
@@ -288,6 +298,7 @@ function renderKit() {
   container.innerHTML = tilesHtml + gridHtml;
   document.querySelectorAll('.ok-content').forEach(attachContentListener);
   document.querySelectorAll('.ok-card-label').forEach(attachLabelListener);
+  document.querySelectorAll('.ok-link-input').forEach(attachLinkListener);
 }
 
 function switchKitAgency(name) {
@@ -295,7 +306,22 @@ function switchKitAgency(name) {
   renderKit();
 }
 
+function addKitAgency() {
+  var name = prompt('Enter new partnership type name (e.g. "Direct", "Shopify Collab"):');
+  if (!name || !name.trim()) return;
+  name = name.trim();
+  if (AGENCIES.find(function(a) { return a.name === name; })) { switchKitAgency(name); return; }
+  var PALETTE = ['#e55a20','#c8930a','#ff30cc','#1a5fa0','#9c27b0','#009688','#ff5722'];
+  AGENCIES.push({ name: name, color: PALETTE[(AGENCIES.length) % PALETTE.length] });
+  OK_ACTIVE_AGENCY = name;
+  renderKit();
+}
+
 function buildCard(k) {
+  var linkVal = k.link_url || '';
+  var linkBtn = linkVal
+    ? '<a class="ok-link-open" href="' + esc(linkVal) + '" target="_blank" rel="noopener">🔗 Open File</a><br>'
+    : '';
   return '<div class="ok-card" id="ok-card-' + k.id + '">'
     + '<div class="ok-card-head">'
     + '<span contenteditable="true" class="ok-card-label" data-id="' + k.id + '"'
@@ -305,7 +331,12 @@ function buildCard(k) {
     + '</div>'
     + '<div class="ok-card-body">'
     + '<div contenteditable="true" class="ok-content" data-id="' + k.id
-    + '" data-placeholder="Start typing…">' + esc(k.content || '') + '</div>'
+    + '" data-placeholder="Type notes, instructions, contract terms…">' + esc(k.content || '') + '</div>'
+    + '</div>'
+    + '<div class="ok-card-foot">'
+    + linkBtn
+    + '<input type="url" class="ok-link-input" data-id="' + k.id + '"'
+    + ' placeholder="Paste a Google Drive, Doc, or file link…" value="' + esc(linkVal) + '">'
     + '</div>'
     + '</div>';
 }
@@ -346,6 +377,32 @@ function attachLabelListener(el) {
   });
 }
 
+function attachLinkListener(el) {
+  el.addEventListener('blur', async function() {
+    var id = el.getAttribute('data-id');
+    var val = el.value.trim();
+    var row = KIT.find(function(k) { return k.id === id; });
+    if (row) row.link_url = val;
+    setSaving();
+    var { error } = await db.from('partnership_kit').update({ link_url: val }).eq('id', id);
+    // Silently ignore error — link_url column may not exist until migration is run
+    if (!error) setSaved();
+    // Rebuild open-link button
+    var foot = el.closest('.ok-card-foot');
+    if (foot) {
+      var old = foot.querySelector('.ok-link-open');
+      if (old) { var br = old.nextSibling; old.remove(); if (br && br.nodeName === 'BR') br.remove(); }
+      if (val) {
+        var a = document.createElement('a');
+        a.className = 'ok-link-open'; a.href = val; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = '🔗 Open File';
+        var brEl = document.createElement('br');
+        foot.insertBefore(brEl, el); foot.insertBefore(a, brEl);
+      }
+    }
+  });
+}
+
 function setSaving() {
   document.getElementById('ok-dot').className = 'ok-dot saving';
   document.getElementById('ok-status-text').textContent = 'Saving…';
@@ -378,6 +435,7 @@ async function addCard(agency) {
     var card = tmp.firstChild;
     grid.appendChild(card);
     attachContentListener(card.querySelector('.ok-content'));
+    attachLinkListener(card.querySelector('.ok-link-input'));
     var label = card.querySelector('.ok-card-label');
     attachLabelListener(label);
     label.focus();
@@ -428,6 +486,13 @@ async function onPageReady() {
   var { data, error } = await db.from('partnership_kit').select('*').order('agency').order('sort_order');
   if (error) { showToast('Could not load kit: ' + error.message, 'error'); return; }
   KIT = data || [];
+  // Auto-discover any custom agencies stored in the DB that aren't in our default list
+  var PALETTE = ['#e55a20','#c8930a','#ff30cc','#1a5fa0','#9c27b0','#009688','#ff5722'];
+  KIT.forEach(function(k) {
+    if (k.agency && !AGENCIES.find(function(a) { return a.name === k.agency; })) {
+      AGENCIES.push({ name: k.agency, color: PALETTE[AGENCIES.length % PALETTE.length] });
+    }
+  });
   renderKit();
 }
 
