@@ -19,3 +19,7 @@ ALTER TABLE partnership_creators
   ADD COLUMN IF NOT EXISTS tiktok_link   text DEFAULT '',
   ADD COLUMN IF NOT EXISTS ig_link       text DEFAULT '',
   ADD COLUMN IF NOT EXISTS youtube_link  text DEFAULT '';
+
+-- ── onboarding kit: file/link field ──────────────────────────
+ALTER TABLE partnership_kit
+  ADD COLUMN IF NOT EXISTS link_url text DEFAULT '';
