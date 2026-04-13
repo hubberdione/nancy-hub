@@ -16,12 +16,15 @@
 .p-sub{font-family:'Inter',sans-serif;font-size:.83rem;color:var(--muted)}
 
 /* Tabs */
-.p-tabs{display:flex;gap:4px;margin-bottom:1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.p-tab-row{display:flex;align-items:flex-end;gap:.75rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.p-tabs{display:flex;gap:4px;flex:1;flex-wrap:wrap}
 .p-tab{padding:.55rem 1rem;border-radius:8px 8px 0 0;border:1px solid transparent;border-bottom:none;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;color:var(--muted);background:none;transition:all .2s;white-space:nowrap;margin-bottom:-1px}
 .p-tab:hover{color:var(--body);background:var(--bg2)}
 .p-tab.active{color:var(--h2);background:var(--card);border-color:var(--border);border-bottom-color:var(--card)}
 .p-section{display:none}
 .p-section.active{display:block}
+/* Action group — Edit + Add side by side */
+.p-action-group{display:flex;gap:.45rem;align-items:center;padding-bottom:6px;flex-shrink:0}
 
 /* Toolbar */
 .p-toolbar{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
@@ -135,16 +138,15 @@ tr.perf-zero td{color:var(--muted)}
 .p-landing-tag{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-family:'Inter',sans-serif;font-size:.7rem;color:var(--muted)}
 
 /* Global edit mode toggle */
-.p-edit-btn{padding:6px 14px;border:1.5px solid var(--border2);border-radius:8px;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--muted);background:var(--card);transition:all .2s;white-space:nowrap}
+.p-edit-btn{padding:6px 14px;border:1.5px solid var(--border2);border-radius:8px;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--body);background:var(--card);transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;gap:.35rem}
 .p-edit-btn:hover{border-color:var(--primary);color:var(--primary)}
-.p-edit-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.p-edit-btn.active{background:rgba(59,178,115,.12);color:#2a9d5c;border-color:rgba(59,178,115,.4)}
 
 /* View-only cells */
 .view-cell{font-family:'Inter',sans-serif;font-size:.82rem;color:var(--body);display:inline-block}
 
 /* Edit-mode visibility rules */
 .p-section:not(.edit-on) .del-btn{display:none!important}
-.p-section:not(.edit-on) .p-add-btn{opacity:.3;pointer-events:none}
 .p-section:not(.edit-on) .add-row-trigger{display:none}
 .p-section:not(.edit-on) .add-col-th{display:none}
 
@@ -289,7 +291,6 @@ tr.perf-zero td{color:var(--muted)}
         <span class="p-title" id="p-page-title">Partnerships</span>
       </div>
       <div class="p-sub" style="width:100%">CareNBloom creator &amp; influencer partnerships</div>
-      <button class="p-edit-btn" id="global-edit-btn" onclick="toggleEditMode()" style="display:none;margin-left:auto">✏ Edit</button>
     </div>
 
     <!-- ═══ LANDING SCREEN ══════════════════════════════════════ -->
@@ -323,13 +324,19 @@ tr.perf-zero td{color:var(--muted)}
     <!-- ═══ MAIN CONTENT (shown after clicking through) ═════════ -->
     <div id="p-main-content" style="display:none">
 
-    <!-- TAB NAV -->
-    <div class="p-tabs">
-      <button class="p-tab active" data-tab="directory" onclick="switchTab('directory')">Creator Directory</button>
-      <button class="p-tab" data-tab="pipeline" onclick="switchTab('pipeline')">Pipeline</button>
-      <button class="p-tab" data-tab="performance" onclick="switchTab('performance')">Performance</button>
-      <button class="p-tab" data-tab="payments" onclick="switchTab('payments')">Payments</button>
-      <button class="p-tab" data-tab="affiliates" onclick="switchTab('affiliates')">Affiliates</button>
+    <!-- TAB NAV + ACTION BUTTONS -->
+    <div class="p-tab-row">
+      <div class="p-tabs">
+        <button class="p-tab active" data-tab="directory" onclick="switchTab('directory')">Creator Directory</button>
+        <button class="p-tab" data-tab="pipeline" onclick="switchTab('pipeline')">Pipeline</button>
+        <button class="p-tab" data-tab="performance" onclick="switchTab('performance')">Performance</button>
+        <button class="p-tab" data-tab="payments" onclick="switchTab('payments')">Payments</button>
+        <button class="p-tab" data-tab="affiliates" onclick="switchTab('affiliates')">Affiliates</button>
+      </div>
+      <div class="p-action-group">
+        <button class="p-edit-btn" id="global-edit-btn" onclick="toggleEditMode()">✏ Edit</button>
+        <button class="p-add-btn" id="global-add-btn" onclick="globalAddRow()">+ Add Creator</button>
+      </div>
     </div>
 
     <!-- ── TAB 1: CREATOR DIRECTORY ──────────────────────────── -->
@@ -343,7 +350,6 @@ tr.perf-zero td{color:var(--muted)}
           <option>Little Leaf</option>
           <option>Standalone</option>
         </select>
-        <button class="p-add-btn" onclick="addCreatorRow()">+ Add Creator</button>
       </div>
       <div class="p-table-wrap">
         <table class="p-table">
@@ -388,7 +394,6 @@ tr.perf-zero td{color:var(--muted)}
           <option>Active</option>
           <option>On Hold</option>
         </select>
-        <button class="p-add-btn" onclick="addPipelineRow()">+ Add Entry</button>
       </div>
       <div class="p-table-wrap">
         <table class="p-table">
@@ -422,7 +427,6 @@ tr.perf-zero td{color:var(--muted)}
           <button class="p-perf-tab" id="perf-tab-krave" onclick="switchPerfAgency('Krave Media')">Krave Media</button>
           <button class="p-perf-tab" id="perf-tab-littleleaf" onclick="switchPerfAgency('Little Leaf')">Little Leaf</button>
         </div>
-        <button class="p-add-btn" onclick="addPerfRow()">+ Add Row</button>
       </div>
       <div class="p-info-bar">
         Standalone creators (Luci, Annemarie) are tracked via affiliate codes — see <button onclick="switchTab('affiliates')">Affiliate Links</button> tab.
@@ -462,9 +466,6 @@ tr.perf-zero td{color:var(--muted)}
 
     <!-- ── TAB 4: PAYMENTS ────────────────────────────────────── -->
     <div class="p-section" id="sec-payments">
-      <div class="p-toolbar">
-        <button class="p-add-btn" onclick="addPaymentRow()">+ Add Row</button>
-      </div>
       <div class="p-table-wrap">
         <table class="p-table">
           <thead><tr>
@@ -484,7 +485,6 @@ tr.perf-zero td{color:var(--muted)}
     <div class="p-section" id="sec-affiliates">
       <div class="p-toolbar">
         <input class="p-search" id="aff-search" placeholder="Search creator / code…" oninput="renderAffiliates()"/>
-        <button class="p-add-btn" onclick="addAffiliateRow()">+ Add Affiliate</button>
       </div>
       <div class="p-table-wrap">
         <table class="p-table">
@@ -698,14 +698,12 @@ function enterPartnerships() {
   document.getElementById('p-landing-screen').style.display = 'none';
   document.getElementById('p-main-content').style.display = 'block';
   document.getElementById('p-back-crumb').style.display = 'inline';
-  document.getElementById('global-edit-btn').style.display = 'inline-flex';
 }
 
 function showLanding() {
   document.getElementById('p-main-content').style.display = 'none';
   document.getElementById('p-landing-screen').style.display = 'block';
   document.getElementById('p-back-crumb').style.display = 'none';
-  document.getElementById('global-edit-btn').style.display = 'none';
   // Exit edit mode when going back
   if (PS.editMode) toggleEditMode();
 }
@@ -713,7 +711,7 @@ function showLanding() {
 function toggleEditMode() {
   PS.editMode = !PS.editMode;
   var btn = document.getElementById('global-edit-btn');
-  if (btn) { btn.textContent = PS.editMode ? 'Done ✓' : '✏ Edit'; btn.classList.toggle('active', PS.editMode); }
+  if (btn) { btn.textContent = PS.editMode ? '✓ Done' : '✏ Edit'; btn.classList.toggle('active', PS.editMode); }
   document.querySelectorAll('.p-section').forEach(function(s) {
     s.classList.toggle('edit-on', PS.editMode);
   });
@@ -733,6 +731,14 @@ function renderSection(tab) {
 // ══════════════════════════════════════════════════════════════
 // TAB SWITCHING
 // ══════════════════════════════════════════════════════════════
+var TAB_ADD_LABELS = {
+  directory:   '+ Add Creator',
+  pipeline:    '+ Add Entry',
+  performance: '+ Add Row',
+  payments:    '+ Add Row',
+  affiliates:  '+ Add Affiliate'
+};
+
 function switchTab(tab) {
   document.querySelectorAll('.p-tab').forEach(function(b) {
     b.classList.toggle('active', b.getAttribute('data-tab') === tab);
@@ -742,6 +748,20 @@ function switchTab(tab) {
   });
   var sec = document.getElementById('sec-' + tab);
   if (sec) sec.classList.add('active');
+  // Sync the global Add button label
+  var addBtn = document.getElementById('global-add-btn');
+  if (addBtn) addBtn.textContent = TAB_ADD_LABELS[tab] || '+ Add Row';
+}
+
+function globalAddRow() {
+  var active = document.querySelector('.p-tab.active');
+  if (!active) return;
+  var tab = active.getAttribute('data-tab');
+  if (tab === 'directory')   addCreatorRow();
+  else if (tab === 'pipeline')    addPipelineRow();
+  else if (tab === 'performance') addPerfRow();
+  else if (tab === 'payments')    addPaymentRow();
+  else if (tab === 'affiliates')  addAffiliateRow();
 }
 
 // ══════════════════════════════════════════════════════════════
