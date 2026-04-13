@@ -4,12 +4,163 @@
 <script>(function(){var t=localStorage.getItem('nancy_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');})()</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nancy — Creators & Onboarding</title>
+<title>Nancy — Partnerships</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/styles.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--fp-glow:rgba(59,178,115,.08)}
+/* ── PARTNERSHIPS PAGE ─────────────────────────────────────── */
+.p-wrap{max-width:1200px;margin:0 auto;padding:1.5rem 1.5rem 4rem}
+
+/* Overview bar */
+.p-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem}
+.p-ov-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:.35rem;transition:border-color .2s}
+.p-ov-card:hover{border-color:var(--border2)}
+.p-ov-agency{font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.1rem}
+.p-ov-count{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:600;color:var(--h2);line-height:1}
+.p-ov-meta{font-family:'Inter',sans-serif;font-size:.73rem;color:var(--muted);line-height:1.4}
+.p-ov-pay{font-family:'Inter',sans-serif;font-size:.71rem;color:var(--muted);margin-top:.25rem;padding:.2rem .55rem;border-radius:6px;background:var(--bg2);display:inline-block}
+
+/* Section header */
+.p-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}
+.p-header-left{display:flex;align-items:baseline;gap:.75rem}
+.p-title{font-family:'Fraunces',serif;font-size:1.75rem;font-weight:600;color:var(--h2);letter-spacing:-.02em}
+.p-sub{font-family:'Inter',sans-serif;font-size:.83rem;color:var(--muted)}
+
+/* Tabs */
+.p-tabs{display:flex;gap:4px;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:0;flex-wrap:wrap}
+.p-tab{padding:.55rem 1rem;border-radius:8px 8px 0 0;border:1px solid transparent;border-bottom:none;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;color:var(--muted);background:none;transition:all .2s;white-space:nowrap;margin-bottom:-1px}
+.p-tab:hover{color:var(--body);background:var(--bg2)}
+.p-tab.active{color:var(--h2);background:var(--card);border-color:var(--border);border-bottom-color:var(--card)}
+.p-section{display:none}
+.p-section.active{display:block}
+
+/* Toolbar (filters + toggle + add) */
+.p-toolbar{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
+.p-filter-pills{display:flex;gap:4px;flex-wrap:wrap}
+.p-pill{padding:4px 12px;border-radius:100px;border:1.5px solid var(--border2);font-family:'Inter',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;color:var(--muted);background:var(--card);transition:all .2s}
+.p-pill:hover{border-color:var(--primary);color:var(--primary)}
+.p-pill.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.p-view-toggle{display:flex;border:1.5px solid var(--border2);border-radius:8px;overflow:hidden}
+.p-vbtn{padding:5px 14px;font-family:'Inter',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;color:var(--muted);background:var(--card);border:none;transition:all .2s}
+.p-vbtn:hover{background:var(--bg2)}
+.p-vbtn.active{background:var(--primary);color:#fff}
+.p-add-btn{margin-left:auto;padding:6px 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.p-add-btn:hover{opacity:.85}
+
+/* Table */
+.p-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+.p-table{width:100%;border-collapse:collapse;font-family:'Inter',sans-serif;font-size:.82rem}
+.p-table th{padding:.65rem 1rem;text-align:left;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--bg2);border-bottom:1px solid var(--border);white-space:nowrap}
+.p-table td{padding:.7rem 1rem;border-bottom:1px solid var(--border);color:var(--body);vertical-align:middle}
+.p-table tr:last-child td{border-bottom:none}
+.p-table tbody tr:hover{background:var(--bg2)}
+.p-table .handle{font-size:.78rem;color:var(--muted)}
+.p-num{font-variant-numeric:tabular-nums;font-weight:600;color:var(--h2)}
+.p-dim{color:var(--muted);font-size:.78rem}
+
+/* Row action buttons */
+.row-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+tr:hover .row-actions{opacity:1}
+.row-btn{padding:3px 8px;border-radius:6px;border:1px solid var(--border2);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--card);color:var(--muted);transition:all .15s}
+.row-btn:hover{border-color:var(--primary);color:var(--primary)}
+.row-btn.del:hover{border-color:#e53e3e;color:#e53e3e}
+
+/* Badges */
+.p-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;white-space:nowrap}
+.badge-outreach{background:rgba(122,121,117,.15);color:var(--muted)}
+.badge-discussion{background:rgba(45,125,210,.15);color:#2d7dd2}
+.badge-contract{background:rgba(247,183,49,.18);color:#c8930a}
+.badge-samples{background:rgba(255,107,53,.15);color:#e55a20}
+.badge-live{background:rgba(59,178,115,.15);color:#2a9d5c}
+.badge-complete{background:rgba(59,178,115,.25);color:#1e7a45}
+.badge-hold{background:rgba(247,183,49,.12);color:#9a7000}
+.badge-active{background:rgba(59,178,115,.12);color:#2a9d5c}
+
+/* Agency badges */
+.ag-eyeball{background:rgba(59,178,115,.14);color:#2a9d5c}
+.ag-krave{background:rgba(136,84,208,.14);color:#6b3fa0}
+.ag-littleleaf{background:rgba(45,125,210,.14);color:#1a5fa0}
+.ag-standalone{background:rgba(122,121,117,.12);color:var(--muted)}
+
+/* Performance criteria badges */
+.crit-good{background:rgba(59,178,115,.15);color:#2a9d5c;font-size:.65rem;padding:1px 6px;border-radius:6px;font-weight:700;margin-left:3px}
+.crit-warn{background:rgba(247,183,49,.18);color:#c8930a;font-size:.65rem;padding:1px 6px;border-radius:6px;font-weight:700;margin-left:3px}
+.crit-none{background:rgba(122,121,117,.1);color:var(--muted);font-size:.65rem;padding:1px 6px;border-radius:6px;font-weight:700;margin-left:3px}
+tr.perf-top{background:rgba(59,178,115,.04)}
+tr.perf-zero td{color:var(--muted)}
+
+/* Creator card grid */
+.p-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.85rem}
+.p-creator-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;transition:border-color .2s,box-shadow .2s;cursor:pointer}
+.p-creator-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.p-cc-name{font-family:'Inter',sans-serif;font-size:.88rem;font-weight:700;color:var(--h2);margin-bottom:.15rem}
+.p-cc-handle{font-family:'Inter',sans-serif;font-size:.75rem;color:var(--muted);margin-bottom:.5rem}
+.p-cc-tags{display:flex;gap:4px;flex-wrap:wrap}
+
+/* Agency group header in card view */
+.p-agency-group{margin-bottom:1.5rem}
+.p-agency-group-hdr{display:flex;align-items:center;gap:.65rem;margin-bottom:.75rem}
+.p-agency-group-name{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--h2)}
+.p-agency-group-count{font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted);background:var(--bg2);padding:2px 8px;border-radius:100px}
+.p-agency-group-pay{font-family:'Inter',sans-serif;font-size:.71rem;color:var(--muted)}
+
+/* Performance sub-tabs */
+.p-perf-tabs{display:flex;gap:6px;margin-bottom:1rem}
+.p-perf-tab{padding:6px 16px;border-radius:100px;border:1.5px solid var(--border2);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--muted);background:var(--card);transition:all .2s}
+.p-perf-tab:hover{border-color:var(--primary);color:var(--primary)}
+.p-perf-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.p-perf-section{display:none}
+.p-perf-section.active{display:block}
+
+/* Performance card grid */
+.p-perf-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.85rem}
+.p-perf-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;transition:border-color .2s;cursor:pointer}
+.p-perf-card:hover{border-color:var(--border2)}
+.p-perf-card.top-performer{border-color:rgba(59,178,115,.4);background:rgba(59,178,115,.03)}
+.p-perf-card.zero-performer{opacity:.6}
+.p-pc-name{font-family:'Inter',sans-serif;font-size:.84rem;font-weight:700;color:var(--h2);margin-bottom:.1rem}
+.p-pc-handle{font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted);margin-bottom:.65rem}
+.p-pc-stats{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.p-pc-stat{background:var(--bg2);border-radius:8px;padding:.4rem .5rem}
+.p-pc-stat-val{font-family:'Fraunces',serif;font-size:.95rem;font-weight:600;color:var(--h2)}
+.p-pc-stat-lbl{font-family:'Inter',sans-serif;font-size:.63rem;color:var(--muted);margin-top:1px}
+.p-pc-stat.good .p-pc-stat-val{color:#2a9d5c}
+
+/* Payment info bar */
+.p-pay-info{display:flex;align-items:flex-start;gap:.75rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.85rem 1.1rem;margin-bottom:.5rem}
+.p-pay-agency-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.p-pay-label{font-family:'Inter',sans-serif;font-size:.75rem;font-weight:700;color:var(--h2)}
+.p-pay-detail{font-family:'Inter',sans-serif;font-size:.76rem;color:var(--muted);margin-top:.1rem}
+.p-pay-edit{margin-left:auto;flex-shrink:0}
+
+/* Onboarding kit */
+.p-kit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.p-kit-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.35rem}
+.p-kit-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.p-kit-card-top-left{display:flex;align-items:center;gap:.65rem}
+.p-kit-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.p-kit-agency{font-family:'Fraunces',serif;font-size:.95rem;font-weight:600;color:var(--h2)}
+.p-kit-type{font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted)}
+.p-kit-content{font-family:'Inter',sans-serif;font-size:.8rem;color:var(--body);line-height:1.6;white-space:pre-wrap}
+.p-kit-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;margin-top:.9rem}
+.p-kit-section-name{font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+
+/* Loading placeholder */
+.p-loading{text-align:center;padding:3rem;color:var(--muted);font-family:'Inter',sans-serif;font-size:.9rem}
+
+/* Responsive */
+@media(max-width:768px){
+  .p-overview{grid-template-columns:repeat(2,1fr)}
+  .p-tabs{gap:2px}
+  .p-tab{padding:.45rem .7rem;font-size:.76rem}
+  .p-table th,.p-table td{padding:.55rem .75rem}
+}
+@media(max-width:480px){
+  .p-overview{grid-template-columns:1fr 1fr}
+  .p-card-grid{grid-template-columns:1fr 1fr}
+  .p-perf-card-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -85,9 +236,9 @@
     <div class="nav-links">
       <a class="nav-link" href="index.html">Home</a>
       <a class="nav-link" href="taskflow.html">Task Hub</a>
-      <a class="nav-link" href="social.html">Content & Socials</a>
+      <a class="nav-link" href="social.html">Content &amp; Socials</a>
       <a class="nav-link" href="learning.html">Learning</a>
-      <a class="nav-link active" href="creators.html">Creators</a>
+      <a class="nav-link active" href="creators.html">Partnerships</a>
     </div>
     <div class="nav-right">
       <div class="nav-time" id="pht-clock">HKT --:--</div>
@@ -103,7 +254,7 @@
     </div>
   </nav>
 
-  <div id="storage-alert-banner" style="max-width:1100px;margin:0 auto">
+  <div id="storage-alert-banner" style="max-width:1200px;margin:0 auto">
     <span id="storage-alert-icon">⚠️</span>
     <span style="flex:1;font-family:'Inter',sans-serif">
       <span id="storage-alert-pct" style="font-weight:700"></span>
@@ -112,103 +263,1286 @@
     <button class="storage-alert-close" onclick="dismissStorageAlert()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
 
-  <!-- PAGE CONTENT -->
-  <div class="feature-preview" style="--fp-glow:rgba(59,178,115,.08)">
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- PARTNERSHIPS PAGE                                       -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="p-wrap">
 
-    <div class="fp-hero">
-      <div class="fp-label">Coming Soon</div>
-      <div class="fp-title">Creators & Onboarding</div>
-      <div class="fp-sub">A full workspace for managing creator partnerships, affiliate flows, and bringing new collaborators into the CareNBloom ecosystem smoothly.</div>
+    <div class="p-header">
+      <div class="p-header-left">
+        <div class="p-title">Partnerships</div>
+        <div class="p-sub">CareNBloom creator &amp; influencer partnerships</div>
+      </div>
     </div>
 
-    <div class="fp-cards">
-
-      <div class="fp-card" style="--fp-icon-bg:rgba(59,178,115,0.15);--fp-card-glow:rgba(59,178,115,.07)">
-        <div class="fp-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
-        <div class="fp-card-title">Creator Directory</div>
-        <div class="fp-card-desc">A searchable database of all current and prospective creators — contact info, niches, rates, past campaigns, and performance metrics.</div>
+    <!-- OVERVIEW CARDS (dynamic counts) -->
+    <div class="p-overview" id="overview-cards">
+      <div class="p-ov-card">
+        <div class="p-ov-agency ag-eyeball p-badge" style="margin-bottom:.4rem">Eyeball Factory</div>
+        <div class="p-ov-count" id="ov-eyeball">—</div>
+        <div class="p-ov-meta">Creators · TikTok primary<br>Campaign: Hello-Momo-5</div>
+        <div class="p-ov-pay">CPM + fixed monthly · Direct</div>
       </div>
-
-      <div class="fp-card" style="--fp-icon-bg:rgba(255,48,204,0.15);--fp-card-glow:rgba(255,48,204,.06)">
-        <div class="fp-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
-        <div class="fp-card-title">Outreach Pipelines</div>
-        <div class="fp-card-desc">Track every partnership from first contact to signed deal. Move creators through stages: prospecting, outreach, negotiation, active, complete.</div>
+      <div class="p-ov-card">
+        <div class="p-ov-agency ag-krave p-badge" style="margin-bottom:.4rem">Krave Media</div>
+        <div class="p-ov-count" id="ov-krave">—</div>
+        <div class="p-ov-meta">Influencers · Instagram primary<br>Campaign: Lem-Regalio-1</div>
+        <div class="p-ov-pay">Via Krave Media agency</div>
       </div>
-
-      <div class="fp-card" style="--fp-icon-bg:rgba(45,125,210,0.15);--fp-card-glow:rgba(45,125,210,.06)">
-        <div class="fp-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="7" x2="20" y2="7"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="17" x2="20" y2="17"/><polyline points="4 7 5 8 7 6"/><polyline points="4 12 5 13 7 11"/><polyline points="4 17 5 18 7 16"/></svg></div>
-        <div class="fp-card-title">Onboarding Checklists</div>
-        <div class="fp-card-desc">Automatically send onboarding tasks when a creator is approved. Contracts, briefing docs, brand kit, and posting guidelines — all in one flow.</div>
+      <div class="p-ov-card">
+        <div class="p-ov-agency ag-littleleaf p-badge" style="margin-bottom:.4rem">Little Leaf</div>
+        <div class="p-ov-count" id="ov-littleleaf">—</div>
+        <div class="p-ov-meta">Influencers · Multi-platform<br>Meta Ads + Impact affiliate</div>
+        <div class="p-ov-pay">Via Little Leaf + Impact</div>
       </div>
-
-      <div class="fp-card" style="--fp-icon-bg:rgba(247,183,49,0.15);--fp-card-glow:rgba(247,183,49,.06)">
-        <div class="fp-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-        <div class="fp-card-title">Performance Tracking</div>
-        <div class="fp-card-desc">Log content deliverables, engagement rates, and ROI per creator. See at a glance who's driving results and who needs follow-up.</div>
+      <div class="p-ov-card">
+        <div class="p-ov-agency ag-standalone p-badge" style="margin-bottom:.4rem">Standalone</div>
+        <div class="p-ov-count" id="ov-standalone">—</div>
+        <div class="p-ov-meta">Creators · Multi-platform<br>Direct relationship</div>
+        <div class="p-ov-pay">Direct · Social Snowball / Tremendos</div>
       </div>
-
-      <div class="fp-card" style="--fp-icon-bg:rgba(136,84,208,0.15);--fp-card-glow:rgba(136,84,208,.06)">
-        <div class="fp-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
-        <div class="fp-card-title">Payments & Deliverables</div>
-        <div class="fp-card-desc">Track what's owed, what's been paid, and what's still pending. Link each payment to a specific content deliverable.</div>
-      </div>
-
-      <div class="fp-card" style="--fp-icon-bg:rgba(0,188,212,0.15);--fp-card-glow:rgba(0,188,212,.06)">
-        <div class="fp-card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></div>
-        <div class="fp-card-title">Affiliate Links</div>
-        <div class="fp-card-desc">Generate, track, and manage affiliate links for each creator. Monitor clicks, conversions, and commissions in real time.</div>
-      </div>
-
     </div>
 
-    <div class="fp-notify">
-      <span class="fp-notify-dot"></span>
-      <span>We're building this now — check back soon</span>
+    <!-- TAB NAV -->
+    <div class="p-tabs">
+      <button class="p-tab active" onclick="switchTab('directory')">Creator Directory</button>
+      <button class="p-tab" onclick="switchTab('pipeline')">Pipeline</button>
+      <button class="p-tab" onclick="switchTab('performance')">Performance</button>
+      <button class="p-tab" onclick="switchTab('payments')">Payments &amp; Deliverables</button>
+      <button class="p-tab" onclick="switchTab('affiliates')">Affiliate Links</button>
+      <button class="p-tab" onclick="switchTab('onboarding')">Onboarding Kit</button>
     </div>
 
+    <!-- ── TAB 1: CREATOR DIRECTORY ──────────────────────────── -->
+    <div class="p-section active" id="sec-directory">
+      <div class="p-toolbar">
+        <div class="p-filter-pills" id="dir-pills">
+          <button class="p-pill active" onclick="filterCreators('all')">All</button>
+          <button class="p-pill" onclick="filterCreators('Eyeball Factory')">Eyeball Factory</button>
+          <button class="p-pill" onclick="filterCreators('Krave Media')">Krave Media</button>
+          <button class="p-pill" onclick="filterCreators('Little Leaf')">Little Leaf</button>
+          <button class="p-pill" onclick="filterCreators('Standalone')">Standalone</button>
+        </div>
+        <div class="p-view-toggle">
+          <button class="p-vbtn active" id="dir-vbtn-table" onclick="setDirView('table')">Table</button>
+          <button class="p-vbtn" id="dir-vbtn-cards" onclick="setDirView('cards')">Cards</button>
+        </div>
+        <button class="p-add-btn" onclick="openCreatorModal()">+ Add Creator</button>
+      </div>
+
+      <div id="dir-table-view">
+        <div class="p-table-wrap">
+          <table class="p-table">
+            <thead><tr>
+              <th>Name</th><th>Handle</th><th>Agency</th><th>Category</th>
+              <th>Platform</th><th>Payment Route</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody id="dir-tbody"><tr><td colspan="8" class="p-loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="dir-cards-view" style="display:none">
+        <div id="dir-cards-container"></div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: PIPELINE ────────────────────────────────────── -->
+    <div class="p-section" id="sec-pipeline">
+      <div class="p-toolbar">
+        <div class="p-filter-pills" id="pipe-stage-pills">
+          <button class="p-pill active" onclick="filterPipeline('stage','all')">All Stages</button>
+          <button class="p-pill" onclick="filterPipeline('stage','1-Outreach')">Outreach</button>
+          <button class="p-pill" onclick="filterPipeline('stage','2-Discussion')">Discussion</button>
+          <button class="p-pill" onclick="filterPipeline('stage','3-Contract')">Contract</button>
+          <button class="p-pill" onclick="filterPipeline('stage','4-Samples Sent')">Samples</button>
+          <button class="p-pill" onclick="filterPipeline('stage','5-Content Live')">Content Live</button>
+          <button class="p-pill" onclick="filterPipeline('stage','6-Complete')">Complete</button>
+        </div>
+        <div class="p-filter-pills" id="pipe-status-pills">
+          <button class="p-pill active" onclick="filterPipeline('status','all')">All Status</button>
+          <button class="p-pill" onclick="filterPipeline('status','Active')">Active</button>
+          <button class="p-pill" onclick="filterPipeline('status','On Hold')">On Hold</button>
+        </div>
+        <button class="p-add-btn" onclick="openPipelineModal()">+ Add Entry</button>
+      </div>
+      <div class="p-table-wrap">
+        <table class="p-table">
+          <thead><tr>
+            <th>Company / Creator</th><th>Source / Agency</th><th>Stage</th>
+            <th>Assignee</th><th>Next Step</th><th>Last Update</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody id="pipe-tbody"><tr><td colspan="8" class="p-loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: PERFORMANCE ─────────────────────────────────── -->
+    <div class="p-section" id="sec-performance">
+      <div class="p-toolbar">
+        <div class="p-perf-tabs">
+          <button class="p-perf-tab active" id="perf-tab-eyeball" onclick="switchPerfAgency('eyeball')">Eyeball Factory</button>
+          <button class="p-perf-tab" id="perf-tab-krave" onclick="switchPerfAgency('krave')">Krave Media</button>
+          <button class="p-perf-tab" id="perf-tab-littleleaf" onclick="switchPerfAgency('littleleaf')">Little Leaf</button>
+        </div>
+        <div class="p-view-toggle" style="margin-left:auto">
+          <button class="p-vbtn active" id="perf-vbtn-table" onclick="setPerfView('table')">Table</button>
+          <button class="p-vbtn" id="perf-vbtn-cards" onclick="setPerfView('cards')">Cards</button>
+        </div>
+        <button class="p-add-btn" onclick="openPerfModal()">+ Add Row</button>
+      </div>
+
+      <div id="perf-table-view">
+        <div class="p-table-wrap">
+          <table class="p-table">
+            <thead><tr>
+              <th>Name</th><th>Handle</th><th>Spend (HKD)</th><th>ROAS</th>
+              <th>Purchases</th><th>Revenue (HKD)</th><th>Period</th><th>Notes</th><th></th>
+            </tr></thead>
+            <tbody id="perf-tbody"><tr><td colspan="9" class="p-loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="perf-cards-view" style="display:none">
+        <div class="p-perf-card-grid" id="perf-cards-container"></div>
+      </div>
+    </div>
+
+    <!-- ── TAB 4: PAYMENTS & DELIVERABLES ─────────────────────── -->
+    <div class="p-section" id="sec-payments">
+      <div class="p-toolbar">
+        <button class="p-add-btn" onclick="openPaymentModal()">+ Add Payment Route</button>
+      </div>
+      <div id="pay-info-bars"></div>
+      <div class="p-table-wrap" style="margin-top:1.25rem">
+        <table class="p-table">
+          <thead><tr>
+            <th>Agency</th><th>Payment Route</th><th>Campaign</th><th>Rate Type</th><th>Notes</th><th></th>
+          </tr></thead>
+          <tbody id="pay-tbody"><tr><td colspan="6" class="p-loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TAB 5: AFFILIATE LINKS ─────────────────────────────── -->
+    <div class="p-section" id="sec-affiliates">
+      <div class="p-toolbar">
+        <button class="p-add-btn" onclick="openAffiliateModal()">+ Add Affiliate</button>
+      </div>
+      <div class="p-table-wrap">
+        <table class="p-table">
+          <thead><tr>
+            <th>Creator</th><th>Agency</th><th>Discount Code</th><th>Platform / Notes</th><th></th>
+          </tr></thead>
+          <tbody id="aff-tbody"><tr><td colspan="5" class="p-loading">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TAB 6: ONBOARDING KIT ──────────────────────────────── -->
+    <div class="p-section" id="sec-onboarding">
+      <div class="p-toolbar">
+        <button class="p-add-btn" onclick="openKitModal()">+ Add Kit Item</button>
+      </div>
+      <div class="p-kit-grid" id="kit-container">
+        <div class="p-loading">Loading...</div>
+      </div>
+    </div>
+
+  </div><!-- /p-wrap -->
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- MODALS                                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <!-- CREATOR MODAL -->
+  <div class="modal-overlay" id="creator-modal" onclick="closeModalOutside(event,'creator-modal')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="creator-modal-title">Add Creator</div>
+        <button class="modal-close" onclick="closeModal('creator-modal')">✕</button>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Name</label>
+          <input class="form-input" id="cm-name" placeholder="e.g. Kimberly Yue"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Handle</label>
+          <input class="form-input" id="cm-handle" placeholder="@handle"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Agency</label>
+          <select class="form-select" id="cm-agency">
+            <option>Eyeball Factory</option>
+            <option>Krave Media</option>
+            <option>Little Leaf</option>
+            <option>Standalone</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Category</label>
+          <select class="form-select" id="cm-category">
+            <option>Creator</option>
+            <option>Influencer</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Platform</label>
+          <input class="form-input" id="cm-platform" placeholder="e.g. TikTok, Instagram"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="cm-status">
+            <option>Active</option>
+            <option>Inactive</option>
+            <option>On Hold</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Payment Route</label>
+        <input class="form-input" id="cm-payment" placeholder="e.g. Direct to Eyeball Factory"/>
+      </div>
+      <div class="modal-footer">
+        <button class="row-btn del" id="cm-delete-btn" onclick="deleteCreator()" style="display:none;margin-right:auto">Delete</button>
+        <button class="row-btn" onclick="closeModal('creator-modal')">Cancel</button>
+        <button class="p-add-btn" style="margin-left:0" onclick="saveCreator()">Save</button>
+      </div>
+    </div>
   </div>
 
-  <!-- MOBILE FLOATING NAV -->
-  <div class="mobile-nav-wrap" id="mobile-nav">
-    <div class="mobile-nav-inner">
-      <a href="index.html" class="mnav-item">
-        <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></span>
-        <span class="mnav-label">Home</span>
-      </a>
-      <a href="taskflow.html" class="mnav-item">
-        <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="7" x2="20" y2="7"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="17" x2="20" y2="17"/><polyline points="4 7 5 8 7 6"/><polyline points="4 12 5 13 7 11"/><polyline points="4 17 5 18 7 16"/></svg></span>
-        <span class="mnav-label">Tasks</span>
-      </a>
-      <a href="social.html" class="mnav-item">
-        <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></span>
-        <span class="mnav-label">Social</span>
-      </a>
-      <a href="learning.html" class="mnav-item">
-        <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span>
-        <span class="mnav-label">Learn</span>
-      </a>
-      <a href="creators.html" class="mnav-item active">
-        <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
-        <span class="mnav-label">Creators</span>
-      </a>
-      <a id="mnav-admin" href="admin.html" class="mnav-item" style="display:none">
-        <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-        <span class="mnav-label">Admin</span>
-      </a>
+  <!-- PIPELINE MODAL -->
+  <div class="modal-overlay" id="pipeline-modal" onclick="closeModalOutside(event,'pipeline-modal')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="pipeline-modal-title">Add Pipeline Entry</div>
+        <button class="modal-close" onclick="closeModal('pipeline-modal')">✕</button>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Company / Creator</label>
+          <input class="form-input" id="pm-company" placeholder="e.g. Ali Woods"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Source / Agency</label>
+          <input class="form-input" id="pm-source" placeholder="e.g. Standalone"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Stage</label>
+          <select class="form-select" id="pm-stage">
+            <option>1-Outreach</option>
+            <option>2-Discussion</option>
+            <option>3-Contract</option>
+            <option>4-Samples Sent</option>
+            <option>5-Content Live</option>
+            <option>6-Complete</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="pm-status">
+            <option>Active</option>
+            <option>On Hold</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Assignee</label>
+          <input class="form-input" id="pm-assignee" placeholder="e.g. Momo/Rahul"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Last Update</label>
+          <input class="form-input" id="pm-last-update" placeholder="e.g. Apr 10"/>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Next Step</label>
+        <input class="form-input" id="pm-next-step" placeholder="e.g. Send samples"/>
+      </div>
+      <div class="modal-footer">
+        <button class="row-btn del" id="pm-delete-btn" onclick="deletePipeline()" style="display:none;margin-right:auto">Delete</button>
+        <button class="row-btn" onclick="closeModal('pipeline-modal')">Cancel</button>
+        <button class="p-add-btn" style="margin-left:0" onclick="savePipeline()">Save</button>
+      </div>
     </div>
   </div>
 
-</div>
+  <!-- PERFORMANCE MODAL -->
+  <div class="modal-overlay" id="perf-modal" onclick="closeModalOutside(event,'perf-modal')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="perf-modal-title">Add Performance Row</div>
+        <button class="modal-close" onclick="closeModal('perf-modal')">✕</button>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Creator Name</label>
+          <input class="form-input" id="pfm-name" placeholder="e.g. Kimberly Yue"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Handle</label>
+          <input class="form-input" id="pfm-handle" placeholder="@handle"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Agency</label>
+          <select class="form-select" id="pfm-agency">
+            <option>Eyeball Factory</option>
+            <option>Krave Media</option>
+            <option>Little Leaf</option>
+            <option>Standalone</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Period</label>
+          <input class="form-input" id="pfm-period" placeholder="e.g. Mar 31–Apr 6"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Spend (HKD)</label>
+          <input class="form-input" type="number" id="pfm-spend" placeholder="0"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">ROAS</label>
+          <input class="form-input" type="number" step="0.01" id="pfm-roas" placeholder="0.00"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Purchases</label>
+          <input class="form-input" type="number" id="pfm-purchases" placeholder="0"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Revenue (HKD)</label>
+          <input class="form-input" type="number" id="pfm-revenue" placeholder="0"/>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Notes</label>
+        <input class="form-input" id="pfm-notes" placeholder="e.g. Meta, Impact only"/>
+      </div>
+      <div class="modal-footer">
+        <button class="row-btn del" id="pfm-delete-btn" onclick="deletePerf()" style="display:none;margin-right:auto">Delete</button>
+        <button class="row-btn" onclick="closeModal('perf-modal')">Cancel</button>
+        <button class="p-add-btn" style="margin-left:0" onclick="savePerf()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT MODAL -->
+  <div class="modal-overlay" id="payment-modal" onclick="closeModalOutside(event,'payment-modal')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="payment-modal-title">Add Payment Route</div>
+        <button class="modal-close" onclick="closeModal('payment-modal')">✕</button>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Agency</label>
+          <input class="form-input" id="paym-agency" placeholder="e.g. Eyeball Factory"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Campaign</label>
+          <input class="form-input" id="paym-campaign" placeholder="e.g. Hello-Momo-5"/>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Payment Route</label>
+        <input class="form-input" id="paym-route" placeholder="e.g. Direct to Eyeball Factory"/>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Rate Type</label>
+        <input class="form-input" id="paym-rate" placeholder="e.g. CPM + fixed monthly"/>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="paym-notes" placeholder="Additional notes..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="row-btn del" id="paym-delete-btn" onclick="deletePayment()" style="display:none;margin-right:auto">Delete</button>
+        <button class="row-btn" onclick="closeModal('payment-modal')">Cancel</button>
+        <button class="p-add-btn" style="margin-left:0" onclick="savePayment()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFFILIATE MODAL -->
+  <div class="modal-overlay" id="affiliate-modal" onclick="closeModalOutside(event,'affiliate-modal')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="affiliate-modal-title">Add Affiliate Link</div>
+        <button class="modal-close" onclick="closeModal('affiliate-modal')">✕</button>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Creator Name</label>
+          <input class="form-input" id="afm-name" placeholder="e.g. Karen Bigmann"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Agency</label>
+          <select class="form-select" id="afm-agency">
+            <option>Eyeball Factory</option>
+            <option>Krave Media</option>
+            <option>Little Leaf</option>
+            <option>Standalone</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Discount Code</label>
+        <input class="form-input" id="afm-code" placeholder="e.g. TABOO25" style="text-transform:uppercase"/>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Platform / Notes</label>
+        <input class="form-input" id="afm-notes" placeholder="e.g. Impact platform"/>
+      </div>
+      <div class="modal-footer">
+        <button class="row-btn del" id="afm-delete-btn" onclick="deleteAffiliate()" style="display:none;margin-right:auto">Delete</button>
+        <button class="row-btn" onclick="closeModal('affiliate-modal')">Cancel</button>
+        <button class="p-add-btn" style="margin-left:0" onclick="saveAffiliate()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONBOARDING KIT MODAL -->
+  <div class="modal-overlay" id="kit-modal" onclick="closeModalOutside(event,'kit-modal')">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header">
+        <div class="modal-title" id="kit-modal-title">Add Kit Item</div>
+        <button class="modal-close" onclick="closeModal('kit-modal')">✕</button>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Agency</label>
+          <select class="form-select" id="km-agency">
+            <option>Eyeball Factory</option>
+            <option>Krave Media</option>
+            <option>Little Leaf</option>
+            <option>Standalone</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Section</label>
+          <input class="form-input" id="km-section" placeholder="e.g. Brief Template, Contract..."/>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Content</label>
+        <textarea class="form-textarea" id="km-content" style="min-height:140px" placeholder="Enter the kit item content..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Sort Order</label>
+        <input class="form-input" type="number" id="km-order" placeholder="1" value="1"/>
+      </div>
+      <div class="modal-footer">
+        <button class="row-btn del" id="km-delete-btn" onclick="deleteKit()" style="display:none;margin-right:auto">Delete</button>
+        <button class="row-btn" onclick="closeModal('kit-modal')">Cancel</button>
+        <button class="p-add-btn" style="margin-left:0" onclick="saveKit()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER MENU -->
+  <div class="user-menu-overlay" id="user-menu-overlay" onclick="closeUserMenu()"></div>
+  <div class="user-menu" id="user-menu">
+    <div class="user-menu-header">
+      <div class="user-avatar" id="user-avatar-menu">?</div>
+      <div>
+        <div class="user-menu-name" id="user-name-menu">Loading...</div>
+        <div class="user-menu-email" id="user-email-menu"></div>
+      </div>
+    </div>
+    <div class="user-menu-divider"></div>
+    <button class="user-menu-item" onclick="toggleTheme()">Toggle Theme</button>
+    <button class="user-menu-item danger" onclick="signOut()">Sign Out</button>
+  </div>
+
+  <!-- MOBILE NAV -->
+  <nav class="mobile-nav">
+    <a class="mobile-nav-item" href="index.html">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </a>
+    <a class="mobile-nav-item" href="taskflow.html">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Tasks</span>
+    </a>
+    <a class="mobile-nav-item" href="social.html">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Content</span>
+    </a>
+    <a class="mobile-nav-item active" href="creators.html">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Partners</span>
+    </a>
+  </nav>
+
+</div><!-- /app -->
 
 <div class="toast" id="toast"></div>
+
 <script src="shared/hub.js"></script>
-<script src="shared/chat.js?v=9"></script>
-<script>function onPageReady(){} bootHub();</script>
+<script>
+const CURRENT_PAGE = 'partnerships';
+
+// ── STATE ────────────────────────────────────────────────────
+var PS = {
+  creators: [], pipeline: [], performance: [], affiliates: [], payments: [], kit: [],
+  dirFilter: 'all', dirView: 'table',
+  pipeStageFilter: 'all', pipeStatusFilter: 'all',
+  perfAgency: 'eyeball', perfView: 'table',
+  editingId: null
+};
+
+// ── HELPERS ──────────────────────────────────────────────────
+function agencyClass(ag) {
+  if (!ag) return 'ag-standalone';
+  var a = ag.toLowerCase();
+  if (a.includes('eyeball')) return 'ag-eyeball';
+  if (a.includes('krave')) return 'ag-krave';
+  if (a.includes('little leaf')) return 'ag-littleleaf';
+  return 'ag-standalone';
+}
+function agencyBadge(ag) {
+  return '<span class="p-badge '+agencyClass(ag)+'">'+esc(ag)+'</span>';
+}
+function stageBadge(s) {
+  if (!s) return '—';
+  var cls = s.includes('1-')? 'badge-outreach': s.includes('2-')? 'badge-discussion': s.includes('3-')? 'badge-contract': s.includes('4-')? 'badge-samples': s.includes('5-')? 'badge-live': s.includes('6-')? 'badge-complete': 'badge-outreach';
+  return '<span class="p-badge '+cls+'">'+esc(s)+'</span>';
+}
+function statusBadge(s) {
+  return s==='On Hold'? '<span class="p-badge badge-hold">On Hold</span>': '<span class="p-badge badge-active">Active</span>';
+}
+function fmtNum(n) {
+  if (!n) return '<span class="p-dim">—</span>';
+  return '<span class="p-num">$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})+'</span>';
+}
+function fmtRoas(n) {
+  if (!n) return '<span class="p-dim">—</span>';
+  return '<span class="p-num">'+Number(n).toFixed(2)+'x</span>';
+}
+function fmtPurch(n) {
+  if (!n) return '<span class="p-dim">—</span>';
+  return '<span class="p-num">'+n+'</span>';
+}
+function eyeCriteria(r) {
+  var tags = [];
+  if (r.spend_hkd >= 1000) tags.push('<span class="crit-good">Spend✓</span>');
+  if (r.roas >= 1.7) tags.push('<span class="crit-good">ROAS✓</span>');
+  if (r.purchases >= 15) tags.push('<span class="crit-good">15+ Purch</span>');
+  else if (r.purchases >= 7) tags.push('<span class="crit-warn">7+ Purch</span>');
+  if (!tags.length) tags.push('<span class="crit-none">Below criteria</span>');
+  return tags.join('');
+}
+function agencyDotColor(ag) {
+  if (!ag) return 'var(--muted)';
+  var a = ag.toLowerCase();
+  if (a.includes('eyeball')) return '#2a9d5c';
+  if (a.includes('krave')) return '#6b3fa0';
+  if (a.includes('little leaf')) return '#1a5fa0';
+  return 'var(--muted)';
+}
+function kitAgencyColor(ag) {
+  if (!ag) return 'var(--muted)';
+  var a = ag.toLowerCase();
+  if (a.includes('eyeball')) return '#2a9d5c';
+  if (a.includes('krave')) return '#6b3fa0';
+  if (a.includes('little leaf')) return '#1a5fa0';
+  return '#888';
+}
+
+// ── TAB SWITCHING ────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.p-tab').forEach(function(b,i){
+    var tabs = ['directory','pipeline','performance','payments','affiliates','onboarding'];
+    b.classList.toggle('active', tabs[i] === name);
+  });
+  document.querySelectorAll('.p-section').forEach(function(s){
+    s.classList.toggle('active', s.id === 'sec-'+name);
+  });
+}
+
+// ── OVERVIEW COUNTS ──────────────────────────────────────────
+function updateOverview() {
+  var counts = {eyeball:0,krave:0,littleleaf:0,standalone:0};
+  PS.creators.forEach(function(c){
+    var a = (c.agency||'').toLowerCase();
+    if (a.includes('eyeball')) counts.eyeball++;
+    else if (a.includes('krave')) counts.krave++;
+    else if (a.includes('little leaf')) counts.littleleaf++;
+    else counts.standalone++;
+  });
+  document.getElementById('ov-eyeball').textContent = counts.eyeball;
+  document.getElementById('ov-krave').textContent = counts.krave;
+  document.getElementById('ov-littleleaf').textContent = counts.littleleaf;
+  document.getElementById('ov-standalone').textContent = counts.standalone;
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 1: CREATOR DIRECTORY
+// ══════════════════════════════════════════════════════════════
+function filterCreators(agency) {
+  PS.dirFilter = agency;
+  document.querySelectorAll('#dir-pills .p-pill').forEach(function(b){
+    b.classList.toggle('active', b.textContent.trim() === (agency==='all'?'All':agency));
+  });
+  renderDirectory();
+}
+function setDirView(v) {
+  PS.dirView = v;
+  document.getElementById('dir-vbtn-table').classList.toggle('active', v==='table');
+  document.getElementById('dir-vbtn-cards').classList.toggle('active', v==='cards');
+  document.getElementById('dir-table-view').style.display = v==='table'?'':'none';
+  document.getElementById('dir-cards-view').style.display = v==='cards'?'':'none';
+}
+function renderDirectory() {
+  var data = PS.creators.filter(function(c){
+    return PS.dirFilter==='all' || c.agency === PS.dirFilter;
+  });
+  // Table
+  var tbody = document.getElementById('dir-tbody');
+  if (!data.length) { tbody.innerHTML='<tr><td colspan="8" class="p-loading">No creators found.</td></tr>'; }
+  else {
+    tbody.innerHTML = data.map(function(c){
+      return '<tr>'
+        +'<td><strong style="color:var(--h2)">'+esc(c.name)+'</strong></td>'
+        +'<td class="handle">'+esc(c.handle||'—')+'</td>'
+        +'<td>'+agencyBadge(c.agency)+'</td>'
+        +'<td class="p-dim">'+esc(c.category||'—')+'</td>'
+        +'<td class="p-dim">'+esc(c.platform||'—')+'</td>'
+        +'<td class="p-dim" style="max-width:180px">'+esc(c.payment_route||'—')+'</td>'
+        +'<td>'+statusBadge(c.status)+'</td>'
+        +'<td><div class="row-actions">'
+        +'<button class="row-btn" onclick="openCreatorModal(\''+c.id+'\')">Edit</button>'
+        +'</div></td>'
+        +'</tr>';
+    }).join('');
+  }
+  // Cards grouped by agency
+  var agencies = ['Eyeball Factory','Krave Media','Little Leaf','Standalone'];
+  var container = document.getElementById('dir-cards-container');
+  container.innerHTML = agencies.map(function(ag){
+    var group = data.filter(function(c){ return c.agency===ag; });
+    if (!group.length) return '';
+    return '<div class="p-agency-group">'
+      +'<div class="p-agency-group-hdr">'
+      +'<div class="p-agency-group-name">'+esc(ag)+'</div>'
+      +'<div class="p-agency-group-count">'+group.length+' creators</div>'
+      +'</div>'
+      +'<div class="p-card-grid">'
+      +group.map(function(c){
+        return '<div class="p-creator-card" onclick="openCreatorModal(\''+c.id+'\')">'
+          +'<div class="p-cc-name">'+esc(c.name)+'</div>'
+          +'<div class="p-cc-handle">'+esc(c.handle||'')+'</div>'
+          +'<div class="p-cc-tags">'
+          +'<span class="p-badge '+agencyClass(c.agency)+'">'+esc(c.agency)+'</span>'
+          +(c.platform?'<span class="p-badge" style="background:var(--bg2);color:var(--muted)">'+esc(c.platform)+'</span>':'')
+          +(c.category?'<span class="p-badge" style="background:var(--bg2);color:var(--muted)">'+esc(c.category)+'</span>':'')
+          +'</div></div>';
+      }).join('')
+      +'</div></div>';
+  }).join('');
+}
+
+// ── Creator CRUD ─────────────────────────────────────────────
+function openCreatorModal(id) {
+  PS.editingId = id || null;
+  var isEdit = !!id;
+  document.getElementById('creator-modal-title').textContent = isEdit ? 'Edit Creator' : 'Add Creator';
+  document.getElementById('cm-delete-btn').style.display = isEdit ? '' : 'none';
+  if (isEdit) {
+    var r = PS.creators.find(function(c){ return c.id===id; });
+    if (!r) return;
+    document.getElementById('cm-name').value = r.name||'';
+    document.getElementById('cm-handle').value = r.handle||'';
+    document.getElementById('cm-agency').value = r.agency||'Eyeball Factory';
+    document.getElementById('cm-category').value = r.category||'Creator';
+    document.getElementById('cm-platform').value = r.platform||'';
+    document.getElementById('cm-status').value = r.status||'Active';
+    document.getElementById('cm-payment').value = r.payment_route||'';
+  } else {
+    ['cm-name','cm-handle','cm-platform','cm-payment'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('cm-agency').value = 'Eyeball Factory';
+    document.getElementById('cm-category').value = 'Creator';
+    document.getElementById('cm-status').value = 'Active';
+  }
+  openModal('creator-modal');
+}
+async function saveCreator() {
+  var payload = {
+    name: document.getElementById('cm-name').value.trim(),
+    handle: document.getElementById('cm-handle').value.trim(),
+    agency: document.getElementById('cm-agency').value,
+    category: document.getElementById('cm-category').value,
+    platform: document.getElementById('cm-platform').value.trim(),
+    status: document.getElementById('cm-status').value,
+    payment_route: document.getElementById('cm-payment').value.trim()
+  };
+  if (!payload.name) { showToast('Name is required','error'); return; }
+  var err;
+  if (PS.editingId) {
+    var res = await db.from('partnership_creators').update(payload).eq('id', PS.editingId);
+    err = res.error;
+  } else {
+    var res = await db.from('partnership_creators').insert(payload);
+    err = res.error;
+  }
+  if (err) { showToast('Save failed: '+err.message,'error'); return; }
+  showToast(PS.editingId ? 'Creator updated' : 'Creator added');
+  closeModal('creator-modal');
+  await loadCreators();
+}
+async function deleteCreator() {
+  if (!PS.editingId) return;
+  if (!confirm('Delete this creator?')) return;
+  var { error } = await db.from('partnership_creators').delete().eq('id', PS.editingId);
+  if (error) { showToast('Delete failed','error'); return; }
+  showToast('Creator deleted');
+  closeModal('creator-modal');
+  await loadCreators();
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 2: PIPELINE
+// ══════════════════════════════════════════════════════════════
+function filterPipeline(type, val) {
+  if (type==='stage') {
+    PS.pipeStageFilter = val;
+    document.querySelectorAll('#pipe-stage-pills .p-pill').forEach(function(b){
+      var map = {'all':'All Stages','1-Outreach':'Outreach','2-Discussion':'Discussion','3-Contract':'Contract','4-Samples Sent':'Samples','5-Content Live':'Content Live','6-Complete':'Complete'};
+      b.classList.toggle('active', b.textContent.trim() === (map[val]||val));
+    });
+  } else {
+    PS.pipeStatusFilter = val;
+    document.querySelectorAll('#pipe-status-pills .p-pill').forEach(function(b){
+      var map = {'all':'All Status','Active':'Active','On Hold':'On Hold'};
+      b.classList.toggle('active', b.textContent.trim() === (map[val]||val));
+    });
+  }
+  renderPipeline();
+}
+function renderPipeline() {
+  var data = PS.pipeline.filter(function(r){
+    var stageOk = PS.pipeStageFilter==='all' || r.stage===PS.pipeStageFilter;
+    var statusOk = PS.pipeStatusFilter==='all' || r.status===PS.pipeStatusFilter;
+    return stageOk && statusOk;
+  });
+  var tbody = document.getElementById('pipe-tbody');
+  if (!data.length) { tbody.innerHTML='<tr><td colspan="8" class="p-loading">No entries found.</td></tr>'; return; }
+  tbody.innerHTML = data.map(function(r){
+    return '<tr>'
+      +'<td><strong style="color:var(--h2)">'+esc(r.company||'—')+'</strong></td>'
+      +'<td class="p-dim">'+esc(r.source_agency||'—')+'</td>'
+      +'<td>'+stageBadge(r.stage)+'</td>'
+      +'<td class="p-dim">'+esc(r.assignee||'—')+'</td>'
+      +'<td class="p-dim" style="max-width:160px">'+esc(r.next_step||'—')+'</td>'
+      +'<td class="p-dim">'+esc(r.last_update||'—')+'</td>'
+      +'<td>'+statusBadge(r.status)+'</td>'
+      +'<td><div class="row-actions">'
+      +'<button class="row-btn" onclick="openPipelineModal(\''+r.id+'\')">Edit</button>'
+      +'</div></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ── Pipeline CRUD ────────────────────────────────────────────
+function openPipelineModal(id) {
+  PS.editingId = id || null;
+  var isEdit = !!id;
+  document.getElementById('pipeline-modal-title').textContent = isEdit ? 'Edit Pipeline Entry' : 'Add Pipeline Entry';
+  document.getElementById('pm-delete-btn').style.display = isEdit ? '' : 'none';
+  if (isEdit) {
+    var r = PS.pipeline.find(function(p){ return p.id===id; });
+    if (!r) return;
+    document.getElementById('pm-company').value = r.company||'';
+    document.getElementById('pm-source').value = r.source_agency||'';
+    document.getElementById('pm-stage').value = r.stage||'1-Outreach';
+    document.getElementById('pm-status').value = r.status||'Active';
+    document.getElementById('pm-assignee').value = r.assignee||'';
+    document.getElementById('pm-last-update').value = r.last_update||'';
+    document.getElementById('pm-next-step').value = r.next_step||'';
+  } else {
+    ['pm-company','pm-source','pm-assignee','pm-last-update','pm-next-step'].forEach(function(i){ document.getElementById(i).value=''; });
+    document.getElementById('pm-stage').value = '1-Outreach';
+    document.getElementById('pm-status').value = 'Active';
+  }
+  openModal('pipeline-modal');
+}
+async function savePipeline() {
+  var payload = {
+    company: document.getElementById('pm-company').value.trim(),
+    source_agency: document.getElementById('pm-source').value.trim(),
+    stage: document.getElementById('pm-stage').value,
+    status: document.getElementById('pm-status').value,
+    assignee: document.getElementById('pm-assignee').value.trim(),
+    last_update: document.getElementById('pm-last-update').value.trim(),
+    next_step: document.getElementById('pm-next-step').value.trim()
+  };
+  if (!payload.company) { showToast('Company name is required','error'); return; }
+  var err;
+  if (PS.editingId) {
+    var res = await db.from('partnership_pipeline').update(payload).eq('id', PS.editingId);
+    err = res.error;
+  } else {
+    var res = await db.from('partnership_pipeline').insert(payload);
+    err = res.error;
+  }
+  if (err) { showToast('Save failed: '+err.message,'error'); return; }
+  showToast(PS.editingId ? 'Entry updated' : 'Entry added');
+  closeModal('pipeline-modal');
+  await loadPipeline();
+}
+async function deletePipeline() {
+  if (!PS.editingId) return;
+  if (!confirm('Delete this pipeline entry?')) return;
+  var { error } = await db.from('partnership_pipeline').delete().eq('id', PS.editingId);
+  if (error) { showToast('Delete failed','error'); return; }
+  showToast('Entry deleted');
+  closeModal('pipeline-modal');
+  await loadPipeline();
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 3: PERFORMANCE
+// ══════════════════════════════════════════════════════════════
+var PERF_AGENCY_MAP = {eyeball:'Eyeball Factory',krave:'Krave Media',littleleaf:'Little Leaf'};
+function switchPerfAgency(ag) {
+  PS.perfAgency = ag;
+  ['eyeball','krave','littleleaf'].forEach(function(a){
+    document.getElementById('perf-tab-'+a).classList.toggle('active', a===ag);
+  });
+  renderPerformance();
+}
+function setPerfView(v) {
+  PS.perfView = v;
+  document.getElementById('perf-vbtn-table').classList.toggle('active', v==='table');
+  document.getElementById('perf-vbtn-cards').classList.toggle('active', v==='cards');
+  document.getElementById('perf-table-view').style.display = v==='table'?'':'none';
+  document.getElementById('perf-cards-view').style.display = v==='cards'?'':'none';
+}
+function renderPerformance() {
+  var agencyName = PERF_AGENCY_MAP[PS.perfAgency];
+  var data = PS.performance.filter(function(r){ return r.agency === agencyName; });
+  data.sort(function(a,b){ return (b.spend_hkd||0)-(a.spend_hkd||0); });
+
+  var isEyeball = PS.perfAgency==='eyeball';
+  var tbody = document.getElementById('perf-tbody');
+  if (!data.length) { tbody.innerHTML='<tr><td colspan="9" class="p-loading">No performance data.</td></tr>'; }
+  else {
+    tbody.innerHTML = data.map(function(r){
+      var isTop = r.purchases>=7||(r.spend_hkd>=1000&&isEyeball);
+      var isZero = !r.spend_hkd;
+      return '<tr class="'+(isTop?'perf-top':isZero?'perf-zero':'')+'"><td><strong style="color:var(--h2)">'+esc(r.creator_name||'—')+'</strong></td>'
+        +'<td class="handle">'+esc(r.handle||'—')+'</td>'
+        +'<td>'+fmtNum(r.spend_hkd)+'</td>'
+        +'<td>'+fmtRoas(r.roas)+'</td>'
+        +'<td>'+fmtPurch(r.purchases)+'</td>'
+        +'<td>'+fmtNum(r.revenue_hkd)+'</td>'
+        +'<td class="p-dim">'+esc(r.period||'—')+'</td>'
+        +'<td class="p-dim">'+esc(r.notes||'')+'</td>'
+        +'<td><div class="row-actions">'
+        +'<button class="row-btn" onclick="openPerfModal(\''+r.id+'\')">Edit</button>'
+        +'</div></td>'
+        +'</tr>';
+    }).join('');
+    // Totals row
+    var tot = data.reduce(function(a,r){ return {s:a.s+(r.spend_hkd||0),p:a.p+(r.purchases||0),rev:a.rev+(r.revenue_hkd||0)}; },{s:0,p:0,rev:0});
+    var avgRoas = tot.s>0?(tot.rev/tot.s):0;
+    tbody.innerHTML += '<tr style="border-top:2px solid var(--border2)">'
+      +'<td colspan="2" style="font-weight:700;color:var(--h2)">Total ('+esc(agencyName)+')</td>'
+      +'<td>'+fmtNum(tot.s)+'</td>'
+      +'<td><span class="p-num">'+avgRoas.toFixed(2)+'x</span></td>'
+      +'<td>'+fmtPurch(tot.p)+'</td>'
+      +'<td>'+fmtNum(tot.rev)+'</td>'
+      +'<td colspan="3"></td></tr>';
+  }
+
+  // Cards
+  var container = document.getElementById('perf-cards-container');
+  container.innerHTML = data.map(function(r){
+    var isTop = r.purchases>=7||(r.spend_hkd>=1000&&isEyeball);
+    var isZero = !r.spend_hkd;
+    return '<div class="p-perf-card'+(isTop?' top-performer':isZero?' zero-performer':'')+'" onclick="openPerfModal(\''+r.id+'\')">'
+      +'<div class="p-pc-name">'+esc(r.creator_name||'—')+'</div>'
+      +'<div class="p-pc-handle">'+esc(r.handle||'')+'</div>'
+      +'<div class="p-pc-stats">'
+      +'<div class="p-pc-stat'+(r.spend_hkd>=1000?' good':'')+'"><div class="p-pc-stat-val">'+(r.spend_hkd?'$'+Math.round(r.spend_hkd).toLocaleString():'—')+'</div><div class="p-pc-stat-lbl">Spend</div></div>'
+      +'<div class="p-pc-stat'+(r.roas>=1.7?' good':'')+'"><div class="p-pc-stat-val">'+(r.roas?r.roas.toFixed(2)+'x':'—')+'</div><div class="p-pc-stat-lbl">ROAS</div></div>'
+      +'<div class="p-pc-stat'+(r.purchases>=7?' good':'')+'"><div class="p-pc-stat-val">'+(r.purchases||'—')+'</div><div class="p-pc-stat-lbl">Purchases</div></div>'
+      +'<div class="p-pc-stat"><div class="p-pc-stat-val">'+(r.revenue_hkd?'$'+Math.round(r.revenue_hkd).toLocaleString():'—')+'</div><div class="p-pc-stat-lbl">Revenue</div></div>'
+      +'</div></div>';
+  }).join('') || '<div class="p-loading">No data yet.</div>';
+}
+
+// ── Performance CRUD ─────────────────────────────────────────
+function openPerfModal(id) {
+  PS.editingId = id || null;
+  var isEdit = !!id;
+  document.getElementById('perf-modal-title').textContent = isEdit ? 'Edit Performance Row' : 'Add Performance Row';
+  document.getElementById('pfm-delete-btn').style.display = isEdit ? '' : 'none';
+  if (isEdit) {
+    var r = PS.performance.find(function(p){ return p.id===id; });
+    if (!r) return;
+    document.getElementById('pfm-name').value = r.creator_name||'';
+    document.getElementById('pfm-handle').value = r.handle||'';
+    document.getElementById('pfm-agency').value = r.agency||'Eyeball Factory';
+    document.getElementById('pfm-period').value = r.period||'';
+    document.getElementById('pfm-spend').value = r.spend_hkd||0;
+    document.getElementById('pfm-roas').value = r.roas||0;
+    document.getElementById('pfm-purchases').value = r.purchases||0;
+    document.getElementById('pfm-revenue').value = r.revenue_hkd||0;
+    document.getElementById('pfm-notes').value = r.notes||'';
+  } else {
+    ['pfm-name','pfm-handle','pfm-notes'].forEach(function(i){ document.getElementById(i).value=''; });
+    document.getElementById('pfm-agency').value = PERF_AGENCY_MAP[PS.perfAgency]||'Eyeball Factory';
+    document.getElementById('pfm-period').value = 'Mar 31–Apr 6';
+    ['pfm-spend','pfm-roas','pfm-purchases','pfm-revenue'].forEach(function(i){ document.getElementById(i).value=0; });
+  }
+  openModal('perf-modal');
+}
+async function savePerf() {
+  var payload = {
+    creator_name: document.getElementById('pfm-name').value.trim(),
+    handle: document.getElementById('pfm-handle').value.trim(),
+    agency: document.getElementById('pfm-agency').value,
+    period: document.getElementById('pfm-period').value.trim(),
+    spend_hkd: parseFloat(document.getElementById('pfm-spend').value)||0,
+    roas: parseFloat(document.getElementById('pfm-roas').value)||0,
+    purchases: parseInt(document.getElementById('pfm-purchases').value)||0,
+    revenue_hkd: parseFloat(document.getElementById('pfm-revenue').value)||0,
+    notes: document.getElementById('pfm-notes').value.trim()
+  };
+  if (!payload.creator_name) { showToast('Name is required','error'); return; }
+  var err;
+  if (PS.editingId) {
+    var res = await db.from('partnership_performance').update(payload).eq('id', PS.editingId);
+    err = res.error;
+  } else {
+    var res = await db.from('partnership_performance').insert(payload);
+    err = res.error;
+  }
+  if (err) { showToast('Save failed: '+err.message,'error'); return; }
+  showToast(PS.editingId ? 'Row updated' : 'Row added');
+  closeModal('perf-modal');
+  await loadPerformance();
+}
+async function deletePerf() {
+  if (!PS.editingId) return;
+  if (!confirm('Delete this performance row?')) return;
+  var { error } = await db.from('partnership_performance').delete().eq('id', PS.editingId);
+  if (error) { showToast('Delete failed','error'); return; }
+  showToast('Row deleted');
+  closeModal('perf-modal');
+  await loadPerformance();
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 4: PAYMENTS
+// ══════════════════════════════════════════════════════════════
+function renderPayments() {
+  // Info bars
+  var bars = document.getElementById('pay-info-bars');
+  bars.innerHTML = PS.payments.map(function(r){
+    return '<div class="p-pay-info">'
+      +'<div class="p-pay-agency-dot" style="background:'+agencyDotColor(r.agency)+'"></div>'
+      +'<div style="flex:1">'
+      +'<div class="p-pay-label">'+esc(r.agency)+'</div>'
+      +'<div class="p-pay-detail">'+(r.payment_route||'—')+(r.campaign?' · Campaign: '+esc(r.campaign):'')+(r.rate_type?' · '+esc(r.rate_type):'')+'</div>'
+      +'</div>'
+      +'<div class="p-pay-edit">'
+      +'<button class="row-btn" onclick="openPaymentModal(\''+r.id+'\')">Edit</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  // Table
+  var tbody = document.getElementById('pay-tbody');
+  if (!PS.payments.length) { tbody.innerHTML='<tr><td colspan="6" class="p-loading">No payment routes yet.</td></tr>'; return; }
+  tbody.innerHTML = PS.payments.map(function(r){
+    return '<tr>'
+      +'<td>'+agencyBadge(r.agency)+'</td>'
+      +'<td class="p-dim">'+esc(r.payment_route||'—')+'</td>'
+      +'<td class="p-dim">'+esc(r.campaign||'—')+'</td>'
+      +'<td class="p-dim">'+esc(r.rate_type||'—')+'</td>'
+      +'<td class="p-dim" style="max-width:200px">'+esc(r.notes||'—')+'</td>'
+      +'<td><div class="row-actions">'
+      +'<button class="row-btn" onclick="openPaymentModal(\''+r.id+'\')">Edit</button>'
+      +'</div></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ── Payment CRUD ─────────────────────────────────────────────
+function openPaymentModal(id) {
+  PS.editingId = id || null;
+  var isEdit = !!id;
+  document.getElementById('payment-modal-title').textContent = isEdit ? 'Edit Payment Route' : 'Add Payment Route';
+  document.getElementById('paym-delete-btn').style.display = isEdit ? '' : 'none';
+  if (isEdit) {
+    var r = PS.payments.find(function(p){ return p.id===id; });
+    if (!r) return;
+    document.getElementById('paym-agency').value = r.agency||'';
+    document.getElementById('paym-campaign').value = r.campaign||'';
+    document.getElementById('paym-route').value = r.payment_route||'';
+    document.getElementById('paym-rate').value = r.rate_type||'';
+    document.getElementById('paym-notes').value = r.notes||'';
+  } else {
+    ['paym-agency','paym-campaign','paym-route','paym-rate','paym-notes'].forEach(function(i){ document.getElementById(i).value=''; });
+  }
+  openModal('payment-modal');
+}
+async function savePayment() {
+  var payload = {
+    agency: document.getElementById('paym-agency').value.trim(),
+    campaign: document.getElementById('paym-campaign').value.trim(),
+    payment_route: document.getElementById('paym-route').value.trim(),
+    rate_type: document.getElementById('paym-rate').value.trim(),
+    notes: document.getElementById('paym-notes').value.trim()
+  };
+  if (!payload.agency) { showToast('Agency name is required','error'); return; }
+  var err;
+  if (PS.editingId) {
+    var res = await db.from('partnership_payments').update(payload).eq('id', PS.editingId);
+    err = res.error;
+  } else {
+    var res = await db.from('partnership_payments').insert(payload);
+    err = res.error;
+  }
+  if (err) { showToast('Save failed: '+err.message,'error'); return; }
+  showToast(PS.editingId ? 'Payment route updated' : 'Payment route added');
+  closeModal('payment-modal');
+  await loadPayments();
+}
+async function deletePayment() {
+  if (!PS.editingId) return;
+  if (!confirm('Delete this payment route?')) return;
+  var { error } = await db.from('partnership_payments').delete().eq('id', PS.editingId);
+  if (error) { showToast('Delete failed','error'); return; }
+  showToast('Payment route deleted');
+  closeModal('payment-modal');
+  await loadPayments();
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 5: AFFILIATES
+// ══════════════════════════════════════════════════════════════
+function renderAffiliates() {
+  var tbody = document.getElementById('aff-tbody');
+  if (!PS.affiliates.length) { tbody.innerHTML='<tr><td colspan="5" class="p-loading">No affiliate links yet.</td></tr>'; return; }
+  tbody.innerHTML = PS.affiliates.map(function(r){
+    return '<tr>'
+      +'<td><strong style="color:var(--h2)">'+esc(r.creator_name||'—')+'</strong></td>'
+      +'<td>'+agencyBadge(r.agency||'Standalone')+'</td>'
+      +'<td><code style="font-family:monospace;font-size:.85rem;color:var(--primary);background:var(--primary-light);padding:2px 8px;border-radius:6px">'+esc(r.code||'—')+'</code></td>'
+      +'<td class="p-dim">'+esc(r.platform_notes||'—')+'</td>'
+      +'<td><div class="row-actions">'
+      +'<button class="row-btn" onclick="openAffiliateModal(\''+r.id+'\')">Edit</button>'
+      +'</div></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ── Affiliate CRUD ───────────────────────────────────────────
+function openAffiliateModal(id) {
+  PS.editingId = id || null;
+  var isEdit = !!id;
+  document.getElementById('affiliate-modal-title').textContent = isEdit ? 'Edit Affiliate Link' : 'Add Affiliate Link';
+  document.getElementById('afm-delete-btn').style.display = isEdit ? '' : 'none';
+  if (isEdit) {
+    var r = PS.affiliates.find(function(a){ return a.id===id; });
+    if (!r) return;
+    document.getElementById('afm-name').value = r.creator_name||'';
+    document.getElementById('afm-agency').value = r.agency||'Little Leaf';
+    document.getElementById('afm-code').value = r.code||'';
+    document.getElementById('afm-notes').value = r.platform_notes||'';
+  } else {
+    ['afm-name','afm-code','afm-notes'].forEach(function(i){ document.getElementById(i).value=''; });
+    document.getElementById('afm-agency').value = 'Standalone';
+  }
+  openModal('affiliate-modal');
+}
+async function saveAffiliate() {
+  var payload = {
+    creator_name: document.getElementById('afm-name').value.trim(),
+    agency: document.getElementById('afm-agency').value,
+    code: document.getElementById('afm-code').value.trim().toUpperCase(),
+    platform_notes: document.getElementById('afm-notes').value.trim()
+  };
+  if (!payload.creator_name) { showToast('Creator name is required','error'); return; }
+  var err;
+  if (PS.editingId) {
+    var res = await db.from('partnership_affiliates').update(payload).eq('id', PS.editingId);
+    err = res.error;
+  } else {
+    var res = await db.from('partnership_affiliates').insert(payload);
+    err = res.error;
+  }
+  if (err) { showToast('Save failed: '+err.message,'error'); return; }
+  showToast(PS.editingId ? 'Affiliate updated' : 'Affiliate added');
+  closeModal('affiliate-modal');
+  await loadAffiliates();
+}
+async function deleteAffiliate() {
+  if (!PS.editingId) return;
+  if (!confirm('Delete this affiliate link?')) return;
+  var { error } = await db.from('partnership_affiliates').delete().eq('id', PS.editingId);
+  if (error) { showToast('Delete failed','error'); return; }
+  showToast('Affiliate deleted');
+  closeModal('affiliate-modal');
+  await loadAffiliates();
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 6: ONBOARDING KIT
+// ══════════════════════════════════════════════════════════════
+function renderKit() {
+  var container = document.getElementById('kit-container');
+  if (!PS.kit.length) { container.innerHTML='<div class="p-loading">No kit items yet.</div>'; return; }
+
+  // Group by agency
+  var agencies = [];
+  PS.kit.forEach(function(k){ if (!agencies.includes(k.agency)) agencies.push(k.agency); });
+  agencies.sort();
+
+  container.innerHTML = agencies.map(function(ag){
+    var items = PS.kit.filter(function(k){ return k.agency===ag; });
+    items.sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
+    var color = kitAgencyColor(ag);
+    return '<div class="p-kit-card">'
+      +'<div class="p-kit-card-top">'
+      +'<div class="p-kit-card-top-left">'
+      +'<div class="p-kit-icon" style="background:'+color+'22"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>'
+      +'<div><div class="p-kit-agency" style="color:'+color+'">'+esc(ag)+'</div></div>'
+      +'</div>'
+      +'</div>'
+      +items.map(function(k){
+        return '<div class="p-kit-section-header">'
+          +'<div class="p-kit-section-name">'+esc(k.section)+'</div>'
+          +'<button class="row-btn" onclick="openKitModal(\''+k.id+'\')">Edit</button>'
+          +'</div>'
+          +'<div class="p-kit-content">'+esc(k.content||'')+'</div>';
+      }).join('')
+      +'</div>';
+  }).join('');
+}
+
+// ── Kit CRUD ─────────────────────────────────────────────────
+function openKitModal(id) {
+  PS.editingId = id || null;
+  var isEdit = !!id;
+  document.getElementById('kit-modal-title').textContent = isEdit ? 'Edit Kit Item' : 'Add Kit Item';
+  document.getElementById('km-delete-btn').style.display = isEdit ? '' : 'none';
+  if (isEdit) {
+    var r = PS.kit.find(function(k){ return k.id===id; });
+    if (!r) return;
+    document.getElementById('km-agency').value = r.agency||'Eyeball Factory';
+    document.getElementById('km-section').value = r.section||'';
+    document.getElementById('km-content').value = r.content||'';
+    document.getElementById('km-order').value = r.sort_order||1;
+  } else {
+    ['km-section','km-content'].forEach(function(i){ document.getElementById(i).value=''; });
+    document.getElementById('km-agency').value = 'Eyeball Factory';
+    document.getElementById('km-order').value = 1;
+  }
+  openModal('kit-modal');
+}
+async function saveKit() {
+  var payload = {
+    agency: document.getElementById('km-agency').value,
+    section: document.getElementById('km-section').value.trim(),
+    content: document.getElementById('km-content').value.trim(),
+    sort_order: parseInt(document.getElementById('km-order').value)||1
+  };
+  if (!payload.section) { showToast('Section name is required','error'); return; }
+  var err;
+  if (PS.editingId) {
+    var res = await db.from('partnership_kit').update(payload).eq('id', PS.editingId);
+    err = res.error;
+  } else {
+    var res = await db.from('partnership_kit').insert(payload);
+    err = res.error;
+  }
+  if (err) { showToast('Save failed: '+err.message,'error'); return; }
+  showToast(PS.editingId ? 'Kit item updated' : 'Kit item added');
+  closeModal('kit-modal');
+  await loadKit();
+}
+async function deleteKit() {
+  if (!PS.editingId) return;
+  if (!confirm('Delete this kit item?')) return;
+  var { error } = await db.from('partnership_kit').delete().eq('id', PS.editingId);
+  if (error) { showToast('Delete failed','error'); return; }
+  showToast('Kit item deleted');
+  closeModal('kit-modal');
+  await loadKit();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATA LOADERS
+// ══════════════════════════════════════════════════════════════
+async function loadCreators() {
+  var { data, error } = await db.from('partnership_creators').select('*').order('agency').order('name');
+  if (error) { showToast('Could not load creators: '+error.message,'error'); return; }
+  PS.creators = data || [];
+  updateOverview();
+  renderDirectory();
+}
+async function loadPipeline() {
+  var { data, error } = await db.from('partnership_pipeline').select('*').order('created_at');
+  if (error) { showToast('Could not load pipeline','error'); return; }
+  PS.pipeline = data || [];
+  renderPipeline();
+}
+async function loadPerformance() {
+  var { data, error } = await db.from('partnership_performance').select('*').order('agency').order('spend_hkd', {ascending:false});
+  if (error) { showToast('Could not load performance','error'); return; }
+  PS.performance = data || [];
+  renderPerformance();
+}
+async function loadPayments() {
+  var { data, error } = await db.from('partnership_payments').select('*').order('agency');
+  if (error) { showToast('Could not load payments','error'); return; }
+  PS.payments = data || [];
+  renderPayments();
+}
+async function loadAffiliates() {
+  var { data, error } = await db.from('partnership_affiliates').select('*').order('agency').order('creator_name');
+  if (error) { showToast('Could not load affiliates','error'); return; }
+  PS.affiliates = data || [];
+  renderAffiliates();
+}
+async function loadKit() {
+  var { data, error } = await db.from('partnership_kit').select('*').order('agency').order('sort_order');
+  if (error) { showToast('Could not load onboarding kit','error'); return; }
+  PS.kit = data || [];
+  renderKit();
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function onPageReady() {
+  await Promise.all([
+    loadCreators(),
+    loadPipeline(),
+    loadPerformance(),
+    loadPayments(),
+    loadAffiliates(),
+    loadKit()
+  ]);
+}
+
+bootHub();
+</script>
 </body>
 </html>
-
-
-
-
-
-
