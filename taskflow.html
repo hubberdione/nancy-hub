@@ -4166,7 +4166,7 @@ async function loadDeliverables() {
         .order('completed_at', { ascending: false }));
     }
     if (error) throw error;
-    const remote = (data || []).filter(delivHasContent);
+    const remote = data || [];
     // Merge local fallbacks that aren't already in remote (by task_title + completed_at proximity)
     const remoteKeys = new Set(remote.map(d => d.task_title + '|' + d.completed_at));
     const localOnly = localDelivs.filter(d => !remoteKeys.has(d.task_title + '|' + d.completed_at));
