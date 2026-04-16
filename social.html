@@ -385,19 +385,20 @@
 .tool-len-btn{padding:4px 14px;border-radius:20px;border:1.5px solid var(--border2);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--muted);background:var(--bg);transition:all .15s}
 .tool-len-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .tool-len-btn:hover:not(.active){border-color:var(--primary);color:var(--primary)}
-/* ── Tool: upload row ──────────────────────────────────── */
-.tool-upload-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.55rem;flex-wrap:wrap}
-.tool-upload-lbl{display:inline-flex;align-items:center;gap:.3rem;padding:5px 12px;border:1.5px dashed var(--border2);border-radius:8px;font-family:'Inter',sans-serif;font-size:.74rem;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
-.tool-upload-lbl:hover{border-color:var(--primary);color:var(--primary)}
-.tool-file-preview{display:flex;align-items:center;gap:.4rem;font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted)}
-.tool-file-preview img{width:34px;height:34px;object-fit:cover;border-radius:5px;border:1px solid var(--border)}
-.tool-file-remove{cursor:pointer;color:var(--muted);background:none;border:none;font-size:.8rem;padding:0 2px;line-height:1}
-.tool-file-remove:hover{color:#e53e3e}
+/* ── Tool: upload area ─────────────────────────────────── */
+.tool-upload-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-top:-.2rem}
+.tool-upload-lbl{display:inline-flex;align-items:center;gap:.25rem;font-family:'Inter',sans-serif;font-size:.78rem;color:var(--muted);cursor:pointer;transition:color .15s;white-space:nowrap;background:none;border:none;padding:0}
+.tool-upload-lbl:hover{color:var(--primary)}
+.tool-file-preview{display:flex;align-items:center;gap:.35rem;font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted)}
+.tool-file-preview img{width:30px;height:30px;object-fit:cover;border-radius:4px;border:1px solid var(--border)}
+.tool-file-remove{cursor:pointer;color:var(--muted);background:none;border:none;font-size:.75rem;padding:0 2px;line-height:1;opacity:.7}
+.tool-file-remove:hover{color:#e53e3e;opacity:1}
 /* ── Tool: dual-button row ─────────────────────────────── */
-.tool-btn-row{display:flex;gap:.45rem;flex-wrap:wrap}
-.tool-btn-nancy{background:linear-gradient(135deg,#d946ab,#ff30cc)!important;flex:1;min-width:100px}
-.tool-btn-generic{background:var(--bg2)!important;color:var(--body)!important;border:1.5px solid var(--border2)!important;flex:1;min-width:100px}
-.tool-btn-generic:hover{border-color:var(--primary)!important;color:var(--primary)!important;background:rgba(255,48,204,.06)!important}
+.tool-btn-row{display:flex;align-items:center;gap:1.1rem}
+.tool-btn-sep{color:var(--border2);font-size:.9rem;flex-shrink:0}
+.tool-btn-nancy{color:var(--primary)!important}
+.tool-btn-generic{color:var(--muted)!important}
+.tool-btn-generic:hover{color:var(--body)!important}
 </style>
 </head>
 <body>
@@ -553,14 +554,16 @@
             <button class="tool-len-btn" onclick="setCapLen(this,'hub-tool-')">Long</button>
           </div>
           <input type="hidden" id="hub-tool-caption-length" value="short">
+          <textarea class="tool-input" id="hub-tool-caption-input" placeholder="Describe your post, paste an image (Ctrl+V), or upload below…" rows="3" onpaste="handleToolPaste(event,'hub-tool-caption-preview','hub-tool-caption-file')"></textarea>
           <div class="tool-upload-row">
-            <label class="tool-upload-lbl" for="hub-tool-caption-file">📎 Add Photo / Video
+            <label class="tool-upload-lbl" for="hub-tool-caption-file">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload photo / video
               <input type="file" id="hub-tool-caption-file" accept="image/*,video/*" style="display:none" onchange="handleToolUpload(this,'hub-tool-caption-preview')">
             </label>
             <div id="hub-tool-caption-preview" class="tool-file-preview"></div>
           </div>
-          <textarea class="tool-input" id="hub-tool-caption-input" placeholder="Describe your post, or upload a photo / video above…" rows="3"></textarea>
-          <button class="tool-btn tool-btn-nancy" onclick="runHubTool('caption')">🍋 Nancify</button>
+          <button class="tool-btn tool-btn-nancy" onclick="runHubTool('caption')">🍋 Nancify →</button>
           <div class="tool-output" id="hub-tool-caption-output"></div>
         </div>
 
@@ -581,10 +584,19 @@
             <div class="tool-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
             <div><div class="tool-name">Comment Reply Generator</div><div class="tool-desc">Nancy style (≤4 words) or warm generic reply</div></div>
           </div>
-          <textarea class="tool-input" id="hub-tool-reply-input" placeholder="Paste the comment you want to reply to…" rows="3"></textarea>
+          <textarea class="tool-input" id="hub-tool-reply-input" placeholder="Paste the comment, or paste/upload a screenshot…" rows="3" onpaste="handleToolPaste(event,'hub-tool-reply-preview','hub-tool-reply-file')"></textarea>
+          <div class="tool-upload-row">
+            <label class="tool-upload-lbl" for="hub-tool-reply-file">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload screenshot
+              <input type="file" id="hub-tool-reply-file" accept="image/*" style="display:none" onchange="handleToolUpload(this,'hub-tool-reply-preview')">
+            </label>
+            <div id="hub-tool-reply-preview" class="tool-file-preview"></div>
+          </div>
           <div class="tool-btn-row">
-            <button class="tool-btn tool-btn-nancy" onclick="runHubTool('reply-nancy')">🍋 Nancify</button>
-            <button class="tool-btn tool-btn-generic" onclick="runHubTool('reply-generic')">Generic Reply</button>
+            <button class="tool-btn tool-btn-nancy" onclick="runHubTool('reply-nancy')">🍋 Nancify →</button>
+            <span class="tool-btn-sep">·</span>
+            <button class="tool-btn tool-btn-generic" onclick="runHubTool('reply-generic')">Generic Reply →</button>
           </div>
           <div class="tool-output" id="hub-tool-reply-output"></div>
         </div>
@@ -997,14 +1009,16 @@
                 <button class="tool-len-btn" onclick="setCapLen(this,'tool-')">Long</button>
               </div>
               <input type="hidden" id="tool-caption-length" value="short">
+              <textarea class="tool-input" id="tool-caption-input" placeholder="Describe your post, paste an image (Ctrl+V), or upload below…" rows="3" onpaste="handleToolPaste(event,'tool-caption-preview','tool-caption-file')"></textarea>
               <div class="tool-upload-row">
-                <label class="tool-upload-lbl" for="tool-caption-file">📎 Add Photo / Video
+                <label class="tool-upload-lbl" for="tool-caption-file">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Upload photo / video
                   <input type="file" id="tool-caption-file" accept="image/*,video/*" style="display:none" onchange="handleToolUpload(this,'tool-caption-preview')">
                 </label>
                 <div id="tool-caption-preview" class="tool-file-preview"></div>
               </div>
-              <textarea class="tool-input" id="tool-caption-input" placeholder="Describe your post, or upload a photo / video above…" rows="3"></textarea>
-              <button class="tool-btn tool-btn-nancy" onclick="runTool('caption')">🍋 Nancify</button>
+              <button class="tool-btn tool-btn-nancy" onclick="runTool('caption')">🍋 Nancify →</button>
               <div class="tool-output" id="tool-caption-output"></div>
             </div>
 
@@ -1031,10 +1045,19 @@
                   <div class="tool-desc">Nancy style (≤4 words) or warm generic reply</div>
                 </div>
               </div>
-              <textarea class="tool-input" id="tool-reply-input" placeholder="Paste the comment you want to reply to…" rows="3"></textarea>
+              <textarea class="tool-input" id="tool-reply-input" placeholder="Paste the comment, or paste/upload a screenshot…" rows="3" onpaste="handleToolPaste(event,'tool-reply-preview','tool-reply-file')"></textarea>
+              <div class="tool-upload-row">
+                <label class="tool-upload-lbl" for="tool-reply-file">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Upload screenshot
+                  <input type="file" id="tool-reply-file" accept="image/*" style="display:none" onchange="handleToolUpload(this,'tool-reply-preview')">
+                </label>
+                <div id="tool-reply-preview" class="tool-file-preview"></div>
+              </div>
               <div class="tool-btn-row">
-                <button class="tool-btn tool-btn-nancy" onclick="runTool('reply-nancy')">🍋 Nancify</button>
-                <button class="tool-btn tool-btn-generic" onclick="runTool('reply-generic')">Generic Reply</button>
+                <button class="tool-btn tool-btn-nancy" onclick="runTool('reply-nancy')">🍋 Nancify →</button>
+                <span class="tool-btn-sep">·</span>
+                <button class="tool-btn tool-btn-generic" onclick="runTool('reply-generic')">Generic Reply →</button>
               </div>
               <div class="tool-output" id="tool-reply-output"></div>
             </div>
@@ -1851,6 +1874,25 @@ function removeToolFile(btn, inputId, previewId) {
   var pv = document.getElementById(previewId); if (pv) pv.innerHTML = '';
 }
 
+// Paste image directly into tool card (Ctrl+V on textarea)
+function handleToolPaste(event, previewId, fileInputId) {
+  var items = event.clipboardData && event.clipboardData.items;
+  if (!items) return;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image') !== -1) {
+      event.preventDefault();
+      var file = items[i].getAsFile();
+      if (!file) continue;
+      // Inject into the file input so existing upload flow works
+      var dt = new DataTransfer();
+      dt.items.add(file);
+      var fi = document.getElementById(fileInputId);
+      if (fi) { fi.files = dt.files; handleToolUpload(fi, previewId); }
+      break;
+    }
+  }
+}
+
 function setCapLen(btn, prefix) {
   var row = btn.closest('.tool-length-row');
   if (!row) return;
@@ -1861,7 +1903,11 @@ function setCapLen(btn, prefix) {
 }
 
 function saveToolState(key, inputVal, outputHtml) {
-  try { localStorage.setItem('nancy_tool_' + key, JSON.stringify({ input: inputVal, output: outputHtml, ts: Date.now() })); } catch(e) {}
+  try {
+    // Never persist uploaded file previews — they're in-memory only
+    var cleanOutput = outputHtml.replace(/<img[^>]*>/gi, '');
+    localStorage.setItem('nancy_tool_' + key, JSON.stringify({ input: inputVal, output: cleanOutput, ts: Date.now() }));
+  } catch(e) {}
 }
 function loadToolState(key) {
   try { return JSON.parse(localStorage.getItem('nancy_tool_' + key) || 'null'); } catch(e) { return null; }
@@ -1884,6 +1930,10 @@ function restoreToolOutputs() {
     var outputEl = document.getElementById(p[2]);
     if (inputEl && state.input) inputEl.value = state.input;
     if (outputEl && state.output) { outputEl.innerHTML = state.output; outputEl.classList.add('show'); }
+    // Files are in-memory only — clear any stale preview on restore
+    var previewId = p[0].replace('hub-tool-','hub-tool-').replace('tool-','tool-') + '-preview';
+    var pv = document.getElementById(previewId);
+    if (pv) pv.innerHTML = '';
   });
 }
 
@@ -2328,8 +2378,9 @@ async function _runToolWithPrefix(prefix, tool) {
   if (!inputEl || !outputEl) return;
 
   var input = inputEl.value.trim();
-  var fileInput = document.getElementById(prefix + 'caption-file');
-  var hasFile = baseToolName === 'caption' && fileInput && fileInput.files && fileInput.files.length > 0;
+  // Support file upload on both caption and reply
+  var fileInput = document.getElementById(prefix + baseToolName + '-file');
+  var hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
   if (!input && !hasFile) { showToast('Please fill in the input or upload a file.', 'error'); return; }
 
   var card = inputEl.closest('.tool-card');
@@ -2354,9 +2405,9 @@ async function _runToolWithPrefix(prefix, tool) {
     }
 
     if      (baseToolName === 'caption')  html = await toolCaption(input, ctx, capLen, imageBase64);
-    else if (tool === 'reply-nancy')      html = await toolReply(input, ctx, 'nancy');
-    else if (tool === 'reply-generic')    html = await toolReply(input, ctx, 'generic');
-    else if (baseToolName === 'reply')    html = await toolReply(input, ctx, 'nancy');
+    else if (tool === 'reply-nancy')      html = await toolReply(input, ctx, 'nancy', imageBase64);
+    else if (tool === 'reply-generic')    html = await toolReply(input, ctx, 'generic', imageBase64);
+    else if (baseToolName === 'reply')    html = await toolReply(input, ctx, 'nancy', imageBase64);
     else if (baseToolName === 'hashtag')  html = await toolHashtag(input, ctx);
     else if (baseToolName === 'bio')      html = await toolBio(input, ctx, bioPlatEl ? bioPlatEl.value : 'Instagram');
     else if (baseToolName === 'hook')     html = await toolHook(input, ctx);
@@ -2444,10 +2495,13 @@ function copyTag(el) {
   navigator.clipboard.writeText(el.textContent).then(function(){ showToast('Copied ' + el.textContent, 'success'); });
 }
 
-async function toolReply(input, ctx, mode) {
+async function toolReply(input, ctx, mode, imageBase64) {
   mode = mode || 'nancy';
   var sysPrompt = mode === 'generic' ? GENERIC_REPLY_PROMPT : NANCY_REPLY_PROMPT;
-  var text = await callGroqWithSystem(sysPrompt, 'Comment: "' + input + '"');
+  var userMsg = input ? 'Comment: "' + input + '"' : 'Reply to the comment shown in this screenshot.';
+  var text = imageBase64
+    ? await callGroqVision(imageBase64, sysPrompt + '\n\n' + userMsg)
+    : await callGroqWithSystem(sysPrompt, userMsg);
   var reply = (text || '').trim();
   var label = mode === 'generic' ? '💬 GENERIC REPLY' : '🍋 NANCY REPLY';
   return '<div class="tool-result-item">'
