@@ -400,6 +400,12 @@
 .tool-btn-generic{color:var(--muted)!important}
 .tool-btn-generic:hover{color:var(--body)!important}
 
+/* ─── BULK UPLOAD ──────────────────────── */
+.bulk-file-item{display:flex;align-items:center;gap:.5rem;font-family:'Inter',sans-serif;font-size:.78rem;color:var(--body);padding:.25rem .35rem;border-radius:4px}
+.bulk-file-item.done{color:var(--muted)}
+.bulk-file-item.error{color:#e53935}
+.bulk-file-status{font-size:.72rem;margin-left:auto;flex-shrink:0}
+
 /* ─── ASSET THUMBNAILS ──────────────────────── */
 .asset-thumb-img{width:100%;height:100%;object-fit:cover;transition:opacity .3s}
 .asset-thumb-loading{opacity:0}
@@ -1026,7 +1032,10 @@
             <div class="asset-title">Asset Library</div>
             <div id="asset-count" style="font-family:'Inter',sans-serif;font-size:.8rem;color:var(--muted)"></div>
           </div>
-          <button class="btn-primary" onclick="openAssetModal()">+ Add Asset</button>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn-ghost" onclick="openBulkUploadModal()">⬆ Bulk Upload</button>
+            <button class="btn-primary" onclick="openAssetModal()">+ Add Asset</button>
+          </div>
         </div>
         <div class="folder-bar" id="folder-bar">
           <button class="folder-tab act" data-folder="all" onclick="filterAssets('all',this)">All</button>
@@ -1247,6 +1256,52 @@
       <button class="btn-danger" id="btn-delete-asset" style="display:none;margin-right:auto" onclick="deleteAsset()">Delete</button>
       <button class="btn-ghost" onclick="closeModal('modal-asset-form')">Cancel</button>
       <button class="btn-primary" onclick="saveAsset()">Save Asset</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK UPLOAD MODAL -->
+<div class="modal-overlay" id="modal-bulk-upload" onclick="closeModalOutside(event,'modal-bulk-upload')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">Bulk Upload Assets</div>
+      <button class="modal-close" onclick="closeModal('modal-bulk-upload')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Folder <span style="font-weight:400;color:var(--muted)">(all files go into same folder)</span></label>
+      <input class="form-input" id="bulk-upload-folder" type="text" placeholder="e.g. Face Refs, Brand Kit (leave blank for General)"/>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Type</label>
+      <select class="form-select" id="bulk-upload-type">
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+        <option value="reference">Reference</option>
+        <option value="style">Style Guide</option>
+        <option value="document">Document</option>
+        <option value="audio">Audio</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Files</label>
+      <div class="upload-area" id="bulk-upload-area" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleBulkDrop(event)">
+        <input type="file" id="bulk-file-input" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx" onchange="previewBulkFiles(this)"/>
+        <div class="upload-area-label" id="bulk-upload-label">
+          <strong>Click to select files</strong> or drag & drop<br>
+          <span style="font-size:.72rem">Select as many files as you want — all types accepted</span>
+        </div>
+      </div>
+    </div>
+    <div id="bulk-file-list" style="display:none;margin-bottom:.75rem">
+      <div id="bulk-file-items" style="display:flex;flex-direction:column;gap:.3rem;max-height:180px;overflow-y:auto;padding:.5rem;border:1px solid var(--border);border-radius:8px"></div>
+    </div>
+    <div id="bulk-upload-progress" style="display:none">
+      <div class="upload-prog-bar" style="margin-bottom:.4rem"><div class="upload-prog-fill" id="bulk-prog-fill"></div></div>
+      <div class="upload-prog-lbl" id="bulk-prog-lbl">Uploading...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('modal-bulk-upload')">Cancel</button>
+      <button class="btn-primary" id="bulk-upload-btn" onclick="startBulkUpload()">Upload All</button>
     </div>
   </div>
 </div>
@@ -3402,6 +3457,119 @@ async function deleteAssetById(id) {
     showToast('Asset deleted.', 'success');
     if (socialState.currentAvatar) loadAssets(socialState.currentAvatar.id);
   } catch(e) { showToast('Delete failed.', 'error'); }
+}
+
+// ══════════════════════════════════════
+// BULK UPLOAD
+// ══════════════════════════════════════
+var bulkUploadFiles = [];
+
+function openBulkUploadModal() {
+  bulkUploadFiles = [];
+  document.getElementById('bulk-file-input').value = '';
+  document.getElementById('bulk-upload-folder').value = '';
+  document.getElementById('bulk-upload-type').value = 'image';
+  document.getElementById('bulk-file-list').style.display = 'none';
+  document.getElementById('bulk-file-items').innerHTML = '';
+  document.getElementById('bulk-upload-progress').style.display = 'none';
+  document.getElementById('bulk-upload-label').innerHTML = '<strong>Click to select files</strong> or drag & drop<br><span style="font-size:.72rem">Select as many files as you want — all types accepted</span>';
+  document.getElementById('bulk-upload-btn').disabled = false;
+  document.getElementById('bulk-upload-btn').textContent = 'Upload All';
+  openModal('modal-bulk-upload');
+}
+
+function handleBulkDrop(e) {
+  e.preventDefault();
+  document.getElementById('bulk-upload-area').classList.remove('drag');
+  var files = Array.from(e.dataTransfer.files);
+  if (files.length) setBulkFiles(files);
+}
+
+function previewBulkFiles(input) {
+  var files = Array.from(input.files || []);
+  if (files.length) setBulkFiles(files);
+}
+
+function setBulkFiles(files) {
+  bulkUploadFiles = files;
+  document.getElementById('bulk-upload-label').innerHTML = '<strong>' + files.length + ' file' + (files.length !== 1 ? 's' : '') + ' selected</strong> — click to change';
+  var list = document.getElementById('bulk-file-list');
+  var items = document.getElementById('bulk-file-items');
+  list.style.display = 'block';
+  items.innerHTML = files.map(function(f, i) {
+    var ext = f.name.split('.').pop().toUpperCase().slice(0,6);
+    return '<div class="bulk-file-item" id="bulk-item-' + i + '">'
+      + '<span style="font-family:\'Inter\',sans-serif;font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--bg2);color:var(--muted)">' + ext + '</span>'
+      + '<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + f.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ') + '</span>'
+      + '<span class="bulk-file-status" id="bulk-status-' + i + '">—</span>'
+      + '</div>';
+  }).join('');
+}
+
+async function startBulkUpload() {
+  if (!bulkUploadFiles.length) { showToast('Select files first', 'error'); return; }
+  if (!socialState.currentAvatar) return;
+  var folder = (document.getElementById('bulk-upload-folder').value || 'General').trim();
+  var assetType = document.getElementById('bulk-upload-type').value;
+  var btn = document.getElementById('bulk-upload-btn');
+  var progWrap = document.getElementById('bulk-upload-progress');
+  var progFill = document.getElementById('bulk-prog-fill');
+  var progLbl = document.getElementById('bulk-prog-lbl');
+  btn.disabled = true;
+  progWrap.style.display = 'block';
+  var total = bulkUploadFiles.length;
+  var done = 0; var errors = 0;
+  for (var i = 0; i < total; i++) {
+    var file = bulkUploadFiles[i];
+    var statusEl = document.getElementById('bulk-status-' + i);
+    var itemEl = document.getElementById('bulk-item-' + i);
+    if (statusEl) statusEl.textContent = '⏳';
+    progLbl.textContent = 'Uploading ' + (i + 1) + ' of ' + total + '…';
+    progFill.style.width = Math.round((i / total) * 100) + '%';
+    try {
+      // Upload to storage
+      var avId = socialState.currentAvatar.id;
+      var safeName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+      var path = avId + '/' + Date.now() + '_' + safeName;
+      var r = await db.storage.from('social-assets').upload(path, file, { upsert: true });
+      if (r.error) throw r.error;
+      var pub = db.storage.from('social-assets').getPublicUrl(path);
+      var publicUrl = pub.data && pub.data.publicUrl;
+      if (!publicUrl) throw new Error('No public URL');
+      // Detect type from file if auto
+      var detectedType = assetType;
+      if (file.type.startsWith('video/')) detectedType = 'video';
+      else if (file.type.startsWith('audio/')) detectedType = 'audio';
+      else if (file.type.startsWith('image/')) detectedType = 'image';
+      // Save to DB
+      var name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      var r2 = await db.from('social_assets').insert({
+        avatar_id: avId,
+        name: name,
+        asset_type: detectedType,
+        folder: folder,
+        url: publicUrl,
+        notes: null
+      });
+      if (r2.error) throw r2.error;
+      done++;
+      if (statusEl) statusEl.textContent = '✓';
+      if (itemEl) itemEl.classList.add('done');
+    } catch(e) {
+      errors++;
+      if (statusEl) statusEl.textContent = '✗';
+      if (itemEl) itemEl.classList.add('error');
+      console.warn('[Bulk upload] failed for', file.name, e);
+    }
+  }
+  progFill.style.width = '100%';
+  progLbl.textContent = done + ' uploaded' + (errors ? ', ' + errors + ' failed' : '') + ' ✓';
+  btn.textContent = 'Done';
+  if (socialState.currentAvatar) loadAssets(socialState.currentAvatar.id);
+  setTimeout(function() {
+    if (errors === 0) closeModal('modal-bulk-upload');
+    showToast(done + ' asset' + (done !== 1 ? 's' : '') + ' uploaded!' + (errors ? ' (' + errors + ' failed)' : ''), errors ? 'error' : 'success');
+  }, 800);
 }
 
 // ══════════════════════════════════════
