@@ -380,6 +380,24 @@
   .mnav-wrap{display:block}
   .social-hub-cards{grid-template-columns:1fr}
 }
+/* ── Tool: length selector ─────────────────────────────── */
+.tool-length-row{display:flex;gap:.35rem;margin-bottom:.65rem}
+.tool-len-btn{padding:4px 14px;border-radius:20px;border:1.5px solid var(--border2);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--muted);background:var(--bg);transition:all .15s}
+.tool-len-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.tool-len-btn:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+/* ── Tool: upload row ──────────────────────────────────── */
+.tool-upload-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.55rem;flex-wrap:wrap}
+.tool-upload-lbl{display:inline-flex;align-items:center;gap:.3rem;padding:5px 12px;border:1.5px dashed var(--border2);border-radius:8px;font-family:'Inter',sans-serif;font-size:.74rem;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.tool-upload-lbl:hover{border-color:var(--primary);color:var(--primary)}
+.tool-file-preview{display:flex;align-items:center;gap:.4rem;font-family:'Inter',sans-serif;font-size:.72rem;color:var(--muted)}
+.tool-file-preview img{width:34px;height:34px;object-fit:cover;border-radius:5px;border:1px solid var(--border)}
+.tool-file-remove{cursor:pointer;color:var(--muted);background:none;border:none;font-size:.8rem;padding:0 2px;line-height:1}
+.tool-file-remove:hover{color:#e53e3e}
+/* ── Tool: dual-button row ─────────────────────────────── */
+.tool-btn-row{display:flex;gap:.45rem;flex-wrap:wrap}
+.tool-btn-nancy{background:linear-gradient(135deg,#d946ab,#ff30cc)!important;flex:1;min-width:100px}
+.tool-btn-generic{background:var(--bg2)!important;color:var(--body)!important;border:1.5px solid var(--border2)!important;flex:1;min-width:100px}
+.tool-btn-generic:hover{border-color:var(--primary)!important;color:var(--primary)!important;background:rgba(255,48,204,.06)!important}
 </style>
 </head>
 <body>
@@ -527,10 +545,22 @@
         <div class="tool-card">
           <div class="tool-card-hdr">
             <div class="tool-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
-            <div><div class="tool-name">Caption Writer</div><div class="tool-desc">5 ready-to-post captions in the avatar's voice</div></div>
+            <div><div class="tool-name">Caption Writer</div><div class="tool-desc">Hello Nancy brand voice — short, mid, or long</div></div>
           </div>
-          <textarea class="tool-input" id="hub-tool-caption-input" placeholder="Describe your post topic or paste your idea..." rows="3"></textarea>
-          <button class="tool-btn" onclick="runHubTool('caption')">Generate Captions →</button>
+          <div class="tool-length-row">
+            <button class="tool-len-btn active" onclick="setCapLen(this,'hub-tool-')">Short</button>
+            <button class="tool-len-btn" onclick="setCapLen(this,'hub-tool-')">Mid</button>
+            <button class="tool-len-btn" onclick="setCapLen(this,'hub-tool-')">Long</button>
+          </div>
+          <input type="hidden" id="hub-tool-caption-length" value="short">
+          <div class="tool-upload-row">
+            <label class="tool-upload-lbl" for="hub-tool-caption-file">📎 Add Photo / Video
+              <input type="file" id="hub-tool-caption-file" accept="image/*,video/*" style="display:none" onchange="handleToolUpload(this,'hub-tool-caption-preview')">
+            </label>
+            <div id="hub-tool-caption-preview" class="tool-file-preview"></div>
+          </div>
+          <textarea class="tool-input" id="hub-tool-caption-input" placeholder="Describe your post, or upload a photo / video above…" rows="3"></textarea>
+          <button class="tool-btn tool-btn-nancy" onclick="runHubTool('caption')">🍋 Nancify</button>
           <div class="tool-output" id="hub-tool-caption-output"></div>
         </div>
 
@@ -549,10 +579,13 @@
         <div class="tool-card">
           <div class="tool-card-hdr">
             <div class="tool-icon-wrap"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-            <div><div class="tool-name">Comment Reply Generator</div><div class="tool-desc">3 reply options in the avatar's voice</div></div>
+            <div><div class="tool-name">Comment Reply Generator</div><div class="tool-desc">Nancy style (≤4 words) or warm generic reply</div></div>
           </div>
-          <textarea class="tool-input" id="hub-tool-reply-input" placeholder="Paste the comment you want to reply to..." rows="3"></textarea>
-          <button class="tool-btn" onclick="runHubTool('reply')">Generate Replies →</button>
+          <textarea class="tool-input" id="hub-tool-reply-input" placeholder="Paste the comment you want to reply to…" rows="3"></textarea>
+          <div class="tool-btn-row">
+            <button class="tool-btn tool-btn-nancy" onclick="runHubTool('reply-nancy')">🍋 Nancify</button>
+            <button class="tool-btn tool-btn-generic" onclick="runHubTool('reply-generic')">Generic Reply</button>
+          </div>
           <div class="tool-output" id="hub-tool-reply-output"></div>
         </div>
 
@@ -955,11 +988,23 @@
                 <span class="tool-icon">✍️</span>
                 <div>
                   <div class="tool-name">Caption Writer</div>
-                  <div class="tool-desc">5 ready-to-post captions in this avatar's voice</div>
+                  <div class="tool-desc">Hello Nancy brand voice — short, mid, or long</div>
                 </div>
               </div>
-              <textarea class="tool-input" id="tool-caption-input" placeholder="Describe your post topic or paste your idea..." rows="3"></textarea>
-              <button class="tool-btn" onclick="runTool('caption')">Generate Captions</button>
+              <div class="tool-length-row">
+                <button class="tool-len-btn active" onclick="setCapLen(this,'tool-')">Short</button>
+                <button class="tool-len-btn" onclick="setCapLen(this,'tool-')">Mid</button>
+                <button class="tool-len-btn" onclick="setCapLen(this,'tool-')">Long</button>
+              </div>
+              <input type="hidden" id="tool-caption-length" value="short">
+              <div class="tool-upload-row">
+                <label class="tool-upload-lbl" for="tool-caption-file">📎 Add Photo / Video
+                  <input type="file" id="tool-caption-file" accept="image/*,video/*" style="display:none" onchange="handleToolUpload(this,'tool-caption-preview')">
+                </label>
+                <div id="tool-caption-preview" class="tool-file-preview"></div>
+              </div>
+              <textarea class="tool-input" id="tool-caption-input" placeholder="Describe your post, or upload a photo / video above…" rows="3"></textarea>
+              <button class="tool-btn tool-btn-nancy" onclick="runTool('caption')">🍋 Nancify</button>
               <div class="tool-output" id="tool-caption-output"></div>
             </div>
 
@@ -983,11 +1028,14 @@
                 <span class="tool-icon">💬</span>
                 <div>
                   <div class="tool-name">Comment Reply Generator</div>
-                  <div class="tool-desc">3 reply options in this avatar's voice</div>
+                  <div class="tool-desc">Nancy style (≤4 words) or warm generic reply</div>
                 </div>
               </div>
-              <textarea class="tool-input" id="tool-reply-input" placeholder="Paste the comment you want to reply to..." rows="3"></textarea>
-              <button class="tool-btn" onclick="runTool('reply')">Generate Replies</button>
+              <textarea class="tool-input" id="tool-reply-input" placeholder="Paste the comment you want to reply to…" rows="3"></textarea>
+              <div class="tool-btn-row">
+                <button class="tool-btn tool-btn-nancy" onclick="runTool('reply-nancy')">🍋 Nancify</button>
+                <button class="tool-btn tool-btn-generic" onclick="runTool('reply-generic')">Generic Reply</button>
+              </div>
               <div class="tool-output" id="tool-reply-output"></div>
             </div>
 
@@ -1724,6 +1772,121 @@ async function callGemini(prompt) {
   return data.choices[0].message.content;
 }
 
+async function callGroqWithSystem(systemPrompt, userPrompt) {
+  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
+  if (!key) {
+    try { var r = await db.from('settings').select('value').eq('key','groq_api_key').single(); if (r.data && r.data.value) { GROQ_API_KEY = r.data.value; key = GROQ_API_KEY; } } catch(e) {}
+  }
+  if (!key) throw new Error('NO_KEY');
+  var model = (typeof GROQ_MODEL !== 'undefined') ? GROQ_MODEL : 'llama-3.3-70b-versatile';
+  var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], max_tokens: 700, temperature: 0.85 })
+  });
+  var data = await resp.json();
+  if (!resp.ok) throw new Error(data.error && data.error.message ? data.error.message : 'API error ' + resp.status);
+  return data.choices[0].message.content;
+}
+
+async function callGroqVision(base64, prompt) {
+  var key = (typeof GROQ_API_KEY !== 'undefined') ? GROQ_API_KEY : '';
+  if (!key) {
+    try { var r = await db.from('settings').select('value').eq('key','groq_api_key').single(); if (r.data && r.data.value) { GROQ_API_KEY = r.data.value; key = GROQ_API_KEY; } } catch(e) {}
+  }
+  if (!key) throw new Error('NO_KEY');
+  var resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'llama-3.2-11b-vision-preview', messages: [{ role: 'user', content: [{ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,' + base64 } }, { type: 'text', text: prompt }] }], max_tokens: 700, temperature: 0.85 })
+  });
+  var data = await resp.json();
+  if (!resp.ok) throw new Error(data.error && data.error.message ? data.error.message : 'Vision API error ' + resp.status);
+  return data.choices[0].message.content;
+}
+
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) { resolve(e.target.result.split(',')[1]); };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function extractVideoFrame(file) {
+  return new Promise(function(resolve) {
+    var video = document.createElement('video');
+    var canvas = document.createElement('canvas');
+    var url = URL.createObjectURL(file);
+    video.src = url;
+    video.muted = true;
+    video.onloadeddata = function() {
+      canvas.width = Math.min(video.videoWidth, 1280);
+      canvas.height = Math.round(canvas.width * (video.videoHeight / video.videoWidth));
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+    };
+    video.onerror = function() { URL.revokeObjectURL(url); resolve(null); };
+  });
+}
+
+function handleToolUpload(input, previewId) {
+  var preview = document.getElementById(previewId);
+  if (!preview) return;
+  var file = input.files[0];
+  if (!file) { preview.innerHTML = ''; return; }
+  var isVideo = file.type.startsWith('video/');
+  var name = file.name.length > 22 ? file.name.slice(0,20) + '\u2026' : file.name;
+  var thumbHtml = '';
+  if (!isVideo) { var url = URL.createObjectURL(file); thumbHtml = '<img src="' + url + '" alt="">'; }
+  preview.innerHTML = thumbHtml
+    + '<span>' + (isVideo ? '🎬 ' : '🖼️ ') + name + '</span>'
+    + '<button class="tool-file-remove" onclick="removeToolFile(this,\'' + input.id + '\',\'' + previewId + '\')" title="Remove">✕</button>';
+}
+
+function removeToolFile(btn, inputId, previewId) {
+  var el = document.getElementById(inputId); if (el) el.value = '';
+  var pv = document.getElementById(previewId); if (pv) pv.innerHTML = '';
+}
+
+function setCapLen(btn, prefix) {
+  var row = btn.closest('.tool-length-row');
+  if (!row) return;
+  row.querySelectorAll('.tool-len-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  var lenInput = document.getElementById(prefix + 'caption-length');
+  if (lenInput) lenInput.value = btn.textContent.trim().toLowerCase();
+}
+
+function saveToolState(key, inputVal, outputHtml) {
+  try { localStorage.setItem('nancy_tool_' + key, JSON.stringify({ input: inputVal, output: outputHtml, ts: Date.now() })); } catch(e) {}
+}
+function loadToolState(key) {
+  try { return JSON.parse(localStorage.getItem('nancy_tool_' + key) || 'null'); } catch(e) { return null; }
+}
+function clearToolState(key) {
+  try { localStorage.removeItem('nancy_tool_' + key); } catch(e) {}
+}
+
+function restoreToolOutputs() {
+  var pairs = [
+    ['hub-tool-caption', 'hub-tool-caption-input', 'hub-tool-caption-output'],
+    ['hub-tool-reply',   'hub-tool-reply-input',   'hub-tool-reply-output'],
+    ['tool-caption',     'tool-caption-input',     'tool-caption-output'],
+    ['tool-reply',       'tool-reply-input',       'tool-reply-output']
+  ];
+  pairs.forEach(function(p) {
+    var state = loadToolState(p[0]);
+    if (!state) return;
+    var inputEl  = document.getElementById(p[1]);
+    var outputEl = document.getElementById(p[2]);
+    if (inputEl && state.input) inputEl.value = state.input;
+    if (outputEl && state.output) { outputEl.innerHTML = state.output; outputEl.classList.add('show'); }
+  });
+}
+
 function extractJSON(text) {
   // Strip markdown code fences
   text = text.replace(/```(?:json)?\n?/g, '').replace(/```/g, '').trim();
@@ -2120,6 +2283,17 @@ async function approveToCalendar() {
 // ══════════════════════════════════════
 // TOOLS
 // ══════════════════════════════════════
+// ── Hello Nancy Brand Prompts ────────────────────────────────
+var NANCY_CAP_SHORT = 'You are the Hello Nancy brand voice. Hello Nancy is a women\'s pleasure wellness brand. The hero product is LEM — a clitoral suction device shaped like a lemon. Other products include Berri, Avo, Lolly, Pixie, and Uno.\nWrite ONE caption. One sentence or phrase maximum. The caption must carry a double meaning — innocent on the surface, implied below. The trick is the word or phrase does the work without you explaining it. Pull from the Nancy vocabulary naturally: "come", "welcome", "pleasure", "taste", "squeeze", "petit plaisir", "not a lemon", "IYKYK". End with 🍋 or one emoji that lands the implication. No hashtags. No explanation. Never mention what the product does.\nThe energy is: a brand that knows exactly what it is, is not embarrassed about it, and trusts its audience to get it.\nReal brand examples:\n"you got the best of both worlds 🍋😍 IYKYK😅"\n"Mon petit plaisir. 🍋🧡"\n"These balls sucks. 😎 any balls you like?"\nRespond with ONLY the caption text. No quotes. No explanation.';
+
+var NANCY_CAP_MID = 'You are the Hello Nancy brand voice. Hello Nancy is a women\'s pleasure wellness brand. The hero product is LEM — a clitoral suction device shaped like a lemon.\nWrite a 2 to 4 line caption. Line 1 is the hook — a punchy line with wordplay or a wink. Lines 2 to 3 add warmth, context, or community. The final line lands the quiet implication or a playful CTA. Nancy vocabulary lives here naturally — "wel\'come\'", "came", "pleasure", "not a lemon", "taste", "city of love". Punctuation is casual. Grammar is intentionally imperfect where it adds personality. Max 3 emojis. 3 to 5 hashtags at the end — small and niche, never generic.\nThe energy is: a warm friend who is in on the joke and knows you are too.\nReal brand examples:\n"We said wel\'come\' to Miami and Miami said 🍋🍋 / Nancy x Biird brought the brunch, the vibes, and a giant lemon that\'s... not a lemon 😅😍 / Good food. Great people. Unforgettable energy."\nRespond with ONLY the caption text. No quotes. No explanation.';
+
+var NANCY_CAP_LONG = 'You are the Hello Nancy brand voice. Hello Nancy is a women\'s pleasure wellness brand. The hero product is LEM — a clitoral suction device shaped like a lemon.\nWrite a 5 to 8 line caption. Open with a hook — a warm or witty first line. Then tell the real story — event, founder moment, product journey, community love. Sound like a friend texting you about something that mattered. Keep punctuation casual. Keep grammar human. Somewhere naturally in the body or close, land one line that carries the double meaning without forcing it. If the wordplay does not fit naturally leave it out — sincerity always wins over the joke. Close with a community line that makes the reader feel part of something. Max 4 emojis spread naturally. 5 to 7 hashtags at the end — niche and specific.\nThe energy is: real, intimate, warm. The wit is underneath the story not on top of it.\nReal brand examples:\n"A \'why not?\' that turned into a whole brand 🍋 / Our co-founder Momo shares how a casual conversation about wellness led to Hello Nancy..."\nRespond with ONLY the caption text. No quotes. No explanation.';
+
+var NANCY_REPLY_PROMPT = 'You are the Hello Nancy brand social media voice. Hello Nancy is a women\'s pleasure wellness brand. The hero product is LEM — a clitoral suction device shaped like a lemon.\nWhen given a comment write a reply in 4 words maximum. Shorter is always better. Never explain. Never sell. Never be explicit. The reply works because of what it does not say. The brand is fully in on the joke and completely unbothered. Use 🍋 only when it is the perfect full stop — not on every reply. No exclamation points unless ironic. Replies can be in English or French depending on the comment energy.\nThe energy is: a knowing smile from a brand that trusts its audience completely.\nDo not ask questions back. Do not thank people. Do not explain the product. Just respond like someone who already knows and is amused.\nReal examples:\nComment: "Why give your girl roses give her lemons" → "She knows. 🍋"\nComment: "Le petit mort" → "Oui. 🍋"\nComment: "Meatball" → "New flavor incoming."\nComment: "Very creative" → "We have range."\nRespond with ONLY the reply text. No quotes. No labels.';
+
+var GENERIC_REPLY_PROMPT = 'You are a warm and friendly social media manager replying to comments on behalf of a brand. Write a genuine human reply in 1 to 2 sentences maximum. Acknowledge what they said specifically — do not give a generic response that could apply to any comment. Match their energy. If they are excited be warm. If they are funny be light. If they have a question be helpful and clear. No corporate language. No filler phrases like "so true", "love this", or "we appreciate your support". Sound like a real person who read the comment and is responding to that specific person directly.\nRespond with ONLY the reply text. No quotes. No labels.';
+
 // Hub-level tools (main page, no avatar required)
 async function runHubTool(tool) {
   await _runToolWithPrefix('hub-tool-', tool);
@@ -2131,89 +2305,116 @@ async function runTool(tool) {
 }
 
 async function _runToolWithPrefix(prefix, tool) {
-  var inputId = prefix + tool + '-input' === prefix + 'bio-input' ? prefix + 'bio-input' : prefix + tool + '-input';
+  // reply-nancy and reply-generic both use the 'reply' input/output
+  var baseToolName = tool.replace('-nancy','').replace('-generic','');
   var inputs = {
-    caption: prefix + 'caption-input',
-    hashtag: prefix + 'hashtag-input',
-    reply: prefix + 'reply-input',
-    bio: prefix + 'bio-input',
-    hook: prefix + 'hook-input',
+    caption:   prefix + 'caption-input',
+    hashtag:   prefix + 'hashtag-input',
+    reply:     prefix + 'reply-input',
+    bio:       prefix + 'bio-input',
+    hook:      prefix + 'hook-input',
     repurpose: prefix + 'repurpose-input'
   };
   var outputs = {
-    caption: prefix + 'caption-output',
-    hashtag: prefix + 'hashtag-output',
-    reply: prefix + 'reply-output',
-    bio: prefix + 'bio-output',
-    hook: prefix + 'hook-output',
+    caption:   prefix + 'caption-output',
+    hashtag:   prefix + 'hashtag-output',
+    reply:     prefix + 'reply-output',
+    bio:       prefix + 'bio-output',
+    hook:      prefix + 'hook-output',
     repurpose: prefix + 'repurpose-output'
   };
-  var inputEl = document.getElementById(inputs[tool]);
-  var outputEl = document.getElementById(outputs[tool]);
-  var btn = inputEl && inputEl.closest('.tool-card') && inputEl.closest('.tool-card').querySelector('.tool-btn');
+  var inputEl  = document.getElementById(inputs[baseToolName]);
+  var outputEl = document.getElementById(outputs[baseToolName]);
   if (!inputEl || !outputEl) return;
+
   var input = inputEl.value.trim();
-  if (!input) { showToast('Please fill in the input first.', 'error'); return; }
-  var ctx = await buildAvatarContext();
-  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+  var fileInput = document.getElementById(prefix + 'caption-file');
+  var hasFile = baseToolName === 'caption' && fileInput && fileInput.files && fileInput.files.length > 0;
+  if (!input && !hasFile) { showToast('Please fill in the input or upload a file.', 'error'); return; }
+
+  var card = inputEl.closest('.tool-card');
+  var activeBtns = card ? card.querySelectorAll('.tool-btn') : [];
+  var origTexts = Array.from(activeBtns).map(function(b){ return b.textContent; });
+  activeBtns.forEach(function(b){ b.disabled = true; b.textContent = '…'; });
+
   outputEl.classList.remove('show');
+  var ctx = await buildAvatarContext();
+
   try {
     var html = '';
-    var bioPlatEl = document.getElementById(prefix + 'bio-platform');
+    var bioPlatEl       = document.getElementById(prefix + 'bio-platform');
     var repurposePlatEl = document.getElementById(prefix + 'repurpose-platform');
-    if (tool === 'caption') html = await toolCaption(input, ctx);
-    else if (tool === 'hashtag') html = await toolHashtag(input, ctx);
-    else if (tool === 'reply') html = await toolReply(input, ctx);
-    else if (tool === 'bio') html = await toolBio(input, ctx, bioPlatEl ? bioPlatEl.value : 'Instagram');
-    else if (tool === 'hook') html = await toolHook(input, ctx);
-    else if (tool === 'repurpose') html = await toolRepurpose(input, ctx, repurposePlatEl ? repurposePlatEl.value : 'Instagram');
+    var lenEl           = document.getElementById(prefix + 'caption-length');
+    var capLen          = lenEl ? lenEl.value : 'short';
+
+    var imageBase64 = null;
+    if (hasFile) {
+      var f = fileInput.files[0];
+      imageBase64 = f.type.startsWith('video/') ? await extractVideoFrame(f) : await fileToBase64(f);
+    }
+
+    if      (baseToolName === 'caption')  html = await toolCaption(input, ctx, capLen, imageBase64);
+    else if (tool === 'reply-nancy')      html = await toolReply(input, ctx, 'nancy');
+    else if (tool === 'reply-generic')    html = await toolReply(input, ctx, 'generic');
+    else if (baseToolName === 'reply')    html = await toolReply(input, ctx, 'nancy');
+    else if (baseToolName === 'hashtag')  html = await toolHashtag(input, ctx);
+    else if (baseToolName === 'bio')      html = await toolBio(input, ctx, bioPlatEl ? bioPlatEl.value : 'Instagram');
+    else if (baseToolName === 'hook')     html = await toolHook(input, ctx);
+    else if (baseToolName === 'repurpose')html = await toolRepurpose(input, ctx, repurposePlatEl ? repurposePlatEl.value : 'Instagram');
+
     var closeHdr = '<div class="tool-output-hdr">'
       + '<span class="tool-output-lbl">Result</span>'
-      + '<button class="tool-clear" onclick="clearToolOutput(this)" title="Clear result">'
+      + '<button class="tool-clear" onclick="clearToolOutput(this,\'' + prefix + baseToolName + '\')" title="Clear result">'
       + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
       + 'Clear</button></div>';
     outputEl.innerHTML = closeHdr + html;
     outputEl.classList.add('show');
+    saveToolState(prefix + baseToolName, input, closeHdr + html);
   } catch(e) {
     showToast('Generation failed: ' + (e.message || 'Try again'), 'error');
   }
-  if (btn) { btn.disabled = false; btn.textContent = getBtnLabel(tool); }
+
+  activeBtns.forEach(function(b, i){ b.disabled = false; b.textContent = origTexts[i]; });
 }
 
 function getBtnLabel(tool) {
-  var labels = { caption:'Generate Captions →', hashtag:'Generate Hashtags →', reply:'Generate Replies →', bio:'Optimize Bio →', hook:'Generate Hooks →', repurpose:'Repurpose Content →' };
+  var labels = { caption:'🍋 Nancify', hashtag:'Generate Hashtags →', 'reply-nancy':'🍋 Nancify', 'reply-generic':'Generic Reply', reply:'🍋 Nancify', bio:'Optimize Bio →', hook:'Generate Hooks →', repurpose:'Repurpose Content →' };
   return labels[tool] || 'Generate →';
 }
 
-function clearToolOutput(btn) {
+function clearToolOutput(btn, storageKey) {
   var outputEl = btn.closest('.tool-output');
   if (!outputEl) return;
   outputEl.classList.remove('show');
   outputEl.innerHTML = '';
-  // Clear the input too
+  if (storageKey) clearToolState(storageKey);
   var card = outputEl.closest('.tool-card');
   if (card) {
-    var input = card.querySelector('.tool-input');
-    if (input) { input.value = ''; input.focus(); }
+    var inp = card.querySelector('.tool-input');
+    if (inp) { inp.value = ''; inp.focus(); }
+    var fi = card.querySelector('input[type="file"]');
+    if (fi) fi.value = '';
+    var pv = card.querySelector('.tool-file-preview');
+    if (pv) pv.innerHTML = '';
   }
 }
 
-async function toolCaption(input, ctx) {
-  var prompt = 'You are an expert social media copywriter.\n\n' +
-    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
-    'Post topic: ' + input + '\n\n' +
-    'Write exactly 5 unique, scroll-stopping captions for this post. Each should:\n' +
-    '- Be ready to post (include emojis, line breaks, and a CTA)\n' +
-    '- Be 80-150 words\n' +
-    '- Use the avatar\'s voice and style from the context above\n' +
-    '- Vary in angle (educational, emotional, funny, bold, personal)\n\n' +
-    'Respond ONLY with raw valid JSON:\n' +
-    '{"captions":["caption 1 text","caption 2 text","caption 3 text","caption 4 text","caption 5 text"]}';
-  var text = await callGemini(prompt);
-  var data = extractJSON(text);
-  return (data.captions || []).map(function(c, i) {
-    return '<div class="tool-result-item"><div style="font-size:.72rem;font-weight:700;color:var(--primary);margin-bottom:.35rem">CAPTION ' + (i+1) + '</div>' + esc(c) + '</div>';
-  }).join('');
+async function toolCaption(input, ctx, len, imageBase64) {
+  len = len || 'short';
+  var sysPrompt = len === 'mid' ? NANCY_CAP_MID : len === 'long' ? NANCY_CAP_LONG : NANCY_CAP_SHORT;
+  var userMsg = (input || '').trim() || 'Generate a caption for this image/video.';
+  var text;
+  if (imageBase64) {
+    text = await callGroqVision(imageBase64, sysPrompt + '\n\nPost context: ' + userMsg);
+  } else {
+    text = await callGroqWithSystem(sysPrompt, 'Post context: ' + userMsg);
+  }
+  var caption = (text || '').trim();
+  return '<div class="tool-result-item">'
+    + '<div style="font-size:.72rem;font-weight:700;color:var(--primary);margin-bottom:.45rem">🍋 ' + len.toUpperCase() + ' CAPTION</div>'
+    + '<div style="white-space:pre-wrap;line-height:1.65">' + esc(caption) + '</div>'
+    + '<div style="margin-top:.6rem"><button onclick="navigator.clipboard.writeText(' + JSON.stringify(caption) + ');showToast(\'Copied!\',\'success\')" style="background:rgba(255,48,204,.12);color:var(--primary);border:none;border-radius:7px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-weight:600">Copy</button></div>'
+    + '</div>';
 }
 
 async function toolHashtag(input, ctx) {
@@ -2243,24 +2444,17 @@ function copyTag(el) {
   navigator.clipboard.writeText(el.textContent).then(function(){ showToast('Copied ' + el.textContent, 'success'); });
 }
 
-async function toolReply(input, ctx) {
-  var prompt = 'You are an expert social media community manager.\n\n' +
-    (ctx ? 'AVATAR CONTEXT:\n' + ctx + '\n\n' : '') +
-    'Comment to reply to: "' + input + '"\n\n' +
-    'Write exactly 3 different reply options in the avatar\'s voice. Each reply should:\n' +
-    '- Be authentic, warm, and on-brand\n' +
-    '- Be 1-3 sentences max\n' +
-    '- Vary in tone (e.g. playful, genuine, informative)\n\n' +
-    'Respond ONLY with raw valid JSON:\n' +
-    '{"replies":["reply 1","reply 2","reply 3"]}';
-  var text = await callGemini(prompt);
-  var data = extractJSON(text);
-  return (data.replies || []).map(function(r, i) {
-    return '<div class="tool-result-item" style="display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem">' +
-      '<div>' + esc(r) + '</div>' +
-      '<button onclick="navigator.clipboard.writeText(' + JSON.stringify(r) + ');showToast(\'Copied!\',\'success\')" style="flex-shrink:0;background:rgba(255,48,204,.12);color:var(--primary);border:none;border-radius:7px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-weight:600">Copy</button>' +
-      '</div>';
-  }).join('');
+async function toolReply(input, ctx, mode) {
+  mode = mode || 'nancy';
+  var sysPrompt = mode === 'generic' ? GENERIC_REPLY_PROMPT : NANCY_REPLY_PROMPT;
+  var text = await callGroqWithSystem(sysPrompt, 'Comment: "' + input + '"');
+  var reply = (text || '').trim();
+  var label = mode === 'generic' ? '💬 GENERIC REPLY' : '🍋 NANCY REPLY';
+  return '<div class="tool-result-item">'
+    + '<div style="font-size:.72rem;font-weight:700;color:var(--primary);margin-bottom:.45rem">' + label + '</div>'
+    + '<div style="font-size:.95rem;line-height:1.6;font-weight:500">' + esc(reply) + '</div>'
+    + '<div style="margin-top:.6rem"><button onclick="navigator.clipboard.writeText(' + JSON.stringify(reply) + ');showToast(\'Copied!\',\'success\')" style="background:rgba(255,48,204,.12);color:var(--primary);border:none;border-radius:7px;padding:3px 10px;font-size:.75rem;cursor:pointer;font-weight:600">Copy</button></div>'
+    + '</div>';
 }
 
 async function toolBio(input, ctx, platform) {
@@ -3097,6 +3291,12 @@ async function deletePattern(id) {
 // BOOT
 // ══════════════════════════════════════
 bootHub();
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', restoreToolOutputs);
+} else {
+  restoreToolOutputs();
+}
 </script>
 </body>
 </html>
