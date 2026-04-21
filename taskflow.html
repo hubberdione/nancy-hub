@@ -236,6 +236,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 .tag-due{background:#fff3e0;color:#e65100}
 .tag-personal{background:var(--primary-light);color:var(--primary-dark)}
 .tag-shared{background:#e8f5e9;color:#2e7d32}
+.tag-days-ok{background:rgba(59,178,115,.12);color:#3bb273}
+.tag-days-soon{background:rgba(255,107,53,.12);color:#ff6b35}
+.tag-days-overdue{background:rgba(229,57,53,.12);color:#e53935;font-weight:700}
 .card-top3::before{background:var(--top3)}
 .card-focus-today::before{background:var(--focus-today)}
 .card-focus-week::before{background:var(--focus-week)}
@@ -893,6 +896,7 @@ body.reward-time .rtp-icon{display:block}
     <div class="nav-links">
       <span class="nav-link active">Task Hub</span>
       <a class="nav-link" href="social.html">Content & Socials</a>
+      <a class="nav-link" href="projects.html">Projects</a>
       <a class="nav-link" href="learning.html">Learning</a>
       <a class="nav-link" href="creators.html">Partnerships</a>
     </div>
@@ -1581,6 +1585,10 @@ body.reward-time .rtp-icon{display:block}
     <a href="social.html" class="mnav-item">
       <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></span>
       <span class="mnav-label">Social</span>
+    </a>
+    <a href="projects.html" class="mnav-item">
+      <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <span class="mnav-label">Projects</span>
     </a>
     <a href="learning.html" class="mnav-item">
       <span class="mnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span>
@@ -3409,6 +3417,13 @@ function getVisibleTasks() {
   // Personal board = tasks I own (not assigned out to others) + tasks assigned to me
   const uid = state.currentUser?.id;
   return state.tasks.filter(t => {
+    // Events/Projects milestone tasks: only show to assigned members or admin
+    if (t.board_type === 'events' || t.board_type === 'projects') {
+      const isAdmin = state.currentUser && (state.currentUser.role === 'admin' || (state.currentUser.email && state.currentUser.email === 'danielle@carenbloom.com'));
+      if (isAdmin) return true;
+      const assignees = parseAssignees(t.assigned_to);
+      return assignees.includes(uid);
+    }
     const assignees = parseAssignees(t.assigned_to);
     const assignedToMe = assignees.includes(uid);
     // Task owned by me
@@ -3517,6 +3532,13 @@ function createTaskCard(task, tier) {
   if (task.due_date) metaHtml += `<span class="task-tag tag-due">📅 ${task.due_date}</span>`;
   if (task.is_personal) metaHtml += `<span class="task-tag tag-personal">👤 Personal</span>`;
   if (task.shared_to_dashboard) metaHtml += `<span class="task-tag tag-shared">👥 Shared</span>`;
+  // Events/Projects milestone days-left badge
+  if ((task.board_type === 'events' || task.board_type === 'projects') && task.due_date) {
+    const dLeft = Math.ceil((new Date(task.due_date) - new Date()) / 86400000);
+    const dCls = dLeft < 0 ? 'tag-days-overdue' : dLeft <= 7 ? 'tag-days-soon' : 'tag-days-ok';
+    const dTxt = dLeft < 0 ? (Math.abs(dLeft) + ' days overdue') : dLeft === 0 ? 'Due today' : (dLeft + ' days left');
+    metaHtml += `<span class="task-tag ${dCls}">${dTxt}</span>`;
+  }
   // Assignment badges
   const uid = state.currentUser?.id;
   const assignees = parseAssignees(task.assigned_to);
