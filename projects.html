@@ -65,6 +65,15 @@
 .f-list-input:focus{outline:none;border-color:#f7b731}
 .f-list-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;opacity:.4;padding:0 .2rem;flex-shrink:0;line-height:1}
 .f-list-del:hover{opacity:1;color:#e53935}
+/* ── INLINE INFO STRIP ───────────────────────────────── */
+.info-strip{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.7rem 1rem;margin-bottom:1.2rem;font-family:'Inter',sans-serif}
+.info-strip-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem .8rem}
+@media(max-width:600px){.info-strip-grid{grid-template-columns:1fr}}
+.info-strip-block-lbl{font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.2rem}
+.info-strip-block-val{font-size:.75rem;color:var(--body);line-height:1.5}
+.info-strip-status{display:flex;flex-wrap:wrap;gap:.35rem .65rem;margin-top:.05rem}
+.info-strip-sdot{display:flex;align-items:center;gap:.3rem;font-size:.74rem;color:var(--body);white-space:nowrap}
+.info-strip-sdot-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 /* ── INFO MODAL ──────────────────────────────────────── */
 .info-section{margin-bottom:1.2rem}
 .info-sec-title{font-family:'Inter',sans-serif;font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:.5rem}
@@ -348,9 +357,6 @@
         <div class="proj-sub">Pop-ups, activations, and campaigns — with auto back-scheduling.</div>
       </div>
       <div style="display:flex;gap:.5rem;align-items:center">
-        <button class="proj-add-btn" style="background:var(--card);color:var(--muted);border:1px solid var(--border);font-weight:600;padding:.44rem .8rem" onclick="openModal('modal-info')" title="How it works">
-          ℹ︎ How it works
-        </button>
         <button id="proj-add-btn" class="proj-add-btn" style="display:none" onclick="openCreateModal(null)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span id="add-btn-lbl">New Event</span>
@@ -377,6 +383,37 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="16" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="13" y2="18"/></svg>
           Timeline
         </button>
+      </div>
+    </div>
+
+    <div class="info-strip" id="info-strip">
+      <div class="info-strip-grid">
+        <div>
+          <div class="info-strip-block-lbl">Back-scheduling timelines</div>
+          <div class="info-strip-block-val">
+            Sea / APAC — lock down <strong>60d</strong> out, ship <strong>30d</strong> out<br>
+            Sea / US &amp; UK — lock down &amp; ship <strong>60d</strong> out<br>
+            Air Freight — lock down <strong>30d</strong> out, ship <strong>14d</strong> out<br>
+            Mini / Rush — lock down <strong>21d</strong> out, ship <strong>7d</strong> out
+          </div>
+        </div>
+        <div>
+          <div class="info-strip-block-lbl">Event status</div>
+          <div class="info-strip-status">
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#8854d0"></span>Planning</span>
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#2d7dd2"></span>Locked</span>
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#f7b731"></span>In Production</span>
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#ff6b35"></span>In Transit</span>
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#3bb273"></span>Live</span>
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#7a7975"></span>Wrapped</span>
+          </div>
+          <div class="info-strip-block-lbl" style="margin-top:.5rem">Milestone dots</div>
+          <div class="info-strip-status">
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#3bb273"></span>On track</span>
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#f7b731"></span>Due soon</span>
+            <span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#e53935"></span>Overdue</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -611,9 +648,11 @@ var PS = {
 
 /* ════════════ INIT ════════════ */
 async function onPageReady() {
-  // Ensure topnav is visible (prevent scroll-hide on load)
+  // Ensure topnav is visible — reset hub.js scroll-hide state
   var nav = document.querySelector('.topnav');
-  if (nav) nav.classList.remove('nav-hidden');
+  if (nav) { nav.classList.remove('nav-hidden'); nav.style.transform = ''; nav.style.opacity = ''; }
+  document.body.classList.remove('nav-hidden');
+  if (typeof _navHidden !== 'undefined') { _navHidden = false; _navLastY = 0; }
 
   if (isSuperAdmin()) document.getElementById('proj-add-btn').style.display = '';
   await loadMembers();
@@ -707,6 +746,9 @@ function switchTab(t) {
   // Show/hide view switcher (merch doesn't use it)
   var vtabs = document.querySelector('.view-tabs');
   if (vtabs) vtabs.style.visibility = t==='merch' ? 'hidden' : '';
+  // Show/hide info strip (only on events/projects list)
+  var strip = document.getElementById('info-strip');
+  if (strip) strip.style.display = t==='merch' ? 'none' : '';
   render();
 }
 function switchView(v) {
@@ -800,20 +842,20 @@ function renderList(items) {
     var dLbl = dLeft === null ? '' : (dLeft > 0 ? 'days away' : dLeft === 0 ? '' : '');
     var dColor = dLeft === null ? '#f7b731' : (dLeft < 0 ? '#7a7975' : dLeft <= 7 ? '#ff6b35' : '#f7b731');
 
-    // Single most urgent milestone
+    // Up to 3 upcoming milestones (next due first)
     var allMs = (item.milestones||[]).slice().sort(function(a,b){return (a.due_date||'').localeCompare(b.due_date||'');});
-    var nextMs = allMs.find(function(m){return m.due_date >= todayStr;}) || allMs[allMs.length-1] || null;
-    var nextMsHtml = '';
-    if (nextMs) {
-      var nd = Math.ceil((new Date(nextMs.due_date+'T00:00:00')-today)/86400000);
+    var upcomingMs = allMs.filter(function(m){return m.due_date >= todayStr;});
+    var showMs = upcomingMs.length ? upcomingMs.slice(0,3) : (allMs.length ? allMs.slice(-1) : []);
+    var nextMsHtml = showMs.map(function(ms){
+      var nd = Math.ceil((new Date(ms.due_date+'T00:00:00')-today)/86400000);
       var nc = nd<0?'overdue':nd<=7?'soon':'ok';
       var nt = nd<0?Math.abs(nd)+'d overdue':nd===0?'Today':nd+'d left';
-      nextMsHtml = '<div class="ev-next-ms">'
-        +'<div class="ms-prev-dot" style="background:'+msColor(nextMs,todayStr)+'"></div>'
-        +'<span class="ms-prev-name">'+esc(nextMs.name)+'</span>'
+      return '<div class="ev-next-ms">'
+        +'<div class="ms-prev-dot" style="background:'+msColor(ms,todayStr)+'"></div>'
+        +'<span class="ms-prev-name">'+esc(ms.name)+'</span>'
         +'<span class="ms-prev-tag ms-days-tag '+nc+'">'+nt+'</span>'
         +'</div>';
-    }
+    }).join('');
 
     // Footer: checklist + merch count
     var cl = item.checklist||[];
@@ -1182,11 +1224,6 @@ function buildEvForm(v) {
     +'<div class="f-fld"><label>Budget</label><input id="f-budget" value="'+escA(v.budget||'')+'" placeholder="e.g. $50,000"/></div></div>'
     +'<div class="f-row full"><div class="f-fld"><label>Open Questions</label><textarea id="f-questions">'+esc(v.open_questions||'')+'</textarea></div></div>'
     +'<div class="f-row full"><div class="f-fld"><label>Notes</label><textarea id="f-notes">'+esc(v.notes||'')+'</textarea></div></div></div>'
-    +'<div class="form-sec"><div class="form-sec-lbl">Content Plan</div>'
-    +'<div class="f-row"><div class="f-fld"><label>Shoot</label><select id="f-cp-shoot">'+opts({none:'None',photo:'Photo',video:'Video',photo_video:'Photo + Video'},cp.shoot_needed||'none')+'</select></div>'
-    +'<div class="f-fld"><label>Caption Status</label><select id="f-cp-caption">'+opts({not_started:'Not Started',in_progress:'In Progress',ready:'Ready',approved:'Approved'},cp.caption_status||'not_started')+'</select></div></div>'
-    +'<div class="f-row"><div class="f-fld"><label>Planned Posts</label><input type="number" id="f-cp-posts" value="'+(cp.posts_count||0)+'" min="0"/></div>'
-    +'<div class="f-fld"><label>Shoot Date</label><input type="date" id="f-cp-shoot-date" value="'+(cp.shoot_date||'')+'"/></div></div>'
     + buildContentItemsSection(v)
     + buildMerchFormSection(v);
 }
