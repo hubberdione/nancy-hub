@@ -65,6 +65,10 @@
 .f-list-input:focus{outline:none;border-color:#f7b731}
 .f-list-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;opacity:.4;padding:0 .2rem;flex-shrink:0;line-height:1}
 .f-list-del:hover{opacity:1;color:#e53935}
+/* ── PROJECT TYPE TOGGLE ─────────────────────────────── */
+.proj-type-toggle{display:flex;gap:.3rem;margin-bottom:.55rem}
+.proj-type-btn{font-size:.75rem;font-weight:600;padding:.3rem .8rem;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;transition:all .14s}
+.proj-type-btn.active{background:#2d7dd222;border-color:#2d7dd2;color:#2d7dd2}
 /* ── INLINE INFO STRIP ───────────────────────────────── */
 .info-strip{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.7rem 1rem;margin-bottom:1.2rem;font-family:'Inter',sans-serif}
 .info-strip-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem .8rem}
@@ -607,6 +611,91 @@ var DEFAULT_CHECKLIST = [
 var MERCH_CATS = {apparel:'Apparel',packaging:'Packaging',print:'Print',gift:'Gift',other:'Other'};
 var MERCH_CAT_COLORS = {apparel:'#8854d0',packaging:'#2d7dd2',print:'#f7b731',gift:'#3bb273',other:'#7a7975'};
 
+/* ── PROJECT MILESTONE RULES ── */
+var PROJECT_MILESTONE_RULES = {
+  campaign: [
+    {days:30,name:'Brief & Budget Approved'},
+    {days:21,name:'Concept Locked'},
+    {days:14,name:'Design & Assets Ready'},
+    {days:7, name:'Content Created & Reviewed'},
+    {days:3, name:'Final Sign-off'},
+    {days:0, name:'Launch'}
+  ],
+  universal_trend: [
+    {days:28,name:'Trend on Radar'},
+    {days:21,name:'Content Brief Due'},
+    {days:14,name:'Create Assets'},
+    {days:7, name:'Schedule Posts'},
+    {days:0, name:'Go Live'}
+  ]
+};
+
+var DEFAULT_PROJECT_CHECKLIST_CAMPAIGN = [
+  'Brief signed off',
+  'Budget approved',
+  'Legal / contracts done',
+  'Assets & design ready',
+  'Final review complete'
+];
+
+var SEED_PROJECTS = [
+  // Universal Trends 2026
+  {name:"Valentine's Day 2026", type:'universal_trend', status:'wrapped',  trend_date:'2026-02-14', description:'Valentine\'s Day content moment.', notes:'', partners:'', budget:'', assigned_to:[]},
+  {name:'Coachella 2026',       type:'universal_trend', status:'planning', trend_date:'2026-04-11', description:'Coachella season content push.',  notes:'', partners:'', budget:'', assigned_to:[]},
+  {name:"Mother's Day 2026",    type:'universal_trend', status:'planning', trend_date:'2026-05-10', description:'Mother\'s Day content moment.',   notes:'', partners:'', budget:'', assigned_to:[]},
+  {name:'Golden Week Japan',    type:'universal_trend', status:'planning', trend_date:'2026-05-03', description:'Golden Week — Japan audience.',   notes:'', partners:'', budget:'', assigned_to:[]},
+  {name:'Black Friday 2026',    type:'universal_trend', status:'planning', trend_date:'2026-11-27', description:'Black Friday campaign window.',   notes:'', partners:'', budget:'', assigned_to:[]},
+  {name:'Christmas 2026',       type:'universal_trend', status:'planning', trend_date:'2026-12-25', description:'Christmas content series.',       notes:'', partners:'', budget:'', assigned_to:[]},
+  // Sample Campaigns
+  {name:'Spring Giveaway 2026', type:'campaign', status:'planning', start_date:'2026-04-01', deadline:'2026-05-01', description:'Spring giveaway campaign.', notes:'', partners:'', budget:'$5,000', assigned_to:[]},
+  {name:'Summer Brand Collab',  type:'campaign', status:'planning', start_date:'2026-06-01', deadline:'2026-07-15', description:'Summer brand collaboration.', notes:'', partners:'TBD', budget:'$15,000', assigned_to:[]}
+];
+
+/* ── INFO STRIP HTML STRINGS ── */
+var INFO_STRIP_EVENTS = '<div class="info-strip-grid">'
+  +'<div><div class="info-strip-block-lbl">Back-scheduling timelines</div>'
+  +'<div class="info-strip-block-val">'
+  +'Sea / APAC — lock down <strong>60d</strong> out, ship <strong>30d</strong> out<br>'
+  +'Sea / US &amp; UK — lock down &amp; ship <strong>60d</strong> out<br>'
+  +'Air Freight — lock down <strong>30d</strong> out, ship <strong>14d</strong> out<br>'
+  +'Mini / Rush — lock down <strong>21d</strong> out, ship <strong>7d</strong> out'
+  +'</div></div>'
+  +'<div><div class="info-strip-block-lbl">Event status</div>'
+  +'<div class="info-strip-status">'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#8854d0"></span>Planning</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#2d7dd2"></span>Locked</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#f7b731"></span>In Production</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#ff6b35"></span>In Transit</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#3bb273"></span>Live</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#7a7975"></span>Wrapped</span>'
+  +'</div>'
+  +'<div class="info-strip-block-lbl" style="margin-top:.5rem">Milestone dots</div>'
+  +'<div class="info-strip-status">'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#3bb273"></span>On track</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#f7b731"></span>Due soon</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#e53935"></span>Overdue</span>'
+  +'</div></div></div>';
+
+var INFO_STRIP_PROJECTS = '<div class="info-strip-grid">'
+  +'<div><div class="info-strip-block-lbl">Campaign phases (from deadline)</div>'
+  +'<div class="info-strip-block-val">'
+  +'Brief &amp; Budget (<strong>−30d</strong>) → Concept (<strong>−21d</strong>) →<br>'
+  +'Design &amp; Assets (<strong>−14d</strong>) → Content (<strong>−7d</strong>) →<br>'
+  +'Sign-off (<strong>−3d</strong>) → <strong>Launch</strong>'
+  +'</div></div>'
+  +'<div><div class="info-strip-block-lbl">Universal trend phases (from trend date)</div>'
+  +'<div class="info-strip-block-val">'
+  +'Trend on Radar (<strong>−28d</strong>) → Brief (<strong>−21d</strong>) →<br>'
+  +'Create Assets (<strong>−14d</strong>) → Schedule (<strong>−7d</strong>) → <strong>Go Live</strong>'
+  +'</div>'
+  +'<div class="info-strip-block-lbl" style="margin-top:.5rem">Project status</div>'
+  +'<div class="info-strip-status">'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#8854d0"></span>Planning</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#2d7dd2"></span>In Progress</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#ff6b35"></span>On Hold</span>'
+  +'<span class="info-strip-sdot"><span class="info-strip-sdot-dot" style="background:#7a7975"></span>Completed</span>'
+  +'</div></div></div>';
+
 /* ── BACK-SCHEDULE RULES ── */
 var MILESTONE_RULES = {
   full_scale: {
@@ -677,6 +766,8 @@ async function loadAllData() {
   var pr = await db.from('settings').select('value').eq('key','hub_projects').maybeSingle();
   if (!pr.error && pr.data && pr.data.value) {
     try { PS.projects = JSON.parse(pr.data.value); } catch(e) { PS.projects = []; }
+  } else if (!pr.error && !pr.data && isSuperAdmin()) {
+    await seedProjects();
   }
   var mr = await db.from('settings').select('value').eq('key','hub_merch').maybeSingle();
   if (!mr.error && mr.data && mr.data.value) {
@@ -695,8 +786,29 @@ async function seedEvents() {
   await saveEvents();
   showToast('4 events loaded from your planning list ✓', 'success');
 }
+async function seedProjects() {
+  PS.projects = SEED_PROJECTS.map(function(p) {
+    var proj = JSON.parse(JSON.stringify(p));
+    proj.id = crypto.randomUUID();
+    // Universal trends: deadline = trend_date; start_date = 4 weeks before
+    if (proj.type === 'universal_trend') {
+      proj.deadline = proj.trend_date;
+      var td = new Date(proj.trend_date + 'T00:00:00'); td.setDate(td.getDate() - 28);
+      proj.start_date = td.toISOString().slice(0,10);
+    }
+    proj.milestones = genProjectMilestones(proj);
+    proj.checklist = proj.type === 'campaign' ? makeDefaultProjectChecklist() : [];
+    proj.content_items = [];
+    return proj;
+  });
+  await saveProjects();
+  showToast('8 projects seeded ✓', 'success');
+}
 function makeDefaultChecklist() {
   return DEFAULT_CHECKLIST.map(function(t){return {id:crypto.randomUUID(),text:t,done:false};});
+}
+function makeDefaultProjectChecklist() {
+  return DEFAULT_PROJECT_CHECKLIST_CAMPAIGN.map(function(t){return {id:crypto.randomUUID(),text:t,done:false};});
 }
 async function saveEvents() {
   await db.from('settings').upsert({key:'hub_events',value:JSON.stringify(PS.events)},{onConflict:'key'});
@@ -734,6 +846,24 @@ function msPhase(n) {
   if (/setup|ground/i.test(n)) return 'on-ground';
   return 'planning';
 }
+function genProjectMilestones(proj) {
+  var dl = proj.deadline; if (!dl) return [];
+  var rules = PROJECT_MILESTONE_RULES[proj.type] || PROJECT_MILESTONE_RULES.campaign;
+  var sd = new Date(dl + 'T00:00:00');
+  return rules.map(function(r) {
+    var d = new Date(sd); d.setDate(d.getDate() - r.days);
+    return {id:crypto.randomUUID(), name:r.name, phase:projMsPhase(r.name), due_date:d.toISOString().slice(0,10), pushed_to_taskhub:false, task_id:null};
+  });
+}
+function projMsPhase(n) {
+  if (/brief|budget|sign.?off|final/i.test(n)) return 'planning';
+  if (/concept|strategy|radar/i.test(n)) return 'planning';
+  if (/design|assets/i.test(n)) return 'design';
+  if (/content|create|shoot/i.test(n)) return 'content';
+  if (/schedule/i.test(n)) return 'content';
+  if (/launch|go.live/i.test(n)) return 'on-ground';
+  return 'planning';
+}
 
 /* ════════════ VIEW SWITCHING ════════════ */
 function switchTab(t) {
@@ -746,9 +876,12 @@ function switchTab(t) {
   // Show/hide view switcher (merch doesn't use it)
   var vtabs = document.querySelector('.view-tabs');
   if (vtabs) vtabs.style.visibility = t==='merch' ? 'hidden' : '';
-  // Show/hide info strip (only on events/projects list)
+  // Info strip — hide on merch, swap content between events and projects
   var strip = document.getElementById('info-strip');
-  if (strip) strip.style.display = t==='merch' ? 'none' : '';
+  if (strip) {
+    if (t === 'merch') { strip.style.display = 'none'; }
+    else { strip.style.display = ''; strip.innerHTML = t === 'projects' ? INFO_STRIP_PROJECTS : INFO_STRIP_EVENTS; }
+  }
   render();
 }
 function switchView(v) {
@@ -1048,9 +1181,9 @@ function buildDrawer(item) {
     cboxHtml = '<div class="countdown-box"><div class="cbox-n">'+cN+'</div><div class="cbox-txt"><div class="cbox-lbl">'+cLbl+'</div><div class="cbox-sub">'+cSub+'</div></div></div>';
   }
 
-  // Milestones
+  // Milestones — both events and projects
   var msHtml = '';
-  if (isEv && (item.milestones||[]).length) {
+  if ((item.milestones||[]).length) {
     item.milestones.forEach(function(ms) {
       var msDays = ms.due_date ? Math.ceil((new Date(ms.due_date+'T00:00:00')-today)/86400000) : null;
       var cls = msDays===null?'ok':(msDays<0?'overdue':msDays<=7?'soon':'ok');
@@ -1109,8 +1242,8 @@ function buildDrawer(item) {
 
   if (msHtml) html += '<div class="dr-sec"><div class="dr-sec-lbl">Milestones</div>'+msHtml+'</div>';
 
-  // Checklist (events only)
-  if (isEv) {
+  // Checklist — events + campaign projects
+  if (isEv || item.type === 'campaign') {
     var cl = item.checklist || [];
     var clRows = cl.map(function(ci){
       return '<div class="check-row">'
@@ -1274,21 +1407,49 @@ function buildMerchFormSection(v) {
     +rows+'</div>';
 }
 function buildProjForm(v) {
-  v=v||{};
-  return '<div class="form-sec"><div class="form-sec-lbl">Basics</div>'
-    +'<div class="f-row full"><div class="f-fld"><label>Project Name *</label><input id="f-name" value="'+escA(v.name||'')+'" placeholder="e.g. Brand Refresh Campaign"/></div></div>'
-    +'<div class="f-row"><div class="f-fld"><label>Type</label><select id="f-type">'+opts({campaign:'Campaign',launch:'Product Launch',brand_collab:'Brand Collab',content_series:'Content Series',other:'Other'},v.type)+'</select></div>'
-    +'<div class="f-fld"><label>Status</label><select id="f-status">'+opts({planning:'Planning',in_progress:'In Progress',on_hold:'On Hold',completed:'Completed'},v.status||'planning')+'</select></div></div>'
-    +'<div class="f-row full"><div class="f-fld"><label>Description</label><textarea id="f-description">'+esc(v.description||'')+'</textarea></div></div></div>'
+  v = v || {};
+  var ptype = v.type || 'campaign';
+  var isTrend = ptype === 'universal_trend';
+  return '<div class="form-sec"><div class="form-sec-lbl">Project Type</div>'
+    +'<div class="proj-type-toggle">'
+    +'<button type="button" class="proj-type-btn'+(isTrend?'':' active')+'" id="ptb-campaign" onclick="setProjType(\'campaign\')">Campaign</button>'
+    +'<button type="button" class="proj-type-btn'+(isTrend?' active':'')+'" id="ptb-universal_trend" onclick="setProjType(\'universal_trend\')">Universal Trend</button>'
+    +'</div>'
+    +'<input type="hidden" id="f-proj-type" value="'+ptype+'"/>'
+    +'</div>'
+    +'<div class="form-sec"><div class="form-sec-lbl">Basics</div>'
+    +'<div class="f-row full"><div class="f-fld"><label>Name *</label><input id="f-name" value="'+escA(v.name||'')+'" placeholder="e.g. Spring Campaign 2026"/></div></div>'
+    +'<div class="f-row full"><div class="f-fld"><label>Status</label><select id="f-status">'+opts({planning:'Planning',in_progress:'In Progress',on_hold:'On Hold',completed:'Completed'},v.status||'planning')+'</select></div></div>'
+    +'</div>'
+    // Campaign-specific fields
+    +'<div id="ptf-campaign" style="'+(isTrend?'display:none':'')+'">'
     +'<div class="form-sec"><div class="form-sec-lbl">Dates</div>'
     +'<div class="f-row"><div class="f-fld"><label>Start Date</label><input type="date" id="f-start" value="'+(v.start_date||'')+'"/></div>'
-    +'<div class="f-fld"><label>Deadline</label><input type="date" id="f-end" value="'+(v.deadline||'')+'"/></div></div></div>'
-    +'<div class="form-sec"><div class="form-sec-lbl">Team</div>'
-    +'<div class="chip-picker" id="form-picker">'+buildPicker(PS.formAssignees,'form')+'</div></div>'
+    +'<div class="f-fld"><label>Deadline / Launch Date</label><input type="date" id="f-end" value="'+(v.deadline||'')+'"/></div></div></div>'
     +'<div class="form-sec"><div class="form-sec-lbl">Details</div>'
-    +'<div class="f-row"><div class="f-fld"><label>Budget</label><input id="f-budget" value="'+escA(v.budget||'')+'" placeholder="e.g. $50,000"/></div>'
-    +'<div class="f-fld"><label>Partners</label><input id="f-partners" value="'+escA(v.partners||'')+'" placeholder="Partner names"/></div></div>'
-    +'<div class="f-row full"><div class="f-fld"><label>Notes</label><textarea id="f-notes">'+esc(v.notes||'')+'</textarea></div></div></div>';
+    +'<div class="f-row"><div class="f-fld"><label>Budget</label><input id="f-budget" value="'+escA(v.budget||'')+'" placeholder="e.g. $5,000"/></div>'
+    +'<div class="f-fld"><label>Partners / Collabs</label><input id="f-partners" value="'+escA(v.partners||'')+'" placeholder="Brand or partner name"/></div></div></div>'
+    +'</div>'
+    // Universal Trend-specific fields
+    +'<div id="ptf-trend" style="'+(isTrend?'':'display:none')+'">'
+    +'<div class="form-sec"><div class="form-sec-lbl">Trend Date</div>'
+    +'<div class="f-row"><div class="f-fld"><label>The moment / event date</label><input type="date" id="f-trend-date" value="'+(v.trend_date||v.deadline||'')+'"/></div></div>'
+    +'<div style="font-family:Inter,sans-serif;font-size:.73rem;color:var(--muted);padding:.0rem 0 .5rem">Milestones will auto-calculate backwards from this date.</div>'
+    +'</div>'
+    +'</div>'
+    // Common bottom fields
+    +'<div class="form-sec"><div class="form-sec-lbl">Description &amp; Notes</div>'
+    +'<div class="f-row full"><div class="f-fld"><label>Description</label><textarea id="f-description">'+esc(v.description||'')+'</textarea></div></div>'
+    +'<div class="f-row full"><div class="f-fld"><label>Notes</label><textarea id="f-notes">'+esc(v.notes||'')+'</textarea></div></div></div>'
+    +'<div class="form-sec"><div class="form-sec-lbl">Team</div>'
+    +'<div class="chip-picker" id="form-picker">'+buildPicker(PS.formAssignees,'form')+'</div></div>';
+}
+function setProjType(t) {
+  document.getElementById('f-proj-type').value = t;
+  document.getElementById('ptb-campaign').classList.toggle('active', t === 'campaign');
+  document.getElementById('ptb-universal_trend').classList.toggle('active', t === 'universal_trend');
+  document.getElementById('ptf-campaign').style.display = t === 'campaign' ? '' : 'none';
+  document.getElementById('ptf-trend').style.display = t === 'universal_trend' ? '' : 'none';
 }
 function closeCreateModal(){closeModal('modal-create');}
 function suggestShip() {
@@ -1320,7 +1481,34 @@ async function saveItem() {
   var isProjItem = PS.editingId ? PS.projects.some(function(p){return p.id===PS.editingId;}) : PS.tab==='projects';
   var existing = PS.editingId ? getItem(PS.editingId) : null;
   if (isProjItem) {
-    var proj={id:existing?existing.id:crypto.randomUUID(),name:nameEl.value.trim(),type:gv('f-type'),status:gv('f-status'),description:gv('f-description'),start_date:gv('f-start'),deadline:gv('f-end'),assigned_to:PS.formAssignees.slice(),budget:gv('f-budget'),partners:gv('f-partners'),notes:gv('f-notes')};
+    var ptype = gv('f-proj-type') || 'campaign';
+    var isTrend = ptype === 'universal_trend';
+    var tdate = isTrend ? gv('f-trend-date') : null;
+    var pdl = isTrend ? tdate : gv('f-end');
+    var pstart = isTrend ? (function(){if(!tdate)return'';var d=new Date(tdate+'T00:00:00');d.setDate(d.getDate()-28);return d.toISOString().slice(0,10);}()) : gv('f-start');
+    var prevDl = existing ? existing.deadline : null;
+    var prevType = existing ? existing.type : null;
+    var regen = !existing || prevDl !== pdl || prevType !== ptype;
+    if (existing && regen && (existing.milestones||[]).length) {
+      if (!confirm('Changing type or date will regenerate milestones. Continue?')) return;
+    }
+    var proj = {
+      id: existing ? existing.id : crypto.randomUUID(),
+      name: nameEl.value.trim(),
+      type: ptype,
+      status: gv('f-status'),
+      description: gv('f-description'),
+      start_date: pstart,
+      deadline: pdl,
+      trend_date: tdate || null,
+      assigned_to: PS.formAssignees.slice(),
+      budget: isTrend ? '' : gv('f-budget'),
+      partners: isTrend ? '' : gv('f-partners'),
+      notes: gv('f-notes'),
+      milestones: (existing && !regen) ? existing.milestones : (pdl ? genProjectMilestones({type:ptype, deadline:pdl}) : []),
+      checklist: existing ? existing.checklist : (ptype === 'campaign' ? makeDefaultProjectChecklist() : []),
+      content_items: existing ? (existing.content_items||[]) : []
+    };
     if(existing){var xi=PS.projects.findIndex(function(p){return p.id===existing.id;});if(xi>=0)PS.projects[xi]=proj;}else PS.projects.push(proj);
     await saveProjects();
   } else {
@@ -1347,34 +1535,35 @@ async function saveItem() {
 }
 
 /* ════════════ PUSH TO TASK HUB ════════════ */
-function openPushModal(evId, msId) {
-  PS.pendingPush={evId:evId,msId:msId};
-  var ev=PS.events.find(function(e){return e.id===evId;});
-  if(!ev) return;
-  var ms=(ev.milestones||[]).find(function(m){return m.id===msId;});
-  if(!ms) return;
-  PS.pushAssignees=(ev.assigned_to||[]).slice();
-  document.getElementById('push-modal-info').innerHTML='<div class="push-info-name">'+esc(ms.name)+'</div><div class="push-info-meta">Event: '+esc(ev.name)+'<br>Due: '+(ms.due_date||'TBD')+'</div>';
+function openPushModal(itemId, msId) {
+  PS.pendingPush={evId:itemId,msId:msId};
+  var item=getItem(itemId); if(!item) return;
+  var ms=(item.milestones||[]).find(function(m){return m.id===msId;}); if(!ms) return;
+  PS.pushAssignees=(item.assigned_to||[]).slice();
+  var isEv=PS.events.some(function(e){return e.id===itemId;});
+  document.getElementById('push-modal-info').innerHTML='<div class="push-info-name">'+esc(ms.name)+'</div><div class="push-info-meta">'+(isEv?'Event':'Project')+': '+esc(item.name)+'<br>Due: '+(ms.due_date||'TBD')+'</div>';
   document.getElementById('push-picker').innerHTML=buildPicker(PS.pushAssignees,'push');
   openModal('modal-push');
 }
 function closePushModal(){closeModal('modal-push');}
 async function confirmPush() {
   var pp=PS.pendingPush; if(!pp) return;
-  var ev=PS.events.find(function(e){return e.id===pp.evId;}); if(!ev) return;
-  var msi=(ev.milestones||[]).findIndex(function(m){return m.id===pp.msId;}); if(msi<0) return;
-  var ms=ev.milestones[msi];
+  var item=getItem(pp.evId); if(!item) return;
+  var isEv=PS.events.some(function(e){return e.id===pp.evId;});
+  var msi=(item.milestones||[]).findIndex(function(m){return m.id===pp.msId;}); if(msi<0) return;
+  var ms=item.milestones[msi];
   var assignees=PS.pushAssignees.length>0?PS.pushAssignees:[hubState.currentUser.id];
   var tid=crypto.randomUUID();
-  var task={id:tid,title:'['+ev.name+'] '+ms.name,description:'Event: '+ev.name+' | Start: '+ev.start_date,tier:'focus-week',completed:false,due_date:ms.due_date,created_at:Date.now(),owner_id:hubState.currentUser.id,assigned_to:JSON.stringify(assignees),assigned_by:hubState.currentUser.id,is_personal:false,shared_to_dashboard:true,board_type:'events'};
+  var label=isEv?'Event':'Project';
+  var task={id:tid,title:'['+item.name+'] '+ms.name,description:label+': '+item.name+' | '+(isEv?'Start: '+item.start_date:'Deadline: '+item.deadline),tier:'focus-week',completed:false,due_date:ms.due_date,created_at:Date.now(),owner_id:hubState.currentUser.id,assigned_to:JSON.stringify(assignees),assigned_by:hubState.currentUser.id,is_personal:false,shared_to_dashboard:true,board_type:'events'};
   var r=await db.from('tasks').insert(task);
   if(r.error){showToast('Push failed: '+r.error.message,'error');return;}
-  ev.milestones[msi].pushed_to_taskhub=true;
-  ev.milestones[msi].task_id=tid;
-  await saveEvents();
+  item.milestones[msi].pushed_to_taskhub=true;
+  item.milestones[msi].task_id=tid;
+  if(isEv) await saveEvents(); else await saveProjects();
   assignees.forEach(async function(uid){
     if(uid===hubState.currentUser.id) return;
-    await db.from('notifications').insert({id:crypto.randomUUID(),user_id:uid,type:'task_assigned',title:'Event task assigned',message:'You\'ve been assigned: '+task.title,data:JSON.stringify({task_id:tid}),read:false,created_at:new Date().toISOString()});
+    await db.from('notifications').insert({id:crypto.randomUUID(),user_id:uid,type:'task_assigned',title:label+' task assigned',message:'You\'ve been assigned: '+task.title,data:JSON.stringify({task_id:tid}),read:false,created_at:new Date().toISOString()});
   });
   closePushModal();
   if(PS.drawerItemId){var upd=getItem(PS.drawerItemId);if(upd)buildDrawer(upd);}
@@ -1402,37 +1591,44 @@ function buildCheckProgress(item) {
   var cls = done === total ? 'complete' : done > 0 ? 'partial' : '';
   return '<div class="check-progress'+( cls?' '+cls:'')+'">✓ '+done+'/'+total+' checked</div>';
 }
-async function toggleCheck(evId, checkId) {
-  var ev = PS.events.find(function(e){return e.id===evId;}); if (!ev) return;
-  var ci = (ev.checklist||[]).find(function(c){return c.id===checkId;}); if (!ci) return;
-  ci.done = !ci.done;
-  await saveEvents();
-  render();
-  if (PS.drawerItemId === evId) buildDrawer(ev);
+function findItemAndSave(id) {
+  var ev = PS.events.find(function(e){return e.id===id;});
+  if (ev) return {item:ev, save:saveEvents};
+  var pr = PS.projects.find(function(p){return p.id===id;});
+  if (pr) return {item:pr, save:saveProjects};
+  return null;
 }
-async function addCheckItem(evId) {
-  var ev = PS.events.find(function(e){return e.id===evId;}); if (!ev) return;
+async function toggleCheck(itemId, checkId) {
+  var r = findItemAndSave(itemId); if (!r) return;
+  var ci = (r.item.checklist||[]).find(function(c){return c.id===checkId;}); if (!ci) return;
+  ci.done = !ci.done;
+  await r.save();
+  render();
+  if (PS.drawerItemId === itemId) buildDrawer(r.item);
+}
+async function addCheckItem(itemId) {
+  var r = findItemAndSave(itemId); if (!r) return;
   var inp = document.getElementById('check-add-input'); if (!inp) return;
   var text = inp.value.trim(); if (!text) return;
-  if (!ev.checklist) ev.checklist = [];
-  ev.checklist.push({id:crypto.randomUUID(), text:text, done:false});
-  await saveEvents();
+  if (!r.item.checklist) r.item.checklist = [];
+  r.item.checklist.push({id:crypto.randomUUID(), text:text, done:false});
+  await r.save();
   render();
-  if (PS.drawerItemId === evId) buildDrawer(ev);
+  if (PS.drawerItemId === itemId) buildDrawer(r.item);
 }
-async function toggleContentItem(evId, itemId) {
-  var ev = PS.events.find(function(e){return e.id===evId;}); if (!ev) return;
-  var ci = (ev.content_items||[]).find(function(c){return c.id===itemId;}); if (!ci) return;
+async function toggleContentItem(itemId, ciId) {
+  var r = findItemAndSave(itemId); if (!r) return;
+  var ci = (r.item.content_items||[]).find(function(c){return c.id===ciId;}); if (!ci) return;
   ci.done = !ci.done;
-  await saveEvents();
-  if (PS.drawerItemId === evId) buildDrawer(ev);
+  await r.save();
+  if (PS.drawerItemId === itemId) buildDrawer(r.item);
 }
-async function deleteCheckItem(evId, checkId) {
-  var ev = PS.events.find(function(e){return e.id===evId;}); if (!ev) return;
-  ev.checklist = (ev.checklist||[]).filter(function(c){return c.id!==checkId;});
-  await saveEvents();
+async function deleteCheckItem(itemId, checkId) {
+  var r = findItemAndSave(itemId); if (!r) return;
+  r.item.checklist = (r.item.checklist||[]).filter(function(c){return c.id!==checkId;});
+  await r.save();
   render();
-  if (PS.drawerItemId === evId) buildDrawer(ev);
+  if (PS.drawerItemId === itemId) buildDrawer(r.item);
 }
 
 /* ════════════ MERCH CATALOG ════════════ */
