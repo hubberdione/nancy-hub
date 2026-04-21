@@ -65,6 +65,23 @@
 .f-list-input:focus{outline:none;border-color:#f7b731}
 .f-list-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;opacity:.4;padding:0 .2rem;flex-shrink:0;line-height:1}
 .f-list-del:hover{opacity:1;color:#e53935}
+/* ── GALLERY VIEW ────────────────────────────────────── */
+.ev-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.7rem}
+.gallery-section-hdr{font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin:1.2rem 0 .55rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+.gallery-section-hdr:first-child{margin-top:0}
+.gc{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:box-shadow .22s,transform .18s;display:flex;flex-direction:column}
+.gc:hover{box-shadow:0 8px 26px rgba(0,0,0,.22);transform:translateY(-2px)}
+.gc-stripe{height:3px;flex-shrink:0}
+.gc-body{padding:.85rem 1rem;flex:1;display:flex;flex-direction:column;gap:.15rem}
+.gc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:.4rem;margin-bottom:.15rem}
+.gc-name{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--h2);line-height:1.25;flex:1;min-width:0}
+.gc-cdown{text-align:right;flex-shrink:0;line-height:1}
+.gc-cdown-n{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:600;line-height:1}
+.gc-cdown-lbl{font-family:'Inter',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.3}
+.gc-ongoing{font-family:'Inter',sans-serif;font-size:.68rem;font-weight:700;color:#3bb273;background:#3bb27320;padding:2px 7px;border-radius:10px;white-space:nowrap;align-self:flex-start}
+.gc-meta{font-family:'Inter',sans-serif;font-size:.73rem;color:var(--muted);margin-bottom:.25rem}
+.gc-ms-wrap{display:flex;flex-direction:column;gap:.2rem;margin:.2rem 0}
+.gc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:.45rem;border-top:1px solid rgba(255,255,255,.04)}
 /* ── PROJECT TYPE TOGGLE ─────────────────────────────── */
 .proj-type-toggle{display:flex;gap:.3rem;margin-bottom:.55rem}
 .proj-type-btn{font-size:.75rem;font-weight:600;padding:.3rem .8rem;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);cursor:pointer;transition:all .14s}
@@ -375,7 +392,11 @@
         <button class="ptab" id="tab-merch" onclick="switchTab('merch')">Merch</button>
       </div>
       <div class="view-tabs">
-        <button class="vtab active" id="vtab-list" onclick="switchView('list')">
+        <button class="vtab active" id="vtab-gallery" onclick="switchView('gallery')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Gallery
+        </button>
+        <button class="vtab" id="vtab-list" onclick="switchView('list')">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
           List
         </button>
@@ -639,16 +660,40 @@ var DEFAULT_PROJECT_CHECKLIST_CAMPAIGN = [
 ];
 
 var SEED_PROJECTS = [
-  // Universal Trends 2026
-  {name:"Valentine's Day 2026", type:'universal_trend', status:'wrapped',  trend_date:'2026-02-14', description:'Valentine\'s Day content moment.', notes:'', partners:'', budget:'', assigned_to:[]},
-  {name:'Coachella 2026',       type:'universal_trend', status:'planning', trend_date:'2026-04-11', description:'Coachella season content push.',  notes:'', partners:'', budget:'', assigned_to:[]},
-  {name:"Mother's Day 2026",    type:'universal_trend', status:'planning', trend_date:'2026-05-10', description:'Mother\'s Day content moment.',   notes:'', partners:'', budget:'', assigned_to:[]},
-  {name:'Golden Week Japan',    type:'universal_trend', status:'planning', trend_date:'2026-05-03', description:'Golden Week — Japan audience.',   notes:'', partners:'', budget:'', assigned_to:[]},
-  {name:'Black Friday 2026',    type:'universal_trend', status:'planning', trend_date:'2026-11-27', description:'Black Friday campaign window.',   notes:'', partners:'', budget:'', assigned_to:[]},
-  {name:'Christmas 2026',       type:'universal_trend', status:'planning', trend_date:'2026-12-25', description:'Christmas content series.',       notes:'', partners:'', budget:'', assigned_to:[]},
-  // Sample Campaigns
-  {name:'Spring Giveaway 2026', type:'campaign', status:'planning', start_date:'2026-04-01', deadline:'2026-05-01', description:'Spring giveaway campaign.', notes:'', partners:'', budget:'$5,000', assigned_to:[]},
-  {name:'Summer Brand Collab',  type:'campaign', status:'planning', start_date:'2026-06-01', deadline:'2026-07-15', description:'Summer brand collaboration.', notes:'', partners:'TBD', budget:'$15,000', assigned_to:[]}
+  /* ── Universal Trends 2026 (full year) ── */
+  // Q1 — past
+  {name:"New Year's Day 2026",        type:'universal_trend', status:'wrapped',  trend_date:'2026-01-01', description:'New Year content moment.',              notes:'', assigned_to:[]},
+  {name:'Super Bowl 2026',            type:'universal_trend', status:'wrapped',  trend_date:'2026-02-08', description:'Super Bowl hype window.',               notes:'', assigned_to:[]},
+  {name:"Valentine's Day 2026",       type:'universal_trend', status:'wrapped',  trend_date:'2026-02-14', description:"Valentine's Day content.",               notes:'', assigned_to:[]},
+  {name:'International Women\'s Day', type:'universal_trend', status:'wrapped',  trend_date:'2026-03-08', description:"IWD — women's empowerment content.",    notes:'', assigned_to:[]},
+  {name:'Hina Matsuri (Japan)',        type:'universal_trend', status:'wrapped',  trend_date:'2026-03-03', description:'Doll Festival — Japan audience.',       notes:'', assigned_to:[]},
+  {name:'White Day (Japan)',           type:'universal_trend', status:'wrapped',  trend_date:'2026-03-14', description:'White Day gift content — Japan.',       notes:'', assigned_to:[]},
+  {name:'Cherry Blossom Season',       type:'universal_trend', status:'wrapped',  trend_date:'2026-04-01', description:'Sakura season — Japan & Asia content.', notes:'', assigned_to:[]},
+  {name:'Easter 2026',                 type:'universal_trend', status:'wrapped',  trend_date:'2026-04-05', description:'Easter content moment.',                notes:'', assigned_to:[]},
+  {name:'Coachella 2026',              type:'universal_trend', status:'wrapped',  trend_date:'2026-04-11', description:'Coachella season content push.',         notes:'', assigned_to:[]},
+  // Q2 — upcoming
+  {name:'Met Gala 2026',               type:'universal_trend', status:'planning', trend_date:'2026-05-04', description:'Met Gala fashion moment.',              notes:'', assigned_to:[]},
+  {name:'Golden Week Japan',           type:'universal_trend', status:'planning', trend_date:'2026-05-03', description:'Golden Week — Japan audience.',         notes:'', assigned_to:[]},
+  {name:"Mother's Day 2026",           type:'universal_trend', status:'planning', trend_date:'2026-05-10', description:"Mother's Day content.",                 notes:'', assigned_to:[]},
+  {name:'Pride Month 2026',            type:'universal_trend', status:'planning', trend_date:'2026-06-01', description:'Pride Month — June content calendar.',  notes:'', assigned_to:[]},
+  {name:"Father's Day 2026",           type:'universal_trend', status:'planning', trend_date:'2026-06-21', description:"Father's Day content.",                  notes:'', assigned_to:[]},
+  {name:'Wimbledon 2026',              type:'universal_trend', status:'planning', trend_date:'2026-06-29', description:'Wimbledon fashion & lifestyle moment.',  notes:'', assigned_to:[]},
+  // Q3 — upcoming
+  {name:'Independence Day (US)',       type:'universal_trend', status:'planning', trend_date:'2026-07-04', description:'4th of July — US audience.',            notes:'', assigned_to:[]},
+  {name:'Tanabata (Japan)',            type:'universal_trend', status:'planning', trend_date:'2026-07-07', description:'Star Festival — Japan content.',         notes:'', assigned_to:[]},
+  {name:'Obon Festival (Japan)',       type:'universal_trend', status:'planning', trend_date:'2026-08-13', description:'Obon season — Japan audience.',         notes:'', assigned_to:[]},
+  {name:'Back to School 2026',         type:'universal_trend', status:'planning', trend_date:'2026-09-01', description:'Back to school content window.',        notes:'', assigned_to:[]},
+  // Q4 — upcoming
+  {name:'Halloween 2026',              type:'universal_trend', status:'planning', trend_date:'2026-10-31', description:'Halloween content & campaigns.',        notes:'', assigned_to:[]},
+  {name:'Diwali 2026',                 type:'universal_trend', status:'planning', trend_date:'2026-10-19', description:'Festival of Lights content.',           notes:'', assigned_to:[]},
+  {name:'Thanksgiving (US) 2026',      type:'universal_trend', status:'planning', trend_date:'2026-11-26', description:'Thanksgiving — US audience.',           notes:'', assigned_to:[]},
+  {name:'Black Friday 2026',           type:'universal_trend', status:'planning', trend_date:'2026-11-27', description:'Black Friday campaign window.',         notes:'', assigned_to:[]},
+  {name:'Cyber Monday 2026',           type:'universal_trend', status:'planning', trend_date:'2026-11-30', description:'Cyber Monday deals content.',           notes:'', assigned_to:[]},
+  {name:'Christmas 2026',              type:'universal_trend', status:'planning', trend_date:'2026-12-25', description:'Christmas content series.',             notes:'', assigned_to:[]},
+  {name:"New Year's Eve 2026",         type:'universal_trend', status:'planning', trend_date:'2026-12-31', description:'NYE countdown content.',                notes:'', assigned_to:[]},
+  /* ── Sample Campaigns ── */
+  {name:'Spring Giveaway 2026',  type:'campaign', status:'planning', start_date:'2026-04-01', deadline:'2026-05-01', description:'Spring giveaway campaign.',      notes:'', partners:'', budget:'$5,000',  assigned_to:[]},
+  {name:'Summer Brand Collab',   type:'campaign', status:'planning', start_date:'2026-06-01', deadline:'2026-07-15', description:'Summer brand collaboration.',   notes:'', partners:'TBD', budget:'$15,000', assigned_to:[]}
 ];
 
 /* ── INFO STRIP HTML STRINGS ── */
@@ -718,7 +763,7 @@ var SEED_EVENTS = [
 
 var PS = {
   tab: 'events',
-  view: 'list',
+  view: 'gallery',
   events: [],
   projects: [],
   merch: [],
@@ -903,15 +948,21 @@ function render() {
   // Hide merch panel
   var mp=document.getElementById('view-merch');
   if(mp) mp.style.display='none';
-  // Switch view
-  ['list','calendar','gantt'].forEach(function(x){
+  // Switch view — gallery and list both use #view-list container
+  ['gallery','list','calendar','gantt'].forEach(function(x){
     var btn=document.getElementById('vtab-'+x);
-    var panel=document.getElementById('view-'+x);
     if(btn) btn.classList.toggle('active',x===PS.view);
-    if(panel) panel.style.display=x===PS.view?'':'none';
   });
+  ['list','calendar','gantt'].forEach(function(x){
+    var panel=document.getElementById('view-'+x);
+    if(panel) panel.style.display=(x===PS.view)?'':'none';
+  });
+  // gallery uses view-list panel
+  var listPanel=document.getElementById('view-list');
+  if(listPanel) listPanel.style.display=(PS.view==='gallery'||PS.view==='list')?'':'none';
   var items = PS.tab === 'events' ? PS.events : PS.projects;
-  if (PS.view === 'list') renderList(items);
+  if (PS.view === 'gallery') renderGallery(items);
+  else if (PS.view === 'list') renderList(items);
   else if (PS.view === 'calendar') renderCalendar(items);
   else renderGantt(items);
 }
@@ -956,6 +1007,98 @@ async function evDrop(e, toIdx) {
   render();
 }
 
+/* ════════════ COUNTDOWN HELPER ════════════ */
+function calcCountdown(startD, endD, today) {
+  if (!today) { today = new Date(); today.setHours(0,0,0,0); }
+  if (!startD) return {txt:'', lbl:'', color:'#f7b731', ongoing:false};
+  var isOngoing = today >= startD && (!endD || today <= endD);
+  var isPast    = today > startD && endD && today > endD;
+  var dLeft     = Math.ceil((startD - today) / 86400000);
+  if (isOngoing) return {txt:'●', lbl:'ONGOING', color:'#3bb273', ongoing:true};
+  if (isPast)    return {txt:'Past', lbl:'', color:'#7a7975', ongoing:false};
+  if (dLeft === 0) return {txt:'Today', lbl:'', color:'#3bb273', ongoing:false};
+  return {txt:dLeft, lbl:'days away', color: dLeft <= 7 ? '#ff6b35' : '#f7b731', ongoing:false};
+}
+
+/* ════════════ GALLERY VIEW ════════════ */
+function renderGallery(items) {
+  var el = document.getElementById('view-list');
+  var today = new Date(); today.setHours(0,0,0,0);
+  var todayStr = today.toISOString().slice(0,10);
+  function makeGalleryCard(item) {
+    var statusCol = colorForStatus(item.status);
+    var endDate = item.end_date || item.deadline;
+    var startD = item.start_date ? new Date(item.start_date + 'T00:00:00') : null;
+    var endD   = endDate ? new Date(endDate + 'T00:00:00') : null;
+    var cd = calcCountdown(startD, endD, today);
+    var dateStr = item.start_date ? fmtRange(item.start_date, endDate) : (endDate ? fmtDate(endDate) : '');
+    // Milestone previews (up to 2)
+    var allMs = (item.milestones||[]).slice().sort(function(a,b){return (a.due_date||'').localeCompare(b.due_date||'');});
+    var upcoming = allMs.filter(function(m){return m.due_date >= todayStr;});
+    var showMs = upcoming.length ? upcoming.slice(0,2) : (allMs.length ? allMs.slice(-1) : []);
+    var msHtml = showMs.map(function(ms){
+      var nd = Math.ceil((new Date(ms.due_date+'T00:00:00')-today)/86400000);
+      var nc = nd<0?'overdue':nd<=7?'soon':'ok';
+      var nt = nd<0?Math.abs(nd)+'d overdue':nd===0?'Today':nd+'d left';
+      return '<div class="ev-next-ms">'
+        +'<div class="ms-prev-dot" style="background:'+msColor(ms,todayStr)+'"></div>'
+        +'<span class="ms-prev-name">'+esc(ms.name)+'</span>'
+        +'<span class="ms-prev-tag ms-days-tag '+nc+'">'+nt+'</span>'
+        +'</div>';
+    }).join('');
+    // Checklist progress
+    var cl = item.checklist||[];
+    var clDone = cl.filter(function(c){return c.done;}).length;
+    var clCls = cl.length && clDone===cl.length?'complete':cl.length&&clDone>0?'partial':'';
+    var clTxt = cl.length ? '<span class="check-progress'+(clCls?' '+clCls:'')+'" style="margin:0">✓ '+clDone+'/'+cl.length+'</span>' : '';
+    var mo = item.merch_order||[];
+    var moTxt = mo.length ? '<span style="color:var(--muted);font-size:.7rem">📦 '+mo.length+'</span>' : '';
+    var actHtml = isSuperAdmin() ? '<div class="ev-card-actions">'
+      +'<button class="ev-act-btn" onclick="event.stopPropagation();openCreateModal(\''+escA(item.id)+'\')">Edit</button>'
+      +'<button class="ev-act-btn" onclick="event.stopPropagation();deleteItem(\''+escA(item.id)+'\')">Del</button>'
+      +'</div>' : '';
+    // Countdown display
+    var cdownHtml = '';
+    if (cd.ongoing) {
+      cdownHtml = '<span class="gc-ongoing">ONGOING</span>';
+    } else if (cd.txt) {
+      cdownHtml = '<div class="gc-cdown" style="color:'+cd.color+'"><div class="gc-cdown-n">'+cd.txt+'</div>'+(cd.lbl?'<div class="gc-cdown-lbl">'+cd.lbl+'</div>':'')+'</div>';
+    }
+    return '<div class="gc" onclick="openDrawer(\''+escA(item.id)+'\')">'
+      +'<div class="gc-stripe" style="background:'+statusCol+'"></div>'
+      +'<div class="gc-body">'
+      +'<div class="gc-hdr">'
+      +'<div>'
+      +'<span class="status-bdg" style="background:'+statusCol+'22;color:'+statusCol+';margin-bottom:.25rem;display:inline-block">'+esc((item.status||'planning').replace(/_/g,' '))+'</span>'
+      +'<div class="gc-name">'+esc(item.name)+'</div>'
+      +'</div>'
+      +cdownHtml
+      +'</div>'
+      +(dateStr?'<div class="gc-meta">'+dateStr+(item.location?' · 📍'+esc(item.location):'')+'</div>':'')
+      +(msHtml?'<div class="gc-ms-wrap">'+msHtml+'</div>':'')
+      +'<div class="gc-footer">'
+      +'<div style="display:flex;gap:.4rem;align-items:center">'+clTxt+moTxt+'</div>'
+      +actHtml
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }
+  if (!items || !items.length) {
+    el.innerHTML = '<div class="ev-empty"><div class="ev-empty-title">No '+PS.tab+' yet</div><div class="ev-empty-sub">'+(isSuperAdmin()?'Click <strong>+ New '+(PS.tab==='events'?'Event':'Project')+'</strong> to get started.':'Check back soon.')+'</div></div>';
+    return;
+  }
+  if (PS.tab === 'projects') {
+    var trends = items.filter(function(p){return p.type==='universal_trend';}).slice().sort(function(a,b){return (a.deadline||'').localeCompare(b.deadline||'');});
+    var campaigns = items.filter(function(p){return p.type!=='universal_trend';}).slice().sort(function(a,b){return (a.deadline||'').localeCompare(b.deadline||'');});
+    var html = '';
+    if (trends.length) html += '<div class="gallery-section-hdr">🌐 Universal Trends</div><div class="ev-gallery">'+trends.map(makeGalleryCard).join('')+'</div>';
+    if (campaigns.length) html += '<div class="gallery-section-hdr">🎯 Campaigns</div><div class="ev-gallery">'+campaigns.map(makeGalleryCard).join('')+'</div>';
+    el.innerHTML = html || '<div class="ev-empty"><div class="ev-empty-title">No projects yet</div></div>';
+  } else {
+    el.innerHTML = '<div class="ev-gallery">'+items.map(makeGalleryCard).join('')+'</div>';
+  }
+}
+
 /* ════════════ LIST VIEW ════════════ */
 function renderList(items) {
   var el = document.getElementById('view-list');
@@ -970,10 +1113,9 @@ function renderList(items) {
     var statusCol = colorForStatus(item.status);
     var endDate = item.end_date || item.deadline;
     var startD = item.start_date ? new Date(item.start_date + 'T00:00:00') : null;
-    var dLeft = startD ? Math.ceil((startD - today) / 86400000) : null;
-    var dTxt = dLeft === null ? '' : (dLeft > 0 ? dLeft : dLeft === 0 ? 'Today' : 'Past');
-    var dLbl = dLeft === null ? '' : (dLeft > 0 ? 'days away' : dLeft === 0 ? '' : '');
-    var dColor = dLeft === null ? '#f7b731' : (dLeft < 0 ? '#7a7975' : dLeft <= 7 ? '#ff6b35' : '#f7b731');
+    var endD   = endDate ? new Date(endDate + 'T00:00:00') : null;
+    var cd = calcCountdown(startD, endD, today);
+    var dTxt = cd.txt; var dLbl = cd.lbl; var dColor = cd.color;
 
     // Up to 3 upcoming milestones (next due first)
     var allMs = (item.milestones||[]).slice().sort(function(a,b){return (a.due_date||'').localeCompare(b.due_date||'');});
