@@ -1848,12 +1848,14 @@ var slackState = {
   inited: false, ownToken: '', ownUserId: '', clientWorkspaces: [],
   activeWorkspaceId: 'own', channels: [], dms: [], activeChannelId: null,
   activeChannelName: '', messages: [], mentions: [], userCache: {},
-  lastPulledAt: {}, mentionCounts: {}, summaryCache: {},
+  lastPulledAt: {}, lastPulledTs: {}, mentionCounts: {}, summaryCache: {},
   dmNames: {}, starred: [], selectedChannels: [], selectMode: false,
   summaries: [], activeTab: 'channels', _btns: [],
   archivedChannels: [], showArchived: false,
   reviews: [], reviewStarFilter: 5
 };
+
+var slackAutoRefreshTimer = null;
 
 // Detect review messages (used by Pull All filter + Reviews tab)
 var SLACK_REVIEW_RE = /(\d+)[- ]star/i;
@@ -1905,6 +1907,7 @@ function openSlackDrawer() {
 }
 
 function closeSlackDrawer() {
+  slackStopAutoRefresh();
   document.getElementById('slack-drawer').classList.remove('open');
   document.getElementById('slack-backdrop').classList.remove('show');
 }
@@ -2178,9 +2181,11 @@ async function openSlackChannel(channelId, channelName) {
   updateSlackOpenBadge();
 
   await slackLoadMessages(channelId);
+  slackStartAutoRefresh(channelId);
 }
 
 function closeSlackChannel() {
+  slackStopAutoRefresh();
   slackState.activeChannelId = null;
   slackState.activeChannelName = '';
   slackState.messages = [];
@@ -2196,6 +2201,24 @@ function closeSlackChannel() {
   if (mainScroll) mainScroll.style.display = 'flex';
   var chSection = document.getElementById('slack-ch-section');
   if (chSection) chSection.style.display = 'flex';
+}
+
+function slackStartAutoRefresh(channelId) {
+  slackStopAutoRefresh(); // clear any existing timer first
+  slackAutoRefreshTimer = setInterval(function() {
+    if (slackState.activeChannelId === channelId) {
+      slackLoadMessages(channelId);
+    } else {
+      slackStopAutoRefresh();
+    }
+  }, 30000); // poll for new messages every 30 seconds
+}
+
+function slackStopAutoRefresh() {
+  if (slackAutoRefreshTimer !== null) {
+    clearInterval(slackAutoRefreshTimer);
+    slackAutoRefreshTimer = null;
+  }
 }
 
 function slackInitDatePicker() {
@@ -2237,10 +2260,15 @@ async function slackLoadMessages(channelId) {
   var token = getActiveToken();
   if (!token) return;
 
-  var oldest = slackGetSelectedOldest();
-  var latest = slackGetSelectedLatest();
+  // Use stored ts from last pull for incremental fetch; fall back to date picker on first load
+  var storedTs = slackState.lastPulledTs[channelId];
+  var oldest = storedTs ? storedTs : slackGetSelectedOldest();
+  var latest = storedTs ? undefined : slackGetSelectedLatest();
+  var isIncremental = !!storedTs;
 
-  document.getElementById('slack-messages').innerHTML = '<div class="slack-empty">Loading...</div>';
+  if (!isIncremental) {
+    document.getElementById('slack-messages').innerHTML = '<div class="slack-empty">Loading...</div>';
+  }
 
   try {
     var apiParams = { channel: channelId, oldest: oldest, limit: 100 };
@@ -2248,10 +2276,27 @@ async function slackLoadMessages(channelId) {
     var data = await slackAPI(token, 'conversations.history', apiParams);
     if (!data.ok) throw new Error(data.error || 'conversations.history failed');
 
-    slackState.messages = (data.messages || []).reverse(); // oldest first
+    var incoming = (data.messages || []).reverse(); // oldest first
+
+    if (isIncremental && incoming.length > 0) {
+      // Deduplicate by ts before appending new messages
+      var existingTs = {};
+      slackState.messages.forEach(function(m) { existingTs[m.ts] = true; });
+      var newMsgs = incoming.filter(function(m) { return !existingTs[m.ts]; });
+      if (newMsgs.length > 0) slackState.messages = slackState.messages.concat(newMsgs);
+    } else if (!isIncremental) {
+      slackState.messages = incoming;
+    }
+    // else: incremental pull returned zero new messages — leave existing messages unchanged
+
+    // Store the latest ts seen so next pull only fetches newer messages
+    if (incoming.length > 0) {
+      var latestMsg = incoming[incoming.length - 1];
+      if (latestMsg.ts) slackState.lastPulledTs[channelId] = latestMsg.ts;
+    }
     slackState.lastPulledAt[channelId] = new Date();
 
-    // Resolve user names
+    // Resolve any new user names not yet in cache
     var userIds = [];
     slackState.messages.forEach(function(m) {
       if (m.user && !slackState.userCache[m.user]) userIds.push(m.user);
@@ -2370,18 +2415,24 @@ async function slackPullAll() {
     }
 
     slackState.mentions = [];
-    var oldest = slackGetSelectedOldest();
+    var datePickerOldest = slackGetSelectedOldest();
     var ownId = slackState.ownUserId;
     var channelsToCheck = slackState.channels.slice(0, 12); // cap for rate limits
 
     for (var i = 0; i < channelsToCheck.length; i++) {
       var ch = channelsToCheck[i];
       try {
-        var pullLatest = slackGetSelectedLatest();
-        var pullParams = { channel: ch.id, oldest: oldest, limit: 50 };
+        // Use stored ts for incremental pull; fall back to date picker on first run
+        var chOldest = slackState.lastPulledTs[ch.id] || datePickerOldest;
+        var pullLatest = slackState.lastPulledTs[ch.id] ? undefined : slackGetSelectedLatest();
+        var pullParams = { channel: ch.id, oldest: chOldest, limit: 50 };
         if (pullLatest) pullParams.latest = pullLatest;
         var data = await slackAPI(token, 'conversations.history', pullParams);
         if (!data.ok) continue;
+        // Store latest ts for next incremental pull (API returns newest-first)
+        if (data.messages && data.messages.length > 0 && data.messages[0].ts) {
+          slackState.lastPulledTs[ch.id] = data.messages[0].ts;
+        }
         // Only collect real human @mentions — skip bots, bulk dumps, and review messages
         var msgs = (data.messages || []).filter(function(m) {
           if (m.type !== 'message' || m.subtype) return false;
@@ -2407,11 +2458,17 @@ async function slackPullAll() {
     for (var j = 0; j < Math.min(slackState.dms.length, 8); j++) {
       var dm = slackState.dms[j];
       try {
-        var dmLatest = slackGetSelectedLatest();
-        var dmParams = { channel: dm.id, oldest: oldest, limit: 20 };
+        // Use stored ts for incremental pull on DMs too
+        var dmOldest = slackState.lastPulledTs[dm.id] || datePickerOldest;
+        var dmLatest = slackState.lastPulledTs[dm.id] ? undefined : slackGetSelectedLatest();
+        var dmParams = { channel: dm.id, oldest: dmOldest, limit: 20 };
         if (dmLatest) dmParams.latest = dmLatest;
         var dmData = await slackAPI(token, 'conversations.history', dmParams);
         if (!dmData.ok) continue;
+        // Store latest ts for next incremental pull
+        if (dmData.messages && dmData.messages.length > 0 && dmData.messages[0].ts) {
+          slackState.lastPulledTs[dm.id] = dmData.messages[0].ts;
+        }
         var dmName = slackState.userCache[dm.user] || dm.user || 'DM';
         (dmData.messages || []).forEach(function(msg) {
           if (msg.type !== 'message' || msg.subtype || msg.user === ownId) return;
@@ -3048,6 +3105,7 @@ async function slackLoadSummaries() {
   try {
     var key = 'slack_summaries_' + state.currentUser.id;
     var res = await db.from('settings').select('value').eq('key', key).maybeSingle();
+    if (res.error) return;
     if (res.data && res.data.value) {
       var saved = JSON.parse(res.data.value);
       if (Array.isArray(saved) && saved.length) {

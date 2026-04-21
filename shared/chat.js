@@ -602,7 +602,8 @@ async function ncSend() {
       });
       var rdata2 = await resp2.json();
       if (!resp2.ok) throw new Error(rdata2.error && rdata2.error.message ? rdata2.error.message : 'API error ' + resp2.status);
-      reply = rdata2.choices && rdata2.choices[0] && rdata2.choices[0].message ? rdata2.choices[0].message.content : '';
+      if (!rdata2.choices || !rdata2.choices[0]) throw new Error('Groq returned no choices on second call.');
+      reply = rdata2.choices[0].message ? rdata2.choices[0].message.content : '';
     } else {
       // No tool calls — plain response
       reply = assistantMsg ? assistantMsg.content : '';
@@ -648,7 +649,7 @@ function ncAppendMsg(role, text) {
 
   var msgId = 'ncm-' + Date.now();
   var copyBtn = role === 'assistant'
-    ? '<button class="nc-copy" onclick="ncCopy(\'' + msgId + '\',this)" title="Copy">Copy</button>'
+    ? '<button class="nc-copy" data-msgid="' + msgId + '" title="Copy">Copy</button>'
     : '';
 
   var div = document.createElement('div');
@@ -738,6 +739,25 @@ function initNancyChat() {
   if (document.getElementById('nc-wrap')) return; // already mounted
   injectStyles();
   injectHTML();
+
+  // Delegated copy button listener — avoids inline onclick interpolation
+  var msgsContainer = document.getElementById('nc-msgs');
+  if (msgsContainer && !msgsContainer._copyDelegated) {
+    msgsContainer._copyDelegated = true;
+    msgsContainer.addEventListener('click', function(e) {
+      var btn = e.target.closest('.nc-copy');
+      if (!btn) return;
+      var el = document.getElementById(btn.dataset.msgid);
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText || el.textContent || '').then(function() {
+        btn.textContent = 'Copied!';
+        setTimeout(function(){ btn.textContent = 'Copy'; }, 1800);
+      }).catch(function() {
+        btn.textContent = 'Failed';
+        setTimeout(function(){ btn.textContent = 'Copy'; }, 1800);
+      });
+    });
+  }
 
   // Restore persisted conversation
   if (nc.messages.length) {

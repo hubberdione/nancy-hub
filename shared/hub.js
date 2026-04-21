@@ -530,7 +530,7 @@ async function callGroq(messages, systemPrompt, maxTokens) {
   maxTokens = maxTokens || 1024;
   if (!GROQ_API_KEY) {
     try {
-      var r = await db.from('settings').select('value').eq('key','groq_api_key').single();
+      var r = await db.from('settings').select('value').eq('key','groq_api_key').maybeSingle();
       if (r.data && r.data.value) GROQ_API_KEY = r.data.value;
     } catch(e) {}
   }
@@ -551,7 +551,7 @@ async function callGroqLight(messages, systemPrompt, maxTokens) {
   maxTokens = maxTokens || 512;
   if (!GROQ_API_KEY) {
     try {
-      var r = await db.from('settings').select('value').eq('key','groq_api_key').single();
+      var r = await db.from('settings').select('value').eq('key','groq_api_key').maybeSingle();
       if (r.data && r.data.value) GROQ_API_KEY = r.data.value;
     } catch(e) {}
   }
@@ -571,7 +571,7 @@ window.callGroqLight = callGroqLight;
 
 // ── CLAUDE COST TRACKING ──
 async function trackClaudeCost(inputTokens, outputTokens) {
-  var cost = (inputTokens / 1000000 * 1.00) + (outputTokens / 1000000 * 5.00);
+  var cost = (inputTokens / 1000000 * 0.80) + (outputTokens / 1000000 * 4.00);
   var month = new Date().toISOString().slice(0,7); // "2026-04"
   try {
     var r = await db.from('settings').select('value').eq('key','claude_usage').single();
@@ -609,7 +609,7 @@ async function callClaude(messages, systemPrompt, maxTokens) {
   // Load key if not set
   if (!CLAUDE_API_KEY) {
     try {
-      var r = await db.from('settings').select('value').eq('key','claude_api_key').single();
+      var r = await db.from('settings').select('value').eq('key','claude_api_key').maybeSingle();
       if (r.data && r.data.value) CLAUDE_API_KEY = r.data.value;
     } catch(e) {}
   }
@@ -638,12 +638,10 @@ async function callClaude(messages, systemPrompt, maxTokens) {
     body: JSON.stringify(body)
   });
 
+  var data = await res.json().catch(function(){ return {}; });
   if (!res.ok) {
-    var err = await res.json().catch(function(){ return {}; });
-    throw new Error('Claude error: ' + (err.error && err.error.message ? err.error.message : res.status));
+    throw new Error('Claude error: ' + (data.error && data.error.message ? data.error.message : res.status));
   }
-
-  var data = await res.json();
   var text = data.content && data.content[0] && data.content[0].text ? data.content[0].text : '';
   // Track cost in background
   if (data.usage) trackClaudeCost(data.usage.input_tokens || 0, data.usage.output_tokens || 0);

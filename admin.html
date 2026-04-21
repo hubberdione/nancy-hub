@@ -497,7 +497,7 @@ async function onPageReady() {
     window.location.href = 'index.html';
     return;
   }
-  loadCurrentSettings();
+  await loadCurrentSettings();
   runAllChecks();
   loadUsage();
   loadClaudeSpending();
@@ -542,7 +542,7 @@ async function loadClaudeSpending() {
       '</button>' +
     '</div>' +
     '<div style="font-family:sans-serif;font-size:.72rem;color:var(--muted);line-height:1.6">' +
-      '💡 <strong>Pricing:</strong> claude-3-5-haiku · $1.00 per 1M input tokens · $5.00 per 1M output tokens. ' +
+      '💡 <strong>Pricing:</strong> claude-3-5-haiku · $0.80 per 1M input tokens · $4.00 per 1M output tokens. ' +
       'A typical Nancy chat message costs ~$0.001–0.003. At normal usage, expect $2–5/month.' +
     '</div>' +
   '</div>';
@@ -584,7 +584,6 @@ function setOk(id, message) {
   var dot = document.getElementById('hc-' + id + '-dot');
   var msg = document.getElementById('hc-' + id + '-msg');
   var toggle = document.getElementById('hc-' + id + '-toggle');
-  var sectionTitle = document.querySelector('#health-section .admin-section-title, .admin-section .admin-section-title');
   if (card) card.className = 'hc ok';
   if (dot) dot.className = 'hc-dot ok';
   if (msg) msg.textContent = message;
