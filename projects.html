@@ -29,8 +29,13 @@
 
 /* ── EVENT CARD LIST ─────────────────────────────────── */
 .ev-list{display:flex;flex-direction:column;gap:.75rem}
-.ev-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;cursor:pointer;transition:box-shadow .25s,transform .25s;position:relative}
+.ev-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;cursor:pointer;transition:box-shadow .25s,transform .25s,opacity .2s;position:relative}
 .ev-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.22);transform:translateY(-2px)}
+.ev-card.drag-over{border-color:#f7b731;box-shadow:0 0 0 2px rgba(247,183,49,.3);transform:none}
+.ev-card.dragging{opacity:.4;transform:none}
+.drag-handle{width:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:grab;color:var(--muted);opacity:.3;transition:opacity .15s;font-size:14px;letter-spacing:-1px;user-select:none}
+.drag-handle:hover{opacity:.7}
+.drag-handle:active{cursor:grabbing}
 .ev-card-stripe{width:5px;flex-shrink:0}
 .ev-card-body{flex:1;padding:1rem 1.1rem;min-width:0}
 .ev-card-top{display:flex;align-items:flex-start;gap:.6rem;flex-wrap:wrap;margin-bottom:.5rem}
@@ -233,6 +238,16 @@
 .mp-qty-lbl{font-family:'Inter',sans-serif;font-size:.7rem;color:var(--muted)}
 .mp-qty{width:56px;padding:.24rem .4rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--body);font-family:'Inter',sans-serif;font-size:.78rem;text-align:center}
 .mp-qty:focus{outline:none;border-color:#f7b731}
+
+/* ── MERCH IN EDIT FORM ───────────────────────────── */
+.mf-merch-row{display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem;border-radius:8px;background:var(--bg2);border:1px solid var(--border);margin-bottom:.3rem}
+.mf-merch-info{flex:1;min-width:0}
+.mf-merch-name{font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;color:var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mf-merch-meta{font-family:'Inter',sans-serif;font-size:.7rem;color:var(--muted);margin-top:.1rem;display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
+.mf-qty-wrap{display:flex;align-items:center;gap:.3rem;flex-shrink:0}
+.mf-qty-wrap label{font-family:'Inter',sans-serif;font-size:.7rem;color:var(--muted)}
+.mf-merch-qty{width:58px;padding:.25rem .4rem;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--body);font-family:'Inter',sans-serif;font-size:.78rem;text-align:center}
+.mf-merch-qty:focus{outline:none;border-color:#f7b731}
 </style>
 </head>
 <body>
@@ -642,6 +657,46 @@ function render() {
   else renderGantt(items);
 }
 
+/* ════════════ DRAG & DROP ════════════ */
+var _dragIdx = null;
+function evDragStart(e, idx) {
+  _dragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(function(){
+    var cards = document.querySelectorAll('#ev-drag-list .ev-card');
+    if (cards[idx]) cards[idx].classList.add('dragging');
+  }, 0);
+}
+function evDragOver(e, idx) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('#ev-drag-list .ev-card').forEach(function(c, i){
+    c.classList.toggle('drag-over', i === idx && i !== _dragIdx);
+  });
+}
+function evDragLeave(e) {
+  if (e.target.closest && e.target.closest('.ev-card')) {
+    e.target.closest('.ev-card').classList.remove('drag-over');
+  }
+}
+function evDragEnd(e) {
+  document.querySelectorAll('#ev-drag-list .ev-card').forEach(function(c){
+    c.classList.remove('dragging','drag-over');
+  });
+  _dragIdx = null;
+}
+async function evDrop(e, toIdx) {
+  e.preventDefault();
+  if (_dragIdx === null || _dragIdx === toIdx) { evDragEnd(e); return; }
+  var arr = PS.tab === 'events' ? PS.events : PS.projects;
+  var moved = arr.splice(_dragIdx, 1)[0];
+  arr.splice(toIdx, 0, moved);
+  _dragIdx = null;
+  if (PS.tab === 'events') await saveEvents();
+  else await saveProjects();
+  render();
+}
+
 /* ════════════ LIST VIEW ════════════ */
 function renderList(items) {
   var el = document.getElementById('view-list');
@@ -651,10 +706,9 @@ function renderList(items) {
   }
   var today = new Date(); today.setHours(0,0,0,0);
   var todayStr = today.toISOString().slice(0,10);
-  // Sort by start_date ascending
-  var sorted = items.slice().sort(function(a,b){ return (a.start_date||'').localeCompare(b.start_date||''); });
-  var html = '<div class="ev-list">';
-  sorted.forEach(function(item) {
+  // Use stored order (drag-defined); no auto-sort
+  var html = '<div class="ev-list" id="ev-drag-list">';
+  items.forEach(function(item, idx) {
     var statusCol = colorForStatus(item.status);
     var startD = item.start_date ? new Date(item.start_date + 'T00:00:00') : null;
     var endDate = item.end_date || item.deadline;
@@ -704,7 +758,11 @@ function renderList(items) {
         + '</div>';
     }
 
-    html += '<div class="ev-card" onclick="openDrawer(\''+escA(item.id)+'\')">'
+    html += '<div class="ev-card" draggable="true" data-idx="'+idx+'" '
+      + 'ondragstart="evDragStart(event,'+idx+')" ondragover="evDragOver(event,'+idx+')" '
+      + 'ondragleave="evDragLeave(event)" ondrop="evDrop(event,'+idx+')" ondragend="evDragEnd(event)" '
+      + 'onclick="openDrawer(\''+escA(item.id)+'\')">'
+      + '<div class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>'
       + '<div class="ev-card-stripe" style="background:'+statusCol+'"></div>'
       + '<div class="ev-card-body">'
       + '<div class="ev-card-top">'
@@ -1061,7 +1119,32 @@ function buildEvForm(v) {
     +'<div class="f-fld"><label>Shoot Date</label><input type="date" id="f-cp-shoot-date" value="'+(cp.shoot_date||'')+'"/></div></div>'
     +'<div class="f-row full"><div class="f-fld"><label>Platforms</label><div class="plat-btns">'
     +['Instagram','TikTok','YouTube','Pinterest','WeChat','RED (Xiaohongshu)','X/Twitter'].map(function(p){return '<button type="button" class="plat-btn'+(plats.indexOf(p)>=0?' on':'')+'" onclick="this.classList.toggle(\'on\')">'+esc(p)+'</button>';}).join('')
-    +'</div></div></div></div>';
+    +'</div></div></div></div>'
+    + buildMerchFormSection(v);
+}
+function buildMerchFormSection(v) {
+  if (!PS.merch.length) return '';
+  var existingOrder = (v && v.merch_order) ? v.merch_order : [];
+  var sorted = PS.merch.slice().sort(function(a,b){return (a.category||'').localeCompare(b.category||'')||(a.name||'').localeCompare(b.name||'');});
+  var rows = sorted.map(function(m){
+    var ex = existingOrder.find(function(o){return o.merch_id===m.id;});
+    var qty = ex ? ex.qty : 0;
+    var cc = MERCH_CAT_COLORS[m.category]||'#7a7975';
+    var catLbl = MERCH_CATS[m.category]||m.category||'';
+    return '<div class="mf-merch-row">'
+      +'<div class="mf-merch-info">'
+      +'<div class="mf-merch-name">'+esc(m.name)+'</div>'
+      +'<div class="mf-merch-meta"><span class="merch-cat-bdg" style="background:'+cc+'22;color:'+cc+'">'+esc(catLbl)+'</span>'
+      +' '+esc(m.currency||'USD')+' '+parseFloat(m.price_per_unit||0).toFixed(2)+'/unit'
+      +(m.min_moq?' · MOQ '+m.min_moq:'')+' · '+esc(m.production_days||'?')+'d lead'
+      +'</div></div>'
+      +'<div class="mf-qty-wrap"><label>Qty</label>'
+      +'<input type="number" class="mf-merch-qty" id="mf-merch-'+escA(m.id)+'" data-merch-id="'+escA(m.id)+'" value="'+qty+'" min="0" step="1"/>'
+      +'</div></div>';
+  }).join('');
+  return '<div class="form-sec"><div class="form-sec-lbl">Merch Order</div>'
+    +'<div style="font-family:Inter,sans-serif;font-size:.74rem;color:var(--muted);margin-bottom:.55rem">Set quantities for this event (0 = not ordering).</div>'
+    +rows+'</div>';
 }
 function buildProjForm(v) {
   v=v||{};
@@ -1123,8 +1206,10 @@ async function saveItem() {
     var regen=false;
     if(existing){regen=(existing.start_date!==sd||existing.scale!==scale||existing.shipping!==ship);if(regen&&!confirm('Changing dates, scale, or shipping will regenerate milestones. Continue?'))return;}
     var plats=[];document.querySelectorAll('.plat-btn.on').forEach(function(b){plats.push(b.textContent.trim());});
-    var ev={id:existing?existing.id:crypto.randomUUID(),name:nameEl.value.trim(),type:gv('f-type'),status:gv('f-status'),scale:scale,region:gv('f-region'),shipping:ship,start_date:sd,end_date:ed,location:gv('f-location'),partners:gv('f-partners'),open_questions:gv('f-questions'),budget:gv('f-budget'),notes:gv('f-notes'),assigned_to:PS.formAssignees.slice(),content_plan:{shoot_needed:gv('f-cp-shoot'),platforms:plats,posts_count:parseInt(gv('f-cp-posts'))||0,caption_status:gv('f-cp-caption'),shoot_date:gv('f-cp-shoot-date')},milestones:(existing&&!regen)?existing.milestones:[],checklist:existing?existing.checklist:makeDefaultChecklist(),merch_order:existing?existing.merch_order:[]};
+    var ev={id:existing?existing.id:crypto.randomUUID(),name:nameEl.value.trim(),type:gv('f-type'),status:gv('f-status'),scale:scale,region:gv('f-region'),shipping:ship,start_date:sd,end_date:ed,location:gv('f-location'),partners:gv('f-partners'),open_questions:gv('f-questions'),budget:gv('f-budget'),notes:gv('f-notes'),assigned_to:PS.formAssignees.slice(),content_plan:{shoot_needed:gv('f-cp-shoot'),platforms:plats,posts_count:parseInt(gv('f-cp-posts'))||0,caption_status:gv('f-cp-caption'),shoot_date:gv('f-cp-shoot-date')},milestones:(existing&&!regen)?existing.milestones:[],checklist:existing?existing.checklist:makeDefaultChecklist(),merch_order:[]};
     if(!existing||regen) ev.milestones=genMilestones(ev);
+    // Read merch order from form
+    ev.merch_order=[];document.querySelectorAll('.mf-merch-qty').forEach(function(inp){var qty=parseInt(inp.value)||0;if(qty<=0)return;var mid=inp.getAttribute('data-merch-id');var m=PS.merch.find(function(x){return x.id===mid;});if(!m)return;ev.merch_order.push({merch_id:mid,name:m.name,qty:qty,price_per_unit:m.price_per_unit,currency:m.currency||'USD'});});
     if(existing){var ei=PS.events.findIndex(function(e){return e.id===existing.id;});if(ei>=0)PS.events[ei]=ev;}else PS.events.push(ev);
     await saveEvents();
   }
