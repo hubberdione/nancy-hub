@@ -97,7 +97,7 @@ function injectStyles() {
   s.textContent = [
     // ── Tiny magenta bot — no glow, black eyes, "Hi" label ──────────
     // Wrapper — row: "Hi" left, bot right
-    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:900;width:auto;height:auto;background:transparent;border:none;cursor:pointer;padding:0;display:flex;flex-direction:row;align-items:flex-end;gap:5px;transition:transform .2s ease;overflow:visible}',
+    '.nc-bubble{position:fixed;bottom:1.75rem;right:1.75rem;z-index:9600;width:auto;height:auto;background:transparent;border:none;cursor:pointer;padding:0;display:flex;flex-direction:row;align-items:flex-end;gap:5px;transition:transform .2s ease;overflow:visible}',
     '.nc-bubble:hover{transform:translateY(-2px)}',
     '.nc-bubble.open{transform:none}',
 
@@ -140,7 +140,7 @@ function injectStyles() {
     // ── end bot ──────────────────────────────────────────────────────
 
     // Panel
-    '.nc-panel{position:fixed;bottom:calc(1.75rem + 80px + .75rem);right:1.75rem;z-index:900;width:380px;max-height:560px;background:var(--card,#1a1a1a);border:1px solid var(--border2,rgba(255,255,255,.12));border-radius:20px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(12px) scale(.97);transition:opacity .22s ease,transform .25s cubic-bezier(.34,1.3,.64,1);overflow:hidden}',
+    '.nc-panel{position:fixed;bottom:calc(1.75rem + 80px + .75rem);right:1.75rem;z-index:9600;width:380px;max-height:560px;background:var(--card,#1a1a1a);border:1px solid var(--border2,rgba(255,255,255,.12));border-radius:20px;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);opacity:0;pointer-events:none;transform:translateY(12px) scale(.97);transition:opacity .22s ease,transform .25s cubic-bezier(.34,1.3,.64,1);overflow:hidden}',
     '.nc-panel.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}',
 
     // Header

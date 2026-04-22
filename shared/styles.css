@@ -79,7 +79,7 @@ body{
 .gate-btn{width:100%;padding:.9rem;background:var(--primary);color:white;border:none;border-radius:var(--radius-pill);font-size:.95rem;font-family:'Fraunces',serif;font-weight:500;cursor:pointer;transition:all .2s;letter-spacing:-.01em}
 .gate-btn:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,48,204,.3)}
 .gate-btn:active{transform:translateY(0)}
-.gate-error{font-size:.82rem;color:#e53935;margin-top:.5rem;font-family:'Inter',sans-serif;display:none;padding:.5rem .75rem;background:#fee2e2;border-radius:var(--radius-sm)}
+.gate-error{font-size:.82rem;color:#e53935;margin-top:.5rem;font-family:'Inter',sans-serif;display:none;padding:.5rem .75rem;background:rgba(229,57,53,0.12);border:1px solid rgba(229,57,53,0.25);border-radius:var(--radius-sm)}
 
 /* ── AUTH SCREEN ── */
 #auth-screen{
@@ -101,8 +101,8 @@ body{
 .auth-btn:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,48,204,.3)}
 .auth-btn:active{transform:translateY(0)}
 .auth-btn:disabled{background:var(--muted);cursor:not-allowed;transform:none;box-shadow:none}
-.auth-error{font-size:.82rem;color:#e53935;margin-top:.5rem;font-family:'Inter',sans-serif;display:none;padding:.5rem .75rem;background:#fee2e2;border-radius:var(--radius-sm)}
-.auth-success{font-size:.82rem;color:#2e7d32;margin-top:.5rem;font-family:'Inter',sans-serif;display:none;padding:.5rem .75rem;background:#e8f5e9;border-radius:var(--radius-sm)}
+.auth-error{font-size:.82rem;color:#e53935;margin-top:.5rem;font-family:'Inter',sans-serif;display:none;padding:.5rem .75rem;background:rgba(229,57,53,0.12);border:1px solid rgba(229,57,53,0.25);border-radius:var(--radius-sm)}
+.auth-success{font-size:.82rem;color:#2e7d32;margin-top:.5rem;font-family:'Inter',sans-serif;display:none;padding:.5rem .75rem;background:rgba(46,125,50,0.12);border:1px solid rgba(46,125,50,0.25);border-radius:var(--radius-sm)}
 .auth-forgot{font-family:'Inter',sans-serif;font-size:.8rem;color:var(--primary);cursor:pointer;text-align:right;margin-top:.3rem;display:block;font-weight:500}
 .auth-domain-hint{font-family:'Inter',sans-serif;font-size:.75rem;color:var(--muted);margin-top:.25rem}
 
@@ -171,8 +171,15 @@ body{
 .btn-primary:disabled{background:var(--muted);cursor:not-allowed;transform:none;box-shadow:none}
 .btn-ghost{padding:.65rem 1.25rem;background:none;border:1.5px solid var(--border2);border-radius:var(--radius-pill);font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s}
 .btn-ghost:hover{background:var(--bg2);color:var(--body);border-color:transparent}
-.btn-danger{padding:.65rem 1.25rem;background:#fee2e2;border:1.5px solid #fca5a5;border-radius:var(--radius-pill);font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;color:#e53935;cursor:pointer;transition:all .2s}
+.btn-danger{padding:.65rem 1.25rem;background:rgba(229,57,53,0.12);border:1.5px solid rgba(229,57,53,0.3);border-radius:var(--radius-pill);font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;color:#e53935;cursor:pointer;transition:all .2s}
 .btn-danger:hover{background:#e53935;color:white;border-color:#e53935}
+
+/* ── MODAL BUTTONS (used inside .modal-footer) ── */
+.modal-btn-primary{padding:.6rem 1.4rem;background:var(--primary);border:none;border-radius:var(--radius-pill);font-family:'Fraunces',serif;font-size:.9rem;font-weight:500;color:white;cursor:pointer;transition:all .2s;letter-spacing:-.01em}
+.modal-btn-primary:hover{background:var(--primary-dark);box-shadow:0 4px 14px rgba(255,48,204,.28)}
+.modal-btn-primary:active{transform:scale(.97)}
+.modal-btn-secondary{padding:.6rem 1.25rem;background:none;border:1.5px solid var(--border2);border-radius:var(--radius-pill);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s}
+.modal-btn-secondary:hover{background:var(--bg2);color:var(--body);border-color:transparent}
 
 /* ── FORMS ── */
 .form-field{margin-bottom:1rem}
@@ -215,10 +222,14 @@ body{
 .badge-purple{background:rgba(136,84,208,0.15);color:#a78bfa}
 
 /* ── TOAST ── */
-.toast{position:fixed;bottom:2rem;right:2rem;background:var(--h2);color:white;font-family:'Inter',sans-serif;font-size:.84rem;padding:.75rem 1.25rem;border-radius:var(--radius-pill);box-shadow:var(--shadow-xl);z-index:9000;opacity:0;transform:translateY(12px);transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;font-weight:500}
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--h2);color:white;font-family:'Inter',sans-serif;font-size:.84rem;padding:.75rem 1.25rem;border-radius:var(--radius-pill);box-shadow:var(--shadow-xl);z-index:9500;opacity:0;transform:translateY(12px);transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;font-weight:500}
 .toast.show{opacity:1;transform:translateY(0)}
 .toast.success{background:#1a6630}
 .toast.error{background:#c62828}
+/* light theme: toasts need enough contrast on pale backgrounds */
+[data-theme="light"] .toast{background:#1a1a18;color:#fff}
+[data-theme="light"] .toast.success{background:#1e6b35}
+[data-theme="light"] .toast.error{background:#b91c1c}
 
 /* ── PAGE ENTRY ANIMATION ── */
 @keyframes pageIn{
@@ -232,6 +243,12 @@ body{
   outline:3px solid var(--primary);outline-offset:2px
 }
 button:active{transform:scale(.97)}
+
+/* ── EMPTY STATE (unified — use everywhere instead of custom patterns) ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;padding:3rem 1.5rem;text-align:center;color:var(--muted)}
+.empty-state-icon{font-size:2.2rem;opacity:.5}
+.empty-state-title{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:600;color:var(--h2)}
+.empty-state-sub{font-family:'Inter',sans-serif;font-size:.82rem;color:var(--muted);max-width:340px;line-height:1.6}
 
 /* ── PLACEHOLDER ── */
 .coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;text-align:center;padding:2rem}

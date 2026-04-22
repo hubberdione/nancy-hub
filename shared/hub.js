@@ -335,7 +335,8 @@ function openUserMenu() {
   if (existing) { existing.remove(); return; }
   var menu = document.createElement('div');
   menu.id = 'user-dropdown';
-  menu.style.cssText = 'position:fixed;top:56px;right:80px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:999;min-width:200px;overflow:hidden';
+  var menuRight = Math.max(8, Math.min(80, window.innerWidth - 220));
+  menu.style.cssText = 'position:fixed;top:72px;right:' + menuRight + 'px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:9200;min-width:200px;max-width:calc(100vw - 16px);overflow:hidden';
   var info = '<div style="padding:.75rem 1rem;border-bottom:1px solid var(--border)">';
   info += '<div style="font-family:sans-serif;font-size:.85rem;font-weight:600;color:var(--h2)">' + esc(hubState.currentUser ? hubState.currentUser.name : 'User') + '</div>';
   info += '<div style="font-family:sans-serif;font-size:.72rem;color:var(--muted)">' + esc(hubState.currentUser ? hubState.currentUser.email : '') + '</div>';

@@ -899,9 +899,9 @@ async function loadTeam() {
       if (!isMe && !isSuperAdm) {
         html += '<div class="team-actions">';
         if (isAdmin) {
-          html += '<button class="team-role-btn danger" onclick="changeRole(\'' + esc(member.id) + '\',\'member\',\'' + esc(member.name) + '\')">Revoke Lv2</button>';
+          html += '<button class="team-role-btn danger" onclick="changeRole(\'' + esc(member.id) + '\',\'member\',\'' + esc(member.name).replace(/'/g,"&#39;") + '\')">Revoke Lv2</button>';
         } else {
-          html += '<button class="team-role-btn" onclick="changeRole(\'' + esc(member.id) + '\',\'admin\',\'' + esc(member.name) + '\')">Grant Lv2</button>';
+          html += '<button class="team-role-btn" onclick="changeRole(\'' + esc(member.id) + '\',\'admin\',\'' + esc(member.name).replace(/'/g,"&#39;") + '\')">Grant Lv2</button>';
         }
         html += '<button class="team-role-btn danger" onclick="deleteUser(\'' + esc(member.id) + '\',\'' + esc(member.name).replace(/'/g,"&#39;") + '\')">Delete</button>';
         html += '</div>';
@@ -911,7 +911,7 @@ async function loadTeam() {
     html += '</div>';
     wrap.innerHTML = html;
   } catch(e) {
-    wrap.innerHTML = '<div class="activity-empty">Could not load team.</div>';
+    wrap.innerHTML = '<div class="activity-empty">Could not load team. <button onclick="loadTeam()" style="margin-left:.5rem;background:none;border:none;color:var(--primary);cursor:pointer;font-size:.82rem;font-weight:600;text-decoration:underline">Retry</button></div>';
   }
 }
 
