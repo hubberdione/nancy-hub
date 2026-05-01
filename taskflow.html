@@ -3239,16 +3239,24 @@ async function slackLoadSharedSummaries() {
 // ═══════════════════════════════════════
 async function loadTasks() {
   const uid = state.currentUser?.id;
+  if (!uid) { renderBoard(); return; }
   try {
-    // Fetch all tasks + explicitly fetch tasks assigned to me (handles Supabase RLS scenarios)
-    const [allRes, assignedRes] = await Promise.all([
-      db.from('tasks').select('*').order('task_order'),
-      uid ? db.from('tasks').select('*').ilike('assigned_to', `%${uid}%`).order('task_order') : Promise.resolve({ data: [] })
+    // Own tasks: strict owner_id match.
+    // Admin also includes owner_id IS NULL (legacy tasks created before owner tracking was added).
+    const isAdmin = isSuperAdminUser();
+    const ownFilter = isAdmin
+      ? `owner_id.eq.${uid},owner_id.is.null`
+      : `owner_id.eq.${uid}`;
+
+    const [ownRes, assignedRes] = await Promise.all([
+      db.from('tasks').select('*').or(ownFilter).order('task_order'),
+      // Tasks assigned to me by others (exclude tasks I own to avoid duplicates)
+      db.from('tasks').select('*').ilike('assigned_to', `%${uid}%`).neq('owner_id', uid).order('task_order')
     ]);
-    const combined = [...(allRes.data || []), ...(assignedRes.data || [])];
+    const combined = [...(ownRes.data || []), ...(assignedRes.data || [])];
     const seen = new Set();
     state.tasks = combined.filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
-    state.myTasks = state.tasks.slice(); // snapshot of own tasks for reward calc
+    state.myTasks = state.tasks.slice();
   } catch(e) {
     state.tasks = JSON.parse(localStorage.getItem('nancy_tasks') || '[]');
     state.myTasks = state.tasks.slice();
@@ -4104,12 +4112,26 @@ function removeFile(fileId, context, el) {
 // IDEAS
 // ═══════════════════════════════════════
 async function loadIdeas() {
+  const uid = state.currentUser?.id;
+  if (!uid) return;
   try {
-    const { data, error } = await db.from('ideas').select('*, idea_files(*)').order('created_at', { ascending: false });
+    const isAdmin = isSuperAdminUser();
+    // Admin: own ideas + legacy ideas with no owner. Others: strictly their own.
+    // Requires: ALTER TABLE ideas ADD COLUMN IF NOT EXISTS owner_id TEXT;
+    const filter = isAdmin ? `owner_id.eq.${uid},owner_id.is.null` : `owner_id.eq.${uid}`;
+    const { data, error } = await db.from('ideas').select('*, idea_files(*)')
+      .or(filter)
+      .order('created_at', { ascending: false });
     if (error) throw error;
     state.ideas = data || [];
   } catch(e) {
-    state.ideas = JSON.parse(localStorage.getItem('nancy_ideas') || '[]');
+    // Fallback: if owner_id column doesn't exist yet, load all (run the migration SQL to fix)
+    try {
+      const { data } = await db.from('ideas').select('*, idea_files(*)').order('created_at', { ascending: false });
+      state.ideas = data || [];
+    } catch(e2) {
+      state.ideas = JSON.parse(localStorage.getItem('nancy_ideas') || '[]');
+    }
   }
 }
 
@@ -4124,7 +4146,8 @@ async function addIdea() {
 
   try {
     const { data: idea, error } = await db.from('ideas').insert({
-      title, notes: notes || '', links: [], promoted: false, created_at: Date.now()
+      title, notes: notes || '', links: [], promoted: false, created_at: Date.now(),
+      owner_id: state.currentUser?.id || null
     }).select().single();
 
     if (!error && idea && state.ideaFiles.length > 0) {
@@ -4233,20 +4256,18 @@ async function loadDeliverables() {
   const localDelivs = JSON.parse(localStorage.getItem('nancy_delivs') || '[]');
 
   try {
-    // Try filtered by owner_id first (works once column exists in Supabase)
+    const uid = state.currentUser?.id;
+    if (!uid) throw new Error('No user');
+    const isAdmin = isSuperAdminUser();
+    // Admin: own deliverables + legacy null-owner. Others: strict match only.
+    const filter = isAdmin
+      ? `owner_id.eq.${uid},owner_id.is.null`
+      : `owner_id.eq.${uid}`;
     let data, error;
-    if (state.currentUser?.id) {
-      ({ data, error } = await db.from('deliverables')
-        .select('*, deliverable_files(*)')
-        .or(`owner_id.eq.${state.currentUser.id},owner_id.is.null`)
-        .order('completed_at', { ascending: false }));
-    }
-    // If that fails (column not yet in DB), fetch all without filter
-    if (error || !state.currentUser?.id) {
-      ({ data, error } = await db.from('deliverables')
-        .select('*, deliverable_files(*)')
-        .order('completed_at', { ascending: false }));
-    }
+    ({ data, error } = await db.from('deliverables')
+      .select('*, deliverable_files(*)')
+      .or(filter)
+      .order('completed_at', { ascending: false }));
     if (error) throw error;
     const remote = (data || []).filter(delivHasContent);
     // Merge local fallbacks that aren't already in remote (by task_title + completed_at proximity)
