@@ -218,9 +218,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--body);min-h
 .task-action-btn:hover{background:var(--bg2);color:var(--body)}
 .task-action-btn.del:hover{background:#fee2e2;color:#e53935}
 /* DRAG & DROP */
-.task-drag-handle{width:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;cursor:grab;opacity:0;transition:opacity .15s;line-height:1;margin-left:-2px;padding-right:2px}
-.task-card:hover .task-drag-handle{opacity:.5}
-.task-drag-handle:active{cursor:grabbing}
+.task-drag-handle{width:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;cursor:grab;opacity:.25;transition:opacity .15s;line-height:1;margin-left:-2px;padding-right:2px;user-select:none}
+.task-card:hover .task-drag-handle{opacity:.6}
+.task-drag-handle:active{cursor:grabbing;opacity:1}
+.task-card{user-select:none}
 .task-card.dragging{opacity:.3;border-style:dashed!important;transform:none!important;box-shadow:none!important}
 .task-card.drag-above{border-top:2.5px solid var(--primary)!important}
 .task-card.drag-below{border-bottom:2.5px solid var(--primary)!important}
@@ -3584,7 +3585,7 @@ function createTaskCard(task, tier) {
 
   card.innerHTML = `
     <div class="task-top">
-      <div class="task-drag-handle" title="Drag to reorder within tier, or drag to another tier" style="cursor:grab">⠿</div>
+      <div class="task-drag-handle" title="Drag to reorder">⠿</div>
       <div class="task-check ${task.completed ? 'done' : ''}" onclick="toggleTask('${task.id}')"></div>
       <div class="task-title">${esc(task.title)}</div>
       <div class="task-actions">
@@ -3828,11 +3829,12 @@ async function saveTask() {
 
   // ── CREATE MODE ──
   const limit = TIER_LIMITS[tier];
-  // Use getVisibleTasks() — same source as the board display counter — so the capacity
-  // check matches what the user actually sees (not the full state.tasks which includes
-  // tasks from other boards/members loaded into memory)
-  const existing = getVisibleTasks().filter(t => t.tier === tier && !t.completed).length;
-  if (limit && existing >= limit) {
+  // Read count from the DOM counter (same number shown to user in the tier header).
+  // This is the only source guaranteed to match what's visually displayed — avoids
+  // null-owner tasks from other users inflating the count in state.tasks.
+  const countEl = document.getElementById('count-' + tier);
+  const existing = countEl ? parseInt(countEl.textContent.split('/')[0], 10) : 0;
+  if (limit && !isNaN(existing) && existing >= limit) {
     btn.disabled = false;
     btn.textContent = 'Add Task';
     closeModal('modal-add-task');
