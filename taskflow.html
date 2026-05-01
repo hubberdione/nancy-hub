@@ -4453,11 +4453,11 @@ function getMonthStart() {
 }
 
 function calcDailyPct() {
-  // Daily = my own Focus Today tasks created TODAY (from 7 AM HKT) only
-  // Tasks added on previous days are NOT counted against today's score — they belong to the day they were created
-  const dayStart = getDayStart7am();
-  const focusToday = getMyOwnTasks().filter(t => t.tier === 'focus-today' && (t.created_at || 0) >= dayStart);
-  if (!focusToday.length) return -1; // -1 = no tasks set today (different from 0%)
+  // Daily = ALL my own Focus Today tasks (including carry-overs from previous days)
+  // Unfinished tasks from yesterday stay in Focus Today and count toward today's score
+  // This means a carried-over task is "still yours to complete" — it counts as a task for today
+  const focusToday = getMyOwnTasks().filter(t => t.tier === 'focus-today');
+  if (!focusToday.length) return -1; // -1 = no tasks in Focus Today at all (different from 0%)
   const done = focusToday.filter(t => t.completed);
   return Math.round((done.length / focusToday.length) * 100);
 }
@@ -4750,9 +4750,7 @@ function checkMorningNudge() {
   const h = pht.getUTCHours(); // HKT is UTC+8, but getHKT() already shifts so UTC hours = HKT hours
   if (h < 7 || h >= 10) return; // only fire 7–9 AM HKT
   if (state.currentBoard !== 'personal') return; // only on personal board
-  const focusCount = state.tasks.filter(t =>
-    t.tier === 'focus-today' && !t.completed && (t.created_at || 0) >= getDayStart7am()
-  ).length;
+  const focusCount = state.tasks.filter(t => t.tier === 'focus-today' && !t.completed).length;
   if (focusCount >= 3) return; // already set 3+ tasks
   const key = 'morning_nudge_' + pht.toDateString();
   if (localStorage.getItem(key)) return; // already shown today
