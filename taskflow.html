@@ -4618,13 +4618,26 @@ function getMonthStart() {
 }
 
 function calcDailyPct() {
-  // Daily = ALL my own Focus Today tasks (including carry-overs from previous days)
-  // Unfinished tasks from yesterday stay in Focus Today and count toward today's score
-  // This means a carried-over task is "still yours to complete" — it counts as a task for today
-  const focusToday = getMyOwnTasks().filter(t => t.tier === 'focus-today');
-  if (!focusToday.length) return -1; // -1 = no tasks in Focus Today at all (different from 0%)
-  const done = focusToday.filter(t => t.completed);
-  return Math.round((done.length / focusToday.length) * 100);
+  // Daily reward score for TODAY (resets at 7 AM HKT each morning).
+  //
+  // What counts:
+  //   - Uncompleted tasks in Focus Today (including carry-overs from yesterday — still your job)
+  //   - Tasks completed AFTER today's 7 AM HKT (today's wins)
+  //
+  // What DOESN'T count:
+  //   - Tasks completed BEFORE today's 7 AM HKT — those belong to yesterday's score and were
+  //     already saved at 6 PM yesterday. Including them would let stale completed tasks inflate
+  //     today's score to 100% even when you did nothing today (the bug we just fixed).
+  const dayStart = getDayStart7am();
+  const focusToday = getMyOwnTasks().filter(t => {
+    if (t.tier !== 'focus-today') return false;
+    // Filter out completions that happened before today
+    if (t.completed && (t.completed_at || 0) < dayStart) return false;
+    return true;
+  });
+  if (!focusToday.length) return -1; // sentinel: no tasks in scope today
+  const doneToday = focusToday.filter(t => t.completed); // necessarily completed today, given the filter above
+  return Math.round((doneToday.length / focusToday.length) * 100);
 }
 
 function calcWeeklyPct() {
