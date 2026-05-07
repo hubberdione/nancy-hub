@@ -327,10 +327,14 @@
     <div class="admin-section">
       <div class="admin-section-header">
         <div class="admin-section-title">📦 Storage Diagnostic</div>
-        <button class="admin-section-action" onclick="runStorageDiag()">↻ Run diagnostic</button>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="admin-section-action" onclick="runStorageDiag()">↻ Run diagnostic</button>
+          <button class="admin-section-action" onclick="dryRunMigration()" style="color:#f7b731">🔍 Preview migration</button>
+          <button class="admin-section-action" onclick="confirmMigration()" style="color:#3ecf8e">🚀 Migrate to Drive</button>
+        </div>
       </div>
       <div id="storage-diag-body">
-        <div class="admin-loading" style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Click <b>Run diagnostic</b> to scan Supabase Storage and Google Drive for actual usage.</div>
+        <div class="admin-loading" style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Click <b>Run diagnostic</b> to scan Supabase Storage and Google Drive for actual usage. Or <b>🔍 Preview migration</b> to see what would move from Supabase → Drive (no changes made).</div>
       </div>
     </div>
 
@@ -520,6 +524,258 @@ async function onPageReady() {
   loadTeam();
   loadActivity();
   loadClientWorkspaces();
+}
+
+// ── MIGRATION: Supabase Storage → Google Drive ────────────────────────────
+//
+// One-shot tool. Walks every DB record that holds a Supabase Storage URL,
+// downloads each file, re-uploads to Drive (with proper sharing), then
+// updates the DB to point to the Drive URL. Optionally deletes the original
+// from Supabase after each successful migration.
+//
+// Tables affected:
+//   - social_assets.url           (single URL per row)
+//   - learning_docs.attachments   (JSON array of {name,url,type,size})
+//
+// Always runs in dry-run mode first if user hits "🔍 Preview migration".
+// "🚀 Migrate to Drive" runs the real migration after explicit confirm.
+
+function _isSupabaseUrl(url) {
+  return typeof url === 'string' && url.indexOf('supabase.co/storage') !== -1;
+}
+
+// Extract bucket + path from a Supabase public URL
+//   https://xxx.supabase.co/storage/v1/object/public/<bucket>/<path>
+function _parseSupabaseUrl(url) {
+  var m = url.match(/\/storage\/v1\/object\/public\/([^\/]+)\/(.+?)(\?|$)/);
+  if (!m) return null;
+  return { bucket: m[1], path: m[2] };
+}
+
+async function _downloadAndUploadToDrive(supabaseUrl, section, fileName) {
+  // Download from Supabase (public URL, no auth needed)
+  var dlRes = await fetch(supabaseUrl);
+  if (!dlRes.ok) throw new Error('Download failed: HTTP ' + dlRes.status);
+  var blob = await dlRes.blob();
+  // Convert blob to base64 data URI for Apps Script
+  var base64 = await new Promise(function(resolve, reject) {
+    var fr = new FileReader();
+    fr.onload = function() { resolve(fr.result); };
+    fr.onerror = reject;
+    fr.readAsDataURL(blob);
+  });
+  // Upload to Drive
+  var upRes = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'upload',
+      fileName: fileName || 'migrated-file',
+      mimeType: blob.type || 'application/octet-stream',
+      fileData: base64,
+      section: section || 'migrated'
+    }),
+    redirect: 'follow'
+  });
+  var upData = await upRes.json();
+  if (!upData.success) throw new Error('Drive upload failed: ' + (upData.error || 'unknown'));
+  return upData.directUrl || upData.viewUrl;
+}
+
+async function _scanMigrationCandidates() {
+  // Returns { socialRows, learningRows, totalFiles, totalBytes }
+  var socialRows = [];
+  var learningRows = [];
+  var totalFiles = 0;
+
+  // Scan social_assets
+  try {
+    var sa = await db.from('social_assets').select('*');
+    if (sa.data) {
+      sa.data.forEach(function(row) {
+        if (_isSupabaseUrl(row.url)) {
+          socialRows.push(row);
+          totalFiles++;
+        }
+      });
+    }
+  } catch(e) { console.warn('social_assets scan failed:', e); }
+
+  // Scan learning_docs (covers both docs and gems via section column)
+  try {
+    var ld = await db.from('learning_docs').select('*');
+    if (ld.data) {
+      ld.data.forEach(function(row) {
+        var atts = row.attachments || [];
+        if (Array.isArray(atts)) {
+          var hits = atts.filter(function(a) { return _isSupabaseUrl(a.url); });
+          if (hits.length) {
+            learningRows.push({ row: row, supabaseAttachments: hits });
+            totalFiles += hits.length;
+          }
+        }
+      });
+    }
+  } catch(e) { console.warn('learning_docs scan failed:', e); }
+
+  return { socialRows: socialRows, learningRows: learningRows, totalFiles: totalFiles };
+}
+
+async function dryRunMigration() {
+  var body = document.getElementById('storage-diag-body');
+  if (body) body.innerHTML = '<div class="admin-loading" style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Scanning database for Supabase URLs…</div>';
+
+  var scan = await _scanMigrationCandidates();
+  var html = '<div style="font-family:Inter,sans-serif;font-size:.85rem;line-height:1.65">';
+  html += '<div style="font-weight:600;color:var(--h2);margin-bottom:.5rem">🔍 Migration Preview (dry run — no changes made)</div>';
+  html += '<div style="background:var(--bg2);border-radius:8px;padding:.75rem 1rem">';
+  html += '<div><b>social_assets:</b> ' + scan.socialRows.length + ' rows with Supabase URLs</div>';
+  html += '<div><b>learning_docs:</b> ' + scan.learningRows.length + ' rows with Supabase attachments</div>';
+  html += '<div style="margin-top:.4rem;padding-top:.4rem;border-top:1px solid var(--border)"><b>Total files to migrate:</b> ' + scan.totalFiles + '</div>';
+  html += '</div>';
+  if (scan.totalFiles === 0) {
+    html += '<div style="margin-top:.75rem;padding:.75rem 1rem;background:rgba(62,207,142,0.1);border-left:3px solid #3ecf8e;border-radius:6px">✅ Nothing to migrate. Your DB has zero Supabase URLs — everything is already in Drive (or never used Supabase Storage).</div>';
+  } else {
+    html += '<div style="margin-top:.75rem;padding:.75rem 1rem;background:rgba(247,183,49,0.1);border-left:3px solid #f7b731;border-radius:6px">';
+    html += 'To actually run the migration, click <b>🚀 Migrate to Drive</b>. It will:<br>';
+    html += '1. Download each file from Supabase<br>';
+    html += '2. Re-upload to Drive (under "Nancy Hub" folder, same subfolder structure)<br>';
+    html += '3. Update the DB row to point to the new Drive URL<br>';
+    html += '4. Optionally delete the Supabase original (you confirm)<br>';
+    html += '<br>Files keep working throughout — old URLs resolve until DB is updated.';
+    html += '</div>';
+  }
+  html += '</div>';
+  if (body) body.innerHTML = html;
+}
+
+async function confirmMigration() {
+  var body = document.getElementById('storage-diag-body');
+  if (body) body.innerHTML = '<div class="admin-loading" style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Counting candidates…</div>';
+  var scan = await _scanMigrationCandidates();
+  if (scan.totalFiles === 0) {
+    if (body) body.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;padding:.75rem 1rem;background:rgba(62,207,142,0.1);border-left:3px solid #3ecf8e;border-radius:6px">✅ Nothing to migrate. All clean.</div>';
+    return;
+  }
+  if (!confirm('This will migrate ' + scan.totalFiles + ' files from Supabase Storage → Google Drive and update DB URLs. Continue?')) return;
+  var deleteOriginals = confirm('Also DELETE original files from Supabase after each successful copy? (Recommended for full migration. Cancel to keep originals as backup.)');
+  await runMigration(scan, deleteOriginals);
+}
+
+async function runMigration(scan, deleteOriginals) {
+  var body = document.getElementById('storage-diag-body');
+  var done = 0, failed = 0;
+  var total = scan.totalFiles;
+  var logEntries = [];
+
+  function render() {
+    var pct = total > 0 ? Math.round((done + failed) / total * 100) : 100;
+    var html = '<div style="font-family:Inter,sans-serif;font-size:.85rem;line-height:1.6">';
+    html += '<div style="font-weight:600;color:var(--h2);margin-bottom:.5rem">🚀 Migration in progress…</div>';
+    html += '<div style="background:var(--bg2);border-radius:8px;padding:.75rem 1rem">';
+    html += '<div style="margin-bottom:.4rem"><b>' + done + '</b> migrated · <b>' + failed + '</b> failed · <b>' + (total - done - failed) + '</b> remaining</div>';
+    html += '<div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden"><div style="background:#3ecf8e;height:100%;width:' + pct + '%;transition:width .3s"></div></div>';
+    html += '</div>';
+    html += '<div style="margin-top:.5rem;max-height:300px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.5rem;font-family:ui-monospace,monospace;font-size:.72rem">';
+    html += logEntries.slice(-50).map(function(l) {
+      var color = l.indexOf('✗') === 0 ? 'color:#e05470' : (l.indexOf('✓') === 0 ? 'color:#3ecf8e' : '');
+      return '<div style="' + color + '">' + l + '</div>';
+    }).join('');
+    html += '</div></div>';
+    if (body) body.innerHTML = html;
+  }
+
+  function log(msg) {
+    logEntries.push(new Date().toLocaleTimeString() + '  ' + msg);
+    render();
+  }
+
+  log('Starting migration of ' + total + ' files…');
+
+  // ── 1. Migrate social_assets ──
+  for (var i = 0; i < scan.socialRows.length; i++) {
+    var row = scan.socialRows[i];
+    var parsed = _parseSupabaseUrl(row.url);
+    if (!parsed) { failed++; log('✗ Bad URL on social_assets ' + row.id + ': ' + row.url); continue; }
+    try {
+      var fileName = parsed.path.split('/').pop();
+      var section = 'migrated/social-assets/' + (row.avatar_id || 'unknown');
+      log('… social_assets ' + row.id + ' → uploading ' + fileName);
+      var newUrl = await _downloadAndUploadToDrive(row.url, section, fileName);
+      // Update DB
+      var upd = await db.from('social_assets').update({ url: newUrl }).eq('id', row.id);
+      if (upd.error) throw new Error('DB update failed: ' + upd.error.message);
+      // Delete original
+      if (deleteOriginals) {
+        try { await db.storage.from(parsed.bucket).remove([parsed.path]); } catch(e) { /* keep going */ }
+      }
+      done++;
+      log('✓ social_assets ' + row.id + ' → ' + fileName);
+    } catch(e) {
+      failed++;
+      log('✗ social_assets ' + row.id + ': ' + e.message);
+    }
+  }
+
+  // ── 2. Migrate learning_docs attachments ──
+  for (var j = 0; j < scan.learningRows.length; j++) {
+    var item = scan.learningRows[j];
+    var origAtts = item.row.attachments || [];
+    var newAtts = [];
+    var anyFailed = false;
+    for (var k = 0; k < origAtts.length; k++) {
+      var att = origAtts[k];
+      if (!_isSupabaseUrl(att.url)) {
+        newAtts.push(att); // already on Drive or external — keep as-is
+        continue;
+      }
+      var parsedAtt = _parseSupabaseUrl(att.url);
+      try {
+        var attSection = 'migrated/learning/' + (item.row.section || 'doc') + '/' + item.row.id;
+        log('… learning ' + item.row.id + ' → uploading ' + att.name);
+        var newAttUrl = await _downloadAndUploadToDrive(att.url, attSection, att.name);
+        newAtts.push(Object.assign({}, att, { url: newAttUrl }));
+        if (deleteOriginals && parsedAtt) {
+          try { await db.storage.from(parsedAtt.bucket).remove([parsedAtt.path]); } catch(e) {}
+        }
+        done++;
+        log('✓ learning ' + item.row.id + ' → ' + att.name);
+      } catch(e) {
+        failed++;
+        anyFailed = true;
+        newAtts.push(att); // keep old URL so the file isn't lost from the DB record
+        log('✗ learning ' + item.row.id + ' / ' + att.name + ': ' + e.message);
+      }
+    }
+    // Update the row with the new attachments array (only if at least one changed)
+    var changed = origAtts.some(function(a, idx) { return a.url !== newAtts[idx].url; });
+    if (changed) {
+      try {
+        var updL = await db.from('learning_docs').update({ attachments: newAtts }).eq('id', item.row.id);
+        if (updL.error) throw new Error(updL.error.message);
+      } catch(e) {
+        log('⚠ DB update failed for learning ' + item.row.id + ': ' + e.message);
+      }
+    }
+  }
+
+  // ── Summary ──
+  log('');
+  log('Migration complete: ' + done + ' files moved, ' + failed + ' failed.');
+  var finalHtml = '<div style="font-family:Inter,sans-serif;font-size:.85rem;line-height:1.6">';
+  finalHtml += '<div style="font-weight:600;color:var(--h2);margin-bottom:.5rem">' + (failed === 0 ? '✅' : '⚠️') + ' Migration ' + (failed === 0 ? 'complete' : 'finished with errors') + '</div>';
+  finalHtml += '<div style="background:var(--bg2);border-radius:8px;padding:.75rem 1rem">';
+  finalHtml += '<div><b>' + done + '</b> files migrated successfully</div>';
+  if (failed > 0) finalHtml += '<div style="color:#e05470"><b>' + failed + '</b> failed (kept original Supabase URL — file safe)</div>';
+  finalHtml += '<div style="margin-top:.4rem;font-size:.78rem;color:var(--muted)">' + (deleteOriginals ? 'Originals were deleted from Supabase as we went.' : 'Originals kept in Supabase as backup. Run again with delete-originals to clean up.') + '</div>';
+  finalHtml += '</div>';
+  finalHtml += '<details style="margin-top:.75rem"><summary style="cursor:pointer;color:var(--muted);font-size:.78rem">View full log (' + logEntries.length + ' entries)</summary>';
+  finalHtml += '<div style="margin-top:.4rem;max-height:400px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.5rem;font-family:ui-monospace,monospace;font-size:.7rem">';
+  finalHtml += logEntries.map(function(l) {
+    var color = l.indexOf('✗') !== -1 ? 'color:#e05470' : (l.indexOf('✓') !== -1 ? 'color:#3ecf8e' : '');
+    return '<div style="' + color + '">' + l + '</div>';
+  }).join('');
+  finalHtml += '</div></details></div>';
+  if (body) body.innerHTML = finalHtml;
 }
 
 // ── STORAGE DIAGNOSTIC ──
