@@ -5388,14 +5388,20 @@ async function markAllRead() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── APPS SCRIPT PROXY (self-contained — does NOT depend on hub.js)
-// Defined locally so the email feature works even if shared/hub.js is cached
-// or fails to load. Same signature/behavior as window.callEmailScript.
+//
+// CRITICAL: Do NOT set Content-Type header. Without it, the browser defaults
+// to text/plain which is a "simple request" → no CORS preflight. Setting
+// Content-Type: application/json triggers a preflight OPTIONS that Google
+// Apps Script web apps don't respond to → "Failed to fetch" in the browser.
+//
+// Apps Script reads JSON from e.postData.contents regardless of header.
+// This matches the proven pattern used by the existing upload/usage calls
+// elsewhere in this file.
 async function callEmailScriptLocal(scriptUrl, action, payload) {
   if (!scriptUrl) throw new Error('No Apps Script URL configured');
   var body = Object.assign({ action: action }, payload || {});
   var res = await fetch(scriptUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
     redirect: 'follow'
   });

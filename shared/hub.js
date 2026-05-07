@@ -573,12 +573,17 @@ window.callGroqLight = callGroqLight;
 // ── EMAIL APPS SCRIPT HELPER ──
 // Routes a request through any user-deployed Apps Script web app.
 // Supports actions: 'usage', 'fetchEmails', 'sendEmail'
+//
+// CRITICAL: Do NOT set Content-Type header. Without it, the browser defaults
+// to text/plain which is a "simple request" → no CORS preflight. Setting
+// Content-Type: application/json triggers a preflight OPTIONS that Google
+// Apps Script web apps don't respond to → "Failed to fetch" in the browser.
+// Apps Script reads JSON from e.postData.contents regardless of header.
 async function callEmailScript(scriptUrl, action, payload) {
   if (!scriptUrl) throw new Error('No Apps Script URL configured');
   var body = Object.assign({ action: action }, payload || {});
   var res = await fetch(scriptUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
     redirect: 'follow'
   });
