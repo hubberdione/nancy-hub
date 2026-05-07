@@ -323,6 +323,17 @@
       </div><!-- /health-grid -->
     </div><!-- /health section -->
 
+    <!-- ── STORAGE DIAGNOSTIC ── -->
+    <div class="admin-section">
+      <div class="admin-section-header">
+        <div class="admin-section-title">📦 Storage Diagnostic</div>
+        <button class="admin-section-action" onclick="runStorageDiag()">↻ Run diagnostic</button>
+      </div>
+      <div id="storage-diag-body">
+        <div class="admin-loading" style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Click <b>Run diagnostic</b> to scan Supabase Storage and Google Drive for actual usage.</div>
+      </div>
+    </div>
+
     <!-- ── USAGE ── -->
     <div class="admin-section">
       <div class="admin-section-header">
@@ -509,6 +520,123 @@ async function onPageReady() {
   loadTeam();
   loadActivity();
   loadClientWorkspaces();
+}
+
+// ── STORAGE DIAGNOSTIC ──
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+  return (b/1073741824).toFixed(2) + ' GB';
+}
+
+async function _walkSbBucket(bucket, prefix) {
+  prefix = prefix || '';
+  try {
+    var res = await db.storage.from(bucket).list(prefix, { limit: 1000, offset: 0 });
+    if (res.error) throw res.error;
+    var items = res.data || [];
+    var totalBytes = 0, totalFiles = 0;
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var path = prefix ? prefix + '/' + it.name : it.name;
+      if (it.id === null || it.id === undefined) {
+        // Folder — recurse
+        var sub = await _walkSbBucket(bucket, path);
+        totalBytes += sub.bytes;
+        totalFiles += sub.files;
+      } else {
+        var sz = (it.metadata && it.metadata.size) || 0;
+        totalBytes += sz;
+        totalFiles++;
+      }
+    }
+    return { bytes: totalBytes, files: totalFiles, ok: true };
+  } catch(e) {
+    return { bytes: 0, files: 0, ok: false, error: e.message };
+  }
+}
+
+async function runStorageDiag() {
+  var body = document.getElementById('storage-diag-body');
+  if (!body) return;
+  body.innerHTML = '<div style="font-family:Inter,sans-serif;font-size:.85rem;color:var(--muted);padding:1rem 0">Scanning… (this can take 5–10 seconds)</div>';
+
+  // ── SUPABASE ──
+  var knownBuckets = ['social-assets', 'learning-files', 'learning-docs', 'learning-gems', 'avatars', 'public', 'images', 'idea-files', 'deliverable-files'];
+  var sbResults = [];
+  var sbTotal = 0;
+  for (var i = 0; i < knownBuckets.length; i++) {
+    var b = knownBuckets[i];
+    var r = await _walkSbBucket(b);
+    if (r.ok && (r.files > 0 || r.bytes > 0)) {
+      sbResults.push({ bucket: b, files: r.files, bytes: r.bytes });
+      sbTotal += r.bytes;
+    }
+    // Skip empty/non-existent buckets silently
+  }
+
+  // ── DRIVE ──
+  var driveBytes = 0, driveErr = null;
+  try {
+    var r = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'usage' }) });
+    var data = await r.json();
+    if (data.success) {
+      driveBytes = data.used || 0;
+    } else {
+      driveErr = data.error || 'Apps Script returned no success';
+    }
+  } catch(e) {
+    driveErr = e.message;
+  }
+
+  // ── RENDER ──
+  var sbFreeTier = 1073741824; // 1 GB Supabase free tier
+  var sbPct = (sbTotal / sbFreeTier * 100).toFixed(1);
+  var sbStatus = sbTotal > sbFreeTier ? '🔴 OVER 1 GB free tier' : (sbTotal > sbFreeTier * 0.8 ? '⚠️ Above 80%' : '✅ OK');
+
+  var drive5tb = 5 * 1099511627776;
+  var drivePct = (driveBytes / drive5tb * 100).toFixed(3);
+  var driveStatus = driveErr ? '❌ ' + driveErr : (driveBytes > drive5tb * 0.8 ? '⚠️ Above 80% of 5 TB' : '✅ Plenty of room');
+
+  var verdict;
+  if (sbTotal > sbFreeTier * 0.8) {
+    verdict = '🎯 <b>Supabase is the bottleneck.</b> Migrate the social-assets / learning-files buckets to Drive. Your Drive has 5 TB — basically infinite room for these files.';
+  } else if (driveBytes > drive5tb * 0.8) {
+    verdict = '🎯 <b>Drive is genuinely full.</b> You need to clean up Drive (audit large files in My Drive). Migration to Drive would not help.';
+  } else {
+    verdict = '🎯 <b>Neither is actually full.</b> The "325%" banner is fake math (hardcoded 15 GB limit vs your real 5 TB plan). No migration needed — just fix the banner.';
+  }
+
+  var sbRowsHtml = sbResults.length
+    ? sbResults.map(function(r) {
+        return '<tr><td style="padding:.4rem .6rem">' + r.bucket + '</td>' +
+               '<td style="padding:.4rem .6rem;text-align:right">' + r.files + '</td>' +
+               '<td style="padding:.4rem .6rem;text-align:right">' + fmtBytes(r.bytes) + '</td></tr>';
+      }).join('')
+    : '<tr><td colspan="3" style="padding:.5rem;color:var(--muted);font-style:italic">No Supabase Storage usage found</td></tr>';
+
+  body.innerHTML =
+    '<div style="font-family:Inter,sans-serif;font-size:.85rem;line-height:1.6">' +
+      '<div style="margin-bottom:1rem">' +
+        '<div style="font-weight:600;color:var(--h2);margin-bottom:.4rem">Supabase Storage</div>' +
+        '<table style="width:100%;border-collapse:collapse;background:var(--bg2);border-radius:8px;overflow:hidden;font-size:.78rem">' +
+          '<thead><tr style="background:var(--bg3)"><th style="padding:.5rem .6rem;text-align:left">Bucket</th><th style="padding:.5rem .6rem;text-align:right">Files</th><th style="padding:.5rem .6rem;text-align:right">Size</th></tr></thead>' +
+          '<tbody>' + sbRowsHtml + '</tbody>' +
+        '</table>' +
+        '<div style="margin-top:.5rem;font-size:.78rem;color:var(--muted)">Total: <b style="color:var(--h2)">' + fmtBytes(sbTotal) + '</b> · Free tier limit: 1 GB · ' + sbPct + '% of free tier · ' + sbStatus + '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:1rem">' +
+        '<div style="font-weight:600;color:var(--h2);margin-bottom:.4rem">Google Drive</div>' +
+        '<div style="background:var(--bg2);border-radius:8px;padding:.6rem .75rem;font-size:.82rem">' +
+          'Used: <b style="color:var(--h2)">' + fmtBytes(driveBytes) + '</b><br>' +
+          'Your plan: 5 TB · ' + drivePct + '% of plan · ' + driveStatus +
+        '</div>' +
+      '</div>' +
+      '<div style="background:rgba(255,48,204,.08);border-left:3px solid var(--primary);padding:.75rem 1rem;border-radius:6px">' +
+        verdict +
+      '</div>' +
+    '</div>';
 }
 
 // ── CLAUDE AI SPENDING ──
