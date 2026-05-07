@@ -179,7 +179,7 @@ function fetchEmails(payload) {
         date:    lastMsg.getDate().toISOString(),
         snippet: lastMsg.getPlainBody().substring(0, 400).replace(/\s+/g, ' ').trim(),
         unread:  thread.isUnread(),
-        starred: thread.isInStarred()
+        starred: thread.hasStarredMessages()  // FIXED: isInStarred() does not exist on GmailThread
       });
     }
 
