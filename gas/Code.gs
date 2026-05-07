@@ -46,13 +46,17 @@ function respond(data) {
 function getDriveUsage() {
   try {
     var quota = DriveApp.getStorageUsed();
-    var limit = 15 * 1024 * 1024 * 1024; // 15 GB free tier
+    // Real limit from Google — works for free, Workspace, and any custom plan
+    var limit = 0;
+    try { limit = DriveApp.getStorageLimit(); } catch(e) { limit = 15 * 1024 * 1024 * 1024; /* fallback */ }
+    if (!limit || limit <= 0) limit = 15 * 1024 * 1024 * 1024;
     var pct = Math.round((quota / limit) * 100);
 
     function formatBytes(bytes) {
       if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
       if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-      return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+      if (bytes < 1024 * 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+      return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(2) + ' TB';
     }
 
     return {

@@ -577,12 +577,13 @@ async function runStorageDiag() {
   }
 
   // ── DRIVE ──
-  var driveBytes = 0, driveErr = null;
+  var driveBytes = 0, driveLimit = 0, driveErr = null;
   try {
     var r = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'usage' }) });
     var data = await r.json();
     if (data.success) {
       driveBytes = data.used || 0;
+      driveLimit = data.total || 0;
     } else {
       driveErr = data.error || 'Apps Script returned no success';
     }
@@ -595,17 +596,23 @@ async function runStorageDiag() {
   var sbPct = (sbTotal / sbFreeTier * 100).toFixed(1);
   var sbStatus = sbTotal > sbFreeTier ? '🔴 OVER 1 GB free tier' : (sbTotal > sbFreeTier * 0.8 ? '⚠️ Above 80%' : '✅ OK');
 
-  var drive5tb = 5 * 1099511627776;
-  var drivePct = (driveBytes / drive5tb * 100).toFixed(3);
-  var driveStatus = driveErr ? '❌ ' + driveErr : (driveBytes > drive5tb * 0.8 ? '⚠️ Above 80% of 5 TB' : '✅ Plenty of room');
+  // Real Drive limit from GAS, not hardcoded
+  var driveLimitLabel = driveLimit > 0 ? fmtBytes(driveLimit) : 'unknown (Apps Script needs redeploy)';
+  var drivePct = driveLimit > 0 ? (driveBytes / driveLimit * 100).toFixed(2) : 'n/a';
+  var driveOver80 = driveLimit > 0 && driveBytes > driveLimit * 0.8;
+  var driveStatus = driveErr
+    ? '❌ ' + driveErr
+    : (driveLimit <= 0 ? '⚠️ Could not determine real limit — redeploy Apps Script to fetch it' : (driveOver80 ? '⚠️ Above 80% of plan' : '✅ Plenty of room'));
 
   var verdict;
   if (sbTotal > sbFreeTier * 0.8) {
-    verdict = '🎯 <b>Supabase is the bottleneck.</b> Migrate the social-assets / learning-files buckets to Drive. Your Drive has 5 TB — basically infinite room for these files.';
-  } else if (driveBytes > drive5tb * 0.8) {
-    verdict = '🎯 <b>Drive is genuinely full.</b> You need to clean up Drive (audit large files in My Drive). Migration to Drive would not help.';
+    verdict = '🎯 <b>Supabase is the bottleneck.</b> Your Supabase Storage is full or near full. Migrate social-assets / learning-files buckets to Drive (you have ' + driveLimitLabel + ' of Drive room).';
+  } else if (driveOver80) {
+    verdict = '🎯 <b>Drive is genuinely full.</b> ' + fmtBytes(driveBytes) + ' used of ' + driveLimitLabel + '. Audit large files in My Drive — migration TO Drive would not help.';
+  } else if (driveLimit <= 0) {
+    verdict = '⚠️ <b>Need to verify Drive plan.</b> Apps Script must be redeployed (Manage deployments → New version) so it can call DriveApp.getStorageLimit() and tell us your actual quota.';
   } else {
-    verdict = '🎯 <b>Neither is actually full.</b> The "325%" banner is fake math (hardcoded 15 GB limit vs your real 5 TB plan). No migration needed — just fix the banner.';
+    verdict = '🎯 <b>Neither is full.</b> Real numbers: Supabase ' + fmtBytes(sbTotal) + ' / 1 GB · Drive ' + fmtBytes(driveBytes) + ' / ' + driveLimitLabel + '. The 325% banner was bogus math — no migration needed, just fix the banner.';
   }
 
   var sbRowsHtml = sbResults.length
@@ -630,7 +637,7 @@ async function runStorageDiag() {
         '<div style="font-weight:600;color:var(--h2);margin-bottom:.4rem">Google Drive</div>' +
         '<div style="background:var(--bg2);border-radius:8px;padding:.6rem .75rem;font-size:.82rem">' +
           'Used: <b style="color:var(--h2)">' + fmtBytes(driveBytes) + '</b><br>' +
-          'Your plan: 5 TB · ' + drivePct + '% of plan · ' + driveStatus +
+          'Real plan limit: <b style="color:var(--h2)">' + driveLimitLabel + '</b> · ' + drivePct + '% used · ' + driveStatus +
         '</div>' +
       '</div>' +
       '<div style="background:rgba(255,48,204,.08);border-left:3px solid var(--primary);padding:.75rem 1rem;border-radius:6px">' +
