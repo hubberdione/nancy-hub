@@ -848,6 +848,9 @@ body.reward-time .rtp-icon{display:block}
 .email-source-pill{font-family:Inter,sans-serif;font-size:.7rem;color:var(--muted);background:var(--bg2);padding:.2rem .55rem;border-radius:100px;display:inline-flex;align-items:center;gap:.25rem}
 .email-source-pill.add{background:transparent;border:1px dashed var(--border2);color:var(--muted);cursor:pointer}
 .email-source-pill.add:hover{color:var(--primary);border-color:var(--primary)}
+.email-source-pill.self{background:rgba(255,48,204,.12);color:var(--primary)}
+.email-range-select{font-family:Inter,sans-serif;font-size:.7rem;background:var(--bg2);color:var(--muted);border:none;padding:.2rem .35rem;border-radius:100px;cursor:pointer;margin-left:auto}
+.email-range-select:hover{color:var(--h2)}
 
 .email-tab-bar{display:flex;gap:.25rem;padding:.5rem 1rem;border-bottom:1px solid var(--border);overflow-x:auto}
 .email-tab{font-family:Inter,sans-serif;font-size:.78rem;font-weight:500;background:transparent;border:1px solid transparent;color:var(--muted);padding:.3rem .7rem;border-radius:100px;cursor:pointer;white-space:nowrap;flex-shrink:0}
@@ -1781,6 +1784,7 @@ let state = {
     pullAllMode: false,
     activeTab: 'all',                            // 'all' | 'urgent' | label id
     deadSources: [],                             // sources whose URL couldn't resolve
+    fetchHours: parseInt(localStorage.getItem('nancy_email_fetch_hours') || '24', 10),
     loading: false
   }
 };
@@ -5476,7 +5480,8 @@ function openEmailDrawer() {
   // Clear morning badge once user opens drawer
   var badge = document.getElementById('email-float-badge');
   if (badge) badge.style.display = 'none';
-  if (!state.email.emails.length && state.email.sources.length) emailRefresh();
+  var hasAnySource = !!(state.email.myScript && state.email.myScript.url) || state.email.sources.length;
+  if (!state.email.emails.length && hasAnySource) emailRefresh();
   else renderEmailList();
 }
 function closeEmailDrawer() {
@@ -5485,11 +5490,29 @@ function closeEmailDrawer() {
   closeEmailReplyPane();
 }
 
+// ── BUILD EFFECTIVE SOURCE LIST ──
+// Combines the user's own registered script (implicit source) with their
+// subscribed sources. The user's own script is ALWAYS first and labeled
+// 'My Inbox' by default — registering it should immediately make their
+// own Gmail visible in the inbox without an extra subscribe step.
+function buildEffectiveSources() {
+  var list = [];
+  if (state.email.myScript && state.email.myScript.url) {
+    list.push({
+      id: 'self',
+      name: state.email.myScript.name || 'My Inbox',
+      manualUrl: state.email.myScript.url,
+      isSelf: true
+    });
+  }
+  return list.concat(state.email.sources || []);
+}
+
 // ── FAN-OUT FETCH ──
 async function emailFetchAll(opts) {
   opts = opts || {};
-  var sources = state.email.sources;
-  if (!sources.length) { showToast('Add an email source first (⚙)', 'info'); return []; }
+  var sources = buildEffectiveSources();
+  if (!sources.length) { showToast('Set your Apps Script in ⚙ first', 'info'); return []; }
 
   state.email.loading = true;
   renderEmailList();
@@ -5503,11 +5526,12 @@ async function emailFetchAll(opts) {
   var live = resolved.filter(function(r) { return !!r.url; });
   state.email.deadSources = resolved.filter(function(r) { return !r.url; }).map(function(r) { return r.src; });
 
+  var hours = opts.hours || state.email.fetchHours || 24;
   var results = await Promise.allSettled(live.map(async function(item) {
     try {
       var data = await callEmailScriptLocal(item.url, 'fetchEmails', {
         label: opts.unreadOnly ? 'unread' : 'inbox',
-        hours: opts.hours || 24
+        hours: hours
       });
       return (data.emails || []).map(function(e) {
         return Object.assign({}, e, { sourceId: item.src.id, sourceName: item.src.name });
@@ -5526,13 +5550,14 @@ async function emailFetchAll(opts) {
 
 // ── REFRESH MODES ──
 async function emailRefresh() {
-  if (!state.email.sources.length) { showToast('Add an email source first (⚙)', 'info'); openEmailSettings(); return; }
+  var hasAnySource = !!(state.email.myScript && state.email.myScript.url) || state.email.sources.length;
+  if (!hasAnySource) { showToast('Set your Apps Script in ⚙ first', 'info'); openEmailSettings(); return; }
   state.email.pullAllMode = false;
   try {
-    var emails = await emailFetchAll({ hours: 24 });
+    var emails = await emailFetchAll({ hours: state.email.fetchHours || 24 });
     var filtered = state.email.filters.senders.length || state.email.filters.keywords.length
       ? emails.filter(function(e) { return emailMatchesFilter(e, state.email.filters); })
-      : emails; // no filters = show everything from last 24h
+      : emails; // no filters = show everything from chosen window
     state.email.emails = await triageEmails(filtered);
     renderEmailList();
   } catch(e) {
@@ -5543,18 +5568,28 @@ async function emailRefresh() {
 }
 
 async function emailPullAllUnread() {
-  if (!state.email.sources.length) { showToast('Add an email source first (⚙)', 'info'); openEmailSettings(); return; }
+  var hasAnySource = !!(state.email.myScript && state.email.myScript.url) || state.email.sources.length;
+  if (!hasAnySource) { showToast('Set your Apps Script in ⚙ first', 'info'); openEmailSettings(); return; }
   state.email.pullAllMode = true;
   try {
-    var emails = await emailFetchAll({ unreadOnly: true, hours: 168 });
+    // Pull All uses a longer window regardless of fetchHours preset
+    var emails = await emailFetchAll({ unreadOnly: true, hours: 720 }); // 30 days
     state.email.emails = await triageEmails(emails);
     renderEmailList();
-    showToast('Showing ALL unread (filters off)', 'info');
+    showToast('Showing ALL unread from last 30 days (filters off)', 'info');
   } catch(e) {
     state.email.loading = false;
     showToast('Pull all failed: ' + e.message, 'error');
     renderEmailList();
   }
+}
+
+// ── DATE RANGE PRESETS ──
+async function emailSetFetchHours(hours) {
+  state.email.fetchHours = parseInt(hours, 10) || 24;
+  // Persist across reloads
+  try { localStorage.setItem('nancy_email_fetch_hours', String(state.email.fetchHours)); } catch(e) {}
+  await emailRefresh();
 }
 
 // ── FILTER LOGIC ──
@@ -5643,9 +5678,13 @@ function renderEmailList() {
   }
 
   if (!emails.length) {
-    var msg = state.email.sources.length
-      ? (state.email.pullAllMode ? 'No unread emails in the last 7 days.' : 'No emails matching your filters in the last 24h. Try 📥 Pull All Unread.')
-      : 'No email sources yet. Click ⚙ to add one.';
+    var hasAnySource = !!(state.email.myScript && state.email.myScript.url) || state.email.sources.length;
+    var rangeLabel = ({ '24': 'last 24 hours', '72': 'last 3 days', '168': 'last 7 days', '720': 'last 30 days' })[String(state.email.fetchHours || 24)] || 'selected window';
+    var msg = hasAnySource
+      ? (state.email.pullAllMode
+          ? 'No unread emails in the last 30 days.'
+          : 'No emails matching your filters in the ' + rangeLabel + '. Try a longer date range or 📥 Pull All Unread.')
+      : 'No email sources yet. Click ⚙ to set your Apps Script.';
     listEl.innerHTML = '<div class="email-empty">' + esc(msg) + '</div>';
     return;
   }
@@ -5705,16 +5744,34 @@ function renderEmailTabBar() {
 function renderEmailSourceBar() {
   var bar = document.getElementById('email-source-bar');
   if (!bar) return;
-  if (!state.email.sources.length) {
-    bar.innerHTML = '<button class="email-source-pill add" onclick="openEmailSettings()">+ Add source</button>';
-    return;
-  }
-  // Count emails per source
+
+  var effective = buildEffectiveSources();
+
+  // Count emails per source (works for both "self" and subscribed sources)
   var counts = {};
   state.email.emails.forEach(function(e) { counts[e.sourceId] = (counts[e.sourceId] || 0) + 1; });
-  bar.innerHTML = state.email.sources.map(function(s) {
-    return '<span class="email-source-pill">' + esc(s.name) + ' (' + (counts[s.id] || 0) + ')</span>';
-  }).join('') + '<button class="email-source-pill add" onclick="openEmailSettings()">⚙</button>';
+
+  var sourcesHtml = effective.length
+    ? effective.map(function(s) {
+        var label = esc(s.name) + ' (' + (counts[s.id] || 0) + ')';
+        return '<span class="email-source-pill' + (s.isSelf ? ' self' : '') + '" title="' + esc(s.name) + '">' + label + '</span>';
+      }).join('')
+    : '<span class="email-source-pill" style="opacity:.6">No sources yet</span>';
+
+  // Date range selector
+  var hours = state.email.fetchHours || 24;
+  var rangeOpts = [
+    { v: 24, label: 'Today' },
+    { v: 72, label: 'Last 3 days' },
+    { v: 168, label: 'Last 7 days' },
+    { v: 720, label: 'Last 30 days' }
+  ];
+  var rangeHtml = '<select class="email-range-select" onchange="emailSetFetchHours(this.value)">' +
+    rangeOpts.map(function(o) {
+      return '<option value="' + o.v + '"' + (o.v === hours ? ' selected' : '') + '>' + o.label + '</option>';
+    }).join('') + '</select>';
+
+  bar.innerHTML = sourcesHtml + rangeHtml + '<button class="email-source-pill add" onclick="openEmailSettings()">⚙</button>';
 }
 
 // ── SAVE LABEL HINT (AI suggestion → real label) ──
