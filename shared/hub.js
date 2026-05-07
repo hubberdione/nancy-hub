@@ -598,6 +598,52 @@ async function callEmailScript(scriptUrl, action, payload) {
 }
 window.callEmailScript = callEmailScript;
 
+// ── DRIVE FILE UPLOAD HELPER ──
+// Uploads a single File (from <input type=file>) to Google Drive via Apps Script.
+// Returns { url, viewUrl, thumbUrl, fileId, fileName } where:
+//   - url       = embeddable URL (use as <img src>) — requires "anyone with link" sharing
+//   - viewUrl   = clickable link to Drive viewer
+//   - thumbUrl  = scaled thumbnail (fast for image previews)
+//
+// Section is the folder path under "Nancy Hub" in Drive (e.g., 'social-assets/avatar-id').
+// Same Content-Type-omission rule as callEmailScript — text/plain default avoids CORS preflight.
+async function uploadFileToDrive(file, section) {
+  if (!file) throw new Error('No file provided');
+  // Read file as base64
+  var base64 = await new Promise(function(resolve, reject) {
+    var fr = new FileReader();
+    fr.onload = function() { resolve(fr.result); };
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+  var res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action: 'upload',
+      fileName: file.name,
+      mimeType: file.type || 'application/octet-stream',
+      fileData: base64,
+      section: section || 'uploads'
+    }),
+    redirect: 'follow'
+  });
+  if (!res.ok) {
+    var t = '';
+    try { t = await res.text(); } catch(e) {}
+    throw new Error('Drive upload HTTP ' + res.status + (t ? ' — ' + t.slice(0, 120) : ''));
+  }
+  var data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Drive upload failed');
+  return {
+    url:      data.directUrl || data.viewUrl,    // embeddable
+    viewUrl:  data.viewUrl,                       // clickable Drive link
+    thumbUrl: data.thumbUrl || data.directUrl,    // fast preview
+    fileId:   data.fileId,
+    fileName: data.fileName
+  };
+}
+window.uploadFileToDrive = uploadFileToDrive;
+
 // ── CLAUDE COST TRACKING ──
 async function trackClaudeCost(inputTokens, outputTokens) {
   var cost = (inputTokens / 1000000 * 0.80) + (outputTokens / 1000000 * 4.00);

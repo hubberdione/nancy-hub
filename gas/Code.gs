@@ -104,12 +104,27 @@ function uploadFile(payload) {
 
     var file = folder.createFile(blob);
 
+    // Set sharing to "anyone with link can view" so the directUrl works
+    // as <img src> in the hub. Without this, only the GAS owner sees the file.
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch(shareErr) {
+      // Workspace policies may restrict this — file still uploaded, just won't embed publicly.
+      // Caller can fall back to viewUrl (clickable link) instead of directUrl.
+    }
+
+    var fileId = file.getId();
     return {
       success: true,
-      fileId: file.getId(),
+      fileId: fileId,
       fileName: file.getName(),
       fileUrl: file.getUrl(),
-      viewUrl: 'https://drive.google.com/file/d/' + file.getId() + '/view'
+      viewUrl: 'https://drive.google.com/file/d/' + fileId + '/view',
+      // Direct-view URL works as <img src> for inline embedding.
+      // Use this for avatar images, post thumbnails, learning files etc.
+      directUrl: 'https://drive.google.com/uc?export=view&id=' + fileId,
+      // Thumbnail URL — much faster for image previews (returns scaled JPG)
+      thumbUrl: 'https://lh3.googleusercontent.com/d/' + fileId + '=w800'
     };
   } catch(err) {
     return { success: false, error: err.message };

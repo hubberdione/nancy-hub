@@ -838,6 +838,9 @@ function addFilesToPending(files) {
 }
 
 async function uploadPendingFiles(docId, pendingFiles, bucket) {
+  // Migrated from Supabase Storage → Google Drive (uploadFileToDrive in shared/hub.js).
+  // The `bucket` param is preserved for callers but now used as a folder section
+  // under "Nancy Hub" in Drive (e.g., learning-files/doc-id, learning-gems/doc-id).
   var uploaded = [];
   bucket = bucket || 'learning-files';
   for (var i = 0; i < pendingFiles.length; i++) {
@@ -845,12 +848,13 @@ async function uploadPendingFiles(docId, pendingFiles, bucket) {
     var statusEl = document.getElementById('doc-upload-status') || document.getElementById('gem-upload-status');
     if (statusEl) statusEl.textContent = 'Uploading ' + (i+1) + '/' + pendingFiles.length + '...';
     try {
-      var safeName = pf.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-      var path = docId + '/' + Date.now() + '_' + i + '_' + safeName;
-      var res = await db.storage.from(bucket).upload(path, pf.file, { cacheControl:'3600', upsert:false });
-      if (res.error) throw res.error;
-      var urlRes = db.storage.from(bucket).getPublicUrl(path);
-      uploaded.push({ name: pf.name, url: urlRes.data.publicUrl, type: pf.file.type, size: pf.file.size });
+      var driveRes = await uploadFileToDrive(pf.file, bucket + '/' + docId);
+      uploaded.push({
+        name: pf.name,
+        url: driveRes.url,
+        type: pf.file.type,
+        size: pf.file.size
+      });
     } catch(e) {
       showToast('Upload failed for ' + pf.name + ': ' + e.message, 'error');
     }

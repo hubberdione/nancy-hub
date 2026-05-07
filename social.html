@@ -2957,11 +2957,27 @@ function filterAssets(folder, btn) {
   renderAssets(filtered);
 }
 
-// If the public URL fails (private bucket), try a 1-hour signed URL
+// If the image URL fails to load, try alternate fetch strategies before
+// giving up. Handles BOTH legacy Supabase URLs (old files) and Drive URLs
+// (new files migrated to Google Drive in May 2026).
 async function assetThumbFallback(img) {
   var publicUrl = img.src || '';
-  // Extract storage path from Supabase public URL format
-  // e.g. https://xxx.supabase.co/storage/v1/object/public/social-assets/avatar-id/file.jpg
+
+  // ── Strategy 1: Drive direct URL → try thumbnail URL ──
+  // drive.google.com/uc?export=view&id=XXX  →  lh3.googleusercontent.com/d/XXX=w800
+  var driveMatch = publicUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/) || publicUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch && publicUrl.indexOf('drive.google.com') !== -1) {
+    var fileId = driveMatch[1];
+    var thumb = 'https://lh3.googleusercontent.com/d/' + fileId + '=w800';
+    if (publicUrl !== thumb) {
+      img.onerror = function() { img.parentNode.innerHTML = '<span class="asset-thumb-icon">&#128444;</span>'; };
+      img.src = thumb;
+      return;
+    }
+  }
+
+  // ── Strategy 2: legacy Supabase public URL → try signed URL ──
+  // https://xxx.supabase.co/storage/v1/object/public/social-assets/avatar-id/file.jpg
   var marker = '/object/public/social-assets/';
   var idx = publicUrl.indexOf(marker);
   if (idx !== -1) {
@@ -2975,6 +2991,8 @@ async function assetThumbFallback(img) {
       }
     } catch(e) { /* fall through */ }
   }
+
+  // ── Final fallback: show a placeholder icon ──
   img.parentNode.innerHTML = '<span class="asset-thumb-icon">&#128444;</span>';
 }
 
@@ -3389,26 +3407,16 @@ async function uploadAssetFile(file) {
   setUploadProgress(10, 'Uploading...');
   try {
     var avId = socialState.currentAvatar ? socialState.currentAvatar.id : 'general';
-    var safeName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
-    var path = avId + '/' + Date.now() + '_' + safeName;
-    setUploadProgress(40, 'Uploading to Supabase Storage...');
-    var r = await db.storage.from('social-assets').upload(path, file, { upsert: true });
-    if (r.error) throw r.error;
+    setUploadProgress(40, 'Uploading to Google Drive...');
+    var result = await uploadFileToDrive(file, 'social-assets/' + avId);
     setUploadProgress(85, 'Almost done...');
-    var pub = db.storage.from('social-assets').getPublicUrl(path);
-    var publicUrl = pub.data && pub.data.publicUrl;
-    if (!publicUrl) throw new Error('Could not get public URL');
+    if (!result.url) throw new Error('No URL returned');
     setUploadProgress(100, 'Upload complete ✓');
-    if (urlEl) urlEl.value = publicUrl;
+    if (urlEl) urlEl.value = result.url;
     setTimeout(clearUploadProgress, 2000);
   } catch(e) {
     clearUploadProgress();
-    var msg = e.message || '';
-    if (msg.includes('Bucket not found') || msg.includes('bucket')) {
-      showToast('Storage bucket not set up yet. Go to Supabase → Storage → create "social-assets" bucket (Public).', 'error');
-    } else {
-      showToast('Upload failed: ' + msg + '. Try pasting a URL instead.', 'error');
-    }
+    showToast('Upload failed: ' + (e.message || 'unknown') + '. Try pasting a URL instead.', 'error');
   }
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3557,15 +3565,11 @@ async function startBulkUpload() {
     progLbl.textContent = 'Uploading ' + (i + 1) + ' of ' + total + '…';
     progFill.style.width = Math.round((i / total) * 100) + '%';
     try {
-      // Upload to storage
+      // Upload to Google Drive (was Supabase Storage)
       var avId = socialState.currentAvatar.id;
-      var safeName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
-      var path = avId + '/' + Date.now() + '_' + safeName;
-      var r = await db.storage.from('social-assets').upload(path, file, { upsert: true });
-      if (r.error) throw r.error;
-      var pub = db.storage.from('social-assets').getPublicUrl(path);
-      var publicUrl = pub.data && pub.data.publicUrl;
-      if (!publicUrl) throw new Error('No public URL');
+      var driveRes = await uploadFileToDrive(file, 'social-assets/' + avId);
+      var publicUrl = driveRes.url;
+      if (!publicUrl) throw new Error('No URL returned from Drive');
       // Detect type from file if auto
       var detectedType = assetType;
       if (file.type.startsWith('video/')) detectedType = 'video';
