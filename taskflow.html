@@ -3748,8 +3748,13 @@ function createTaskCard(task, tier) {
 }
 
 function renderSidebar(tasks) {
+  // Sidebar 'Completed' shows only TODAY's wins (resets at 7 AM HKT).
+  // This auto-clears the section each morning so it doesn't accumulate
+  // weeks of historical completions. Old completions are still in the DB
+  // for stats, just not shown here. Deliverables tab is the long-term archive.
+  const dayStart = getDayStart7am();
   const active = tasks.filter(t => !t.completed);
-  const done = tasks.filter(t => t.completed);
+  const done = tasks.filter(t => t.completed && (t.completed_at || 0) >= dayStart);
   const activeEl = document.getElementById('sidebar-active');
   const doneEl = document.getElementById('sidebar-completed');
 
@@ -3758,7 +3763,7 @@ function renderSidebar(tasks) {
     : active.map(t => `<div class="sidebar-task"><div class="sidebar-task-dot" style="background:${TIER_COLORS[t.tier]}"></div><div class="sidebar-task-title">${esc(t.title)}</div></div>`).join('');
 
   doneEl.innerHTML = done.length === 0
-    ? '<span style="font-family:sans-serif;font-size:.8rem;color:var(--muted)">Nothing completed yet.</span>'
+    ? '<span style="font-family:sans-serif;font-size:.8rem;color:var(--muted)">Nothing completed today yet.</span>'
     : done.map(t => `<div class="sidebar-task done"><div class="sidebar-task-dot" style="background:var(--muted)"></div><div class="sidebar-task-title">${esc(t.title)}</div></div>`).join('');
 }
 
@@ -4641,24 +4646,32 @@ function calcDailyPct() {
 }
 
 function calcWeeklyPct() {
-  // Weekly = my own Focus Today + Focus This Week tasks created this week
-  const start = getWeekStart();
-  const week = getMyOwnTasks().filter(t =>
-    (t.created_at || 0) >= start && ['focus-today','focus-week'].includes(t.tier)
-  );
-  if (!week.length) return 0;
-  return Math.round((week.filter(t => t.completed).length / week.length) * 100);
+  // Weekly score (resets at week start, Monday 00:00 HKT).
+  // Same model as calcDailyPct: in-scope tasks include carry-overs, exclude
+  // tasks completed before this week's start (those belong to last week).
+  const weekStart = getWeekStart();
+  const week = getMyOwnTasks().filter(t => {
+    if (!['focus-today', 'focus-week'].includes(t.tier)) return false;
+    if (t.completed && (t.completed_at || 0) < weekStart) return false;
+    return true;
+  });
+  if (!week.length) return -1;
+  const doneThisWeek = week.filter(t => t.completed);
+  return Math.round((doneThisWeek.length / week.length) * 100);
 }
 
 function calcMonthlyPct() {
-  // Monthly = my own Top 3 + Founder + Focus Today + Focus This Week created this month
-  const start = getMonthStart();
-  const monthly = getMyOwnTasks().filter(t =>
-    (t.created_at || 0) >= start &&
-    ['top3','founder','focus-today','focus-week'].includes(t.tier)
-  );
-  if (!monthly.length) return 0;
-  return Math.round((monthly.filter(t => t.completed).length / monthly.length) * 100);
+  // Monthly score (resets on the 1st of each month at 00:00 HKT).
+  // Same model: includes carry-overs, excludes completions from prior months.
+  const monthStart = getMonthStart();
+  const monthly = getMyOwnTasks().filter(t => {
+    if (!['top3','founder','focus-today','focus-week'].includes(t.tier)) return false;
+    if (t.completed && (t.completed_at || 0) < monthStart) return false;
+    return true;
+  });
+  if (!monthly.length) return -1;
+  const doneThisMonth = monthly.filter(t => t.completed);
+  return Math.round((doneThisMonth.length / monthly.length) * 100);
 }
 
 // ─── TIER ICONS (above head clipart) ───
@@ -4723,10 +4736,11 @@ var _rewardShownToday = null;
 
 function checkRewards() {
   const dailyOk = isHKTAfter(18);
-  const dpRaw = calcDailyPct(); // -1 means no tasks set today
-  const dp = dpRaw === -1 ? 0 : dpRaw; // use 0 for tier calc when no tasks set
+  const dpRaw = calcDailyPct(); // -1 means no tasks in scope today
+  const wpRaw = calcWeeklyPct(); // -1 means no tasks in scope this week
+  const dp = dpRaw === -1 ? 0 : dpRaw;
+  const wp = wpRaw === -1 ? 0 : wpRaw;
   const noTasksToday = dpRaw === -1;
-  const wp = calcWeeklyPct();
   const dt = getRewardTier(dp);
 
   // Update reward banner
@@ -4786,9 +4800,12 @@ async function openRewards() {
   const dailyOk = isHKTAfter(18);
   const weeklyOk = isHKTAfter(17, 5);
   const dpRaw = calcDailyPct();
+  const wpRaw = calcWeeklyPct();
+  const mpRaw = calcMonthlyPct();
+  // -1 sentinel from any of these means "no tasks in scope" — treat as 0% for tier display
   const dp = dpRaw === -1 ? 0 : dpRaw;
-  const wp = calcWeeklyPct();
-  const mp = calcMonthlyPct();
+  const wp = wpRaw === -1 ? 0 : wpRaw;
+  const mp = mpRaw === -1 ? 0 : mpRaw;
   const dt = getRewardTier(dp);
   const wt = getRewardTier(wp);
   const mt = getRewardTier(mp);
