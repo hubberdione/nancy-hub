@@ -805,6 +805,30 @@ body.reward-time .rtp-icon{display:block}
 .slack-loading-row{display:flex;align-items:center;gap:.5rem;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--muted);padding:.5rem 0}
 @media(max-width:600px){.slack-drawer{width:100vw;right:-100vw}}
 
+/* ── FATHOM ACTION ITEMS PANEL ─────────────────────────────────── */
+.fathom-panel{margin-bottom:.85rem;border:1px solid var(--border);border-radius:12px;background:var(--bg2);overflow:hidden}
+.fathom-panel-toggle{width:100%;display:flex;align-items:center;gap:.5rem;padding:.65rem .9rem;background:none;border:none;font-family:Inter,sans-serif;font-size:.85rem;font-weight:500;color:var(--h2);cursor:pointer;text-align:left}
+.fathom-panel-toggle:hover{background:var(--bg3)}
+.fathom-panel-icon{font-size:1rem}
+.fathom-panel-chev{margin-left:auto;transition:transform .15s;color:var(--muted);font-size:.8rem}
+.fathom-panel.expanded .fathom-panel-chev{transform:rotate(180deg)}
+.fathom-panel-body{padding:.4rem .9rem .85rem;max-height:400px;overflow-y:auto;border-top:1px solid var(--border)}
+.fathom-item{display:flex;align-items:flex-start;gap:.5rem;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.fathom-item:last-child{border-bottom:none}
+.fathom-item-content{flex:1;min-width:0}
+.fathom-item-text{font-family:Inter,sans-serif;font-size:.84rem;color:var(--h2);line-height:1.4;word-wrap:break-word}
+.fathom-item-meeting{font-family:Inter,sans-serif;font-size:.7rem;color:var(--muted);margin-top:.2rem}
+.fathom-item-actions{display:flex;gap:.3rem;flex-shrink:0;align-items:flex-start}
+.fathom-item-actions button{font-family:Inter,sans-serif;font-size:.72rem;font-weight:600;padding:.35rem .65rem;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--h2);white-space:nowrap}
+.fathom-item-actions button:hover{transform:translateY(-1px)}
+.fathom-item-actions .add-btn{background:var(--primary);color:white;border-color:var(--primary)}
+.fathom-item-actions .done-btn{color:var(--muted);background:transparent}
+.fathom-item-actions .done-btn:hover{color:#3ecf8e;border-color:#3ecf8e}
+@media(max-width:600px){
+  .fathom-item{flex-direction:column;align-items:stretch}
+  .fathom-item-actions{justify-content:flex-end;margin-top:.3rem}
+}
+
 /* ── EMAIL DRAWER ─────────────────────────────────────────────────── */
 #email-float{
   position:fixed;bottom:1.75rem;right:calc(1.75rem + 62px + .85rem + 62px + .85rem);
@@ -1159,6 +1183,16 @@ body.reward-time .rtp-icon{display:block}
               <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;color:var(--h2);margin-bottom:1rem">Weekly Recap 🎉</div>
               <div id="recap-stats" style="font-family:sans-serif;font-size:.85rem;color:var(--muted)"></div>
             </div>
+          </div>
+
+          <!-- FATHOM ACTION ITEMS PANEL -->
+          <div id="fathom-panel" class="fathom-panel" style="display:none">
+            <button class="fathom-panel-toggle" type="button" onclick="toggleFathomPanel()">
+              <span class="fathom-panel-icon">✨</span>
+              <span id="fathom-panel-summary">0 action items from recent meetings</span>
+              <span class="fathom-panel-chev">▾</span>
+            </button>
+            <div id="fathom-panel-body" class="fathom-panel-body" style="display:none"></div>
           </div>
 
           <!-- 2-COLUMN LAYOUT: Left col | Right col -->
@@ -1689,6 +1723,22 @@ body.reward-time .rtp-icon{display:block}
   <div style="font-family:sans-serif;font-size:.85rem;color:var(--muted);margin-bottom:.75rem" id="settings-board-info">—</div>
   <button class="btn-ghost" onclick="resetBoard()" style="width:100%;color:#e53935;border-color:#fca5a5">Reset My Board</button>
 
+  <div class="settings-section-title">📹 Fathom Integration</div>
+  <div style="font-family:sans-serif;font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:.5rem">
+    Connect your own Fathom account to pull meeting action items into your Task Hub.
+    Each user has their own key — your meetings stay private to you.
+  </div>
+  <div class="form-field" style="display:flex;gap:.4rem;align-items:center">
+    <input class="form-input" type="password" id="fathom-key-input" placeholder="fathom_..." style="flex:1" />
+    <button class="btn-ghost" onclick="testFathomKey()" style="white-space:nowrap;padding:.5rem .75rem">Test</button>
+  </div>
+  <div id="fathom-test-result" style="font-family:sans-serif;font-size:.75rem;min-height:1.1em;margin:.25rem 0 .5rem"></div>
+  <button class="btn-primary" onclick="saveFathomKey()" style="width:100%;margin-bottom:.4rem">Save Fathom Key</button>
+  <div style="font-family:sans-serif;font-size:.7rem;color:var(--muted);line-height:1.5;margin-bottom:1rem">
+    Find at fathom.video → Settings → API & Integrations (Team plan or above).
+    <a href="https://fathom.video/account" target="_blank" style="color:var(--primary)">Open Fathom →</a>
+  </div>
+
   <div class="settings-section-title">System Info</div>
   <div style="font-family:sans-serif;font-size:.75rem;color:var(--muted);line-height:1.8">
     <div>Database: Supabase (Singapore)</div>
@@ -1914,7 +1964,7 @@ function startClock() {
   }
   tick();
   setInterval(tick, 30000);
-  setInterval(() => { checkRewards(); checkRecap(); refreshRecurring(); checkMorningNudge(); checkMorningEmailFetch(); }, 60000);
+  setInterval(() => { checkRewards(); checkRecap(); refreshRecurring(); checkMorningNudge(); checkMorningEmailFetch(); checkFathomRefresh(); }, 60000);
 }
 
 function getHKT() {
@@ -1981,6 +2031,7 @@ async function showTaskHub() {
   await Promise.all([loadDeliverables(), loadSharedDeliverables()]);
   await loadNotifications();
   await loadEmailConfig();
+  loadFathomActionItems(); // non-blocking — panel populates when ready
   refreshRecurring();
   // Refresh notifications every 60s
   setInterval(loadNotifications, 60000);
@@ -5080,6 +5131,11 @@ function openSettings() {
   checkStorage();
   document.getElementById('settings-overlay').style.display = 'block';
   document.getElementById('settings-panel').classList.add('open');
+  // Populate Fathom key field with the user's existing key (if set)
+  var fk = document.getElementById('fathom-key-input');
+  if (fk) fk.value = (typeof FATHOM_API_KEY !== 'undefined' && FATHOM_API_KEY) ? FATHOM_API_KEY : '';
+  var fr = document.getElementById('fathom-test-result');
+  if (fr) { fr.textContent = ''; fr.style.color = ''; }
 }
 function closeSettings() {
   document.getElementById('settings-overlay').style.display = 'none';
@@ -6229,6 +6285,253 @@ async function emailRemoveLabel(i) {
   state.email.labels.splice(i, 1);
   await saveEmailSetting('labels', state.email.labels);
   renderEmailLabelsList();
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FATHOM ACTION ITEMS — meeting → Parking Lot tasks
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Per-user feature: every member registers their own Fathom API key in
+// Settings. Each user's panel only shows THEIR own meetings' action items.
+// Two actions per item:
+//   + Add  → creates a Parking Lot task with the item text, dismisses item
+//   ✓ Done → just dismisses (item already handled offline)
+// Dismissed items are tracked in settings.fathom_dismissed_<userId> so they
+// never reappear, even after a refresh.
+
+state.fathom = state.fathom || { items: [], dismissed: [], loaded: false };
+
+// ── SETTINGS PANEL: save / test the Fathom key ──
+async function saveFathomKey() {
+  var key = document.getElementById('fathom-key-input').value.trim();
+  var resultEl = document.getElementById('fathom-test-result');
+  if (!key) {
+    if (resultEl) { resultEl.textContent = 'Enter a key first'; resultEl.style.color = '#e05470'; }
+    return;
+  }
+  if (!state.currentUser || !state.currentUser.id) {
+    if (resultEl) { resultEl.textContent = 'Not logged in'; resultEl.style.color = '#e05470'; }
+    return;
+  }
+  try {
+    await db.from('settings').upsert(
+      { key: 'fathom_api_key_' + state.currentUser.id, value: key },
+      { onConflict: 'key' }
+    );
+    FATHOM_API_KEY = key;
+    if (resultEl) { resultEl.textContent = '✓ Saved — fetching action items…'; resultEl.style.color = '#3ecf8e'; }
+    showToast('Fathom key saved ✓', 'success');
+    // Refresh the panel immediately so user sees their meetings appear
+    loadFathomActionItems();
+  } catch(e) {
+    if (resultEl) { resultEl.textContent = '✗ ' + e.message; resultEl.style.color = '#e05470'; }
+    showToast('Failed to save: ' + e.message, 'error');
+  }
+}
+
+async function testFathomKey() {
+  var resultEl = document.getElementById('fathom-test-result');
+  var typedKey = document.getElementById('fathom-key-input').value.trim();
+  if (!typedKey) {
+    if (resultEl) { resultEl.textContent = 'Paste a key first'; resultEl.style.color = '#e05470'; }
+    return;
+  }
+  resultEl.textContent = 'Testing…';
+  resultEl.style.color = 'var(--muted)';
+  // Test with the typed key (not yet saved) — restore previous on failure
+  var prevKey = FATHOM_API_KEY;
+  FATHOM_API_KEY = typedKey;
+  try {
+    var data = await callFathomAPI('/meetings', { limit: 1 });
+    var meetings = data.meetings || data.results || (Array.isArray(data) ? data : []);
+    resultEl.textContent = '✓ Working — ' + meetings.length + ' meeting(s) accessible';
+    resultEl.style.color = '#3ecf8e';
+  } catch(e) {
+    resultEl.textContent = '✗ ' + e.message;
+    resultEl.style.color = '#e05470';
+    FATHOM_API_KEY = prevKey; // restore
+  }
+}
+
+// ── PANEL TOGGLE ──
+function toggleFathomPanel() {
+  var panel = document.getElementById('fathom-panel');
+  var body = document.getElementById('fathom-panel-body');
+  if (!panel || !body) return;
+  var isExpanded = panel.classList.contains('expanded');
+  if (isExpanded) {
+    panel.classList.remove('expanded');
+    body.style.display = 'none';
+    localStorage.setItem('fathom_panel_open', '0');
+  } else {
+    panel.classList.add('expanded');
+    body.style.display = 'block';
+    localStorage.setItem('fathom_panel_open', '1');
+  }
+}
+
+// ── LOAD: fetch action items, filter dismissed, store in state ──
+async function loadFathomActionItems() {
+  var panel = document.getElementById('fathom-panel');
+  if (!FATHOM_API_KEY) {
+    if (panel) panel.style.display = 'none';
+    return;
+  }
+  if (!state.currentUser || !state.currentUser.id) return;
+
+  try {
+    // Load dismissed list first
+    var dismRow = await db.from('settings').select('value')
+      .eq('key', 'fathom_dismissed_' + state.currentUser.id).maybeSingle();
+    state.fathom.dismissed = (dismRow.data && dismRow.data.value)
+      ? safeParse(dismRow.data.value, []) : [];
+
+    // Fetch recent meetings (last 7 days)
+    var sinceISO = new Date(Date.now() - 7*24*3600*1000).toISOString();
+    var data = await callFathomAPI('/meetings', { limit: 20, since: sinceISO });
+
+    // Fathom API may return { meetings: [...] } or a bare array — handle both
+    var meetings = data.meetings || data.results || (Array.isArray(data) ? data : []);
+
+    var items = [];
+    for (var i = 0; i < meetings.length; i++) {
+      var m = meetings[i];
+      var actionItems = m.action_items || m.actionItems || [];
+      // If action items aren't nested, fetch per-meeting
+      if (!actionItems.length && m.id && data.meetings) {
+        try {
+          var detail = await callFathomAPI('/meetings/' + m.id);
+          actionItems = detail.action_items || detail.actionItems || [];
+        } catch(e) { /* skip silently */ }
+      }
+      for (var j = 0; j < actionItems.length; j++) {
+        var ai = actionItems[j];
+        var aiId = ai.id || (m.id + '-' + j);  // synthesize ID if missing
+        if (state.fathom.dismissed.indexOf(aiId) !== -1) continue;
+        items.push({
+          id: aiId,
+          text: ai.text || ai.title || ai.description || 'Action item',
+          meetingId: m.id,
+          meetingTitle: m.title || m.name || 'Untitled meeting',
+          meetingDate: m.recorded_at || m.created_at || m.date
+        });
+      }
+    }
+
+    state.fathom.items = items;
+    state.fathom.loaded = true;
+    renderFathomPanel();
+    console.log('[Fathom] Loaded ' + items.length + ' action items from ' + meetings.length + ' meetings');
+  } catch(e) {
+    console.warn('[Fathom] Load failed:', e.message);
+    if (panel) panel.style.display = 'none';
+  }
+}
+
+// ── RENDER ──
+function renderFathomPanel() {
+  var panel = document.getElementById('fathom-panel');
+  var summary = document.getElementById('fathom-panel-summary');
+  var body = document.getElementById('fathom-panel-body');
+  if (!panel || !summary || !body) return;
+
+  var items = state.fathom.items || [];
+  if (!items.length) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  summary.textContent = items.length + ' action item' + (items.length === 1 ? '' : 's') + ' from recent meetings';
+
+  // Restore expand state from localStorage (default open if first time)
+  var savedState = localStorage.getItem('fathom_panel_open');
+  if (savedState === null || savedState === '1') {
+    panel.classList.add('expanded');
+    body.style.display = 'block';
+  } else {
+    panel.classList.remove('expanded');
+    body.style.display = 'none';
+  }
+
+  body.innerHTML = items.map(function(it) {
+    var dateStr = it.meetingDate ? ' · ' + new Date(it.meetingDate).toLocaleDateString() : '';
+    return '<div class="fathom-item" data-id="' + esc(it.id) + '">' +
+      '<div class="fathom-item-content">' +
+        '<div class="fathom-item-text">' + esc(it.text) + '</div>' +
+        '<div class="fathom-item-meeting">' + esc(it.meetingTitle) + esc(dateStr) + '</div>' +
+      '</div>' +
+      '<div class="fathom-item-actions">' +
+        '<button class="add-btn" onclick="addFathomItemAsTask(\'' + esc(it.id).replace(/'/g, "\\'") + '\')" title="Add to Parking Lot">+ Add</button>' +
+        '<button class="done-btn" onclick="markFathomItemDone(\'' + esc(it.id).replace(/'/g, "\\'") + '\')" title="Already handled — clear from panel">✓ Done</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── ACTIONS: + Add (creates task) / ✓ Done (just dismisses) ──
+async function addFathomItemAsTask(itemId) {
+  var item = state.fathom.items.find(function(i){ return i.id === itemId; });
+  if (!item) return;
+
+  var task = {
+    id: crypto.randomUUID(),
+    title: (item.text || '').slice(0, 200),
+    description: 'From Fathom meeting: ' + item.meetingTitle,
+    tier: 'parking',
+    completed: false,
+    completed_at: null,
+    createdAt: Date.now(),
+    created_at: Date.now(),
+    taskOrder: state.tasks.length,
+    recurring: false,
+    freq: null, recurring_freq: null,
+    due_date: null,
+    is_personal: false,
+    shared_to_dashboard: false,
+    owner_id: state.currentUser.id,
+    assigned_to: JSON.stringify([state.currentUser.id]),
+    assigned_by: null
+  };
+  state.tasks.push(task);
+  try {
+    await saveTaskToDB(task);
+    await dismissFathomItem(itemId);
+    renderBoard();
+    showToast('Added to Parking Lot ✓', 'success');
+  } catch(e) {
+    // Roll back local state on DB failure
+    state.tasks = state.tasks.filter(function(t){ return t.id !== task.id; });
+    showToast('Failed to add task: ' + e.message, 'error');
+  }
+}
+
+async function markFathomItemDone(itemId) {
+  await dismissFathomItem(itemId);
+  showToast('Marked done — cleared from panel', 'info');
+}
+
+async function dismissFathomItem(itemId) {
+  if (state.fathom.dismissed.indexOf(itemId) === -1) state.fathom.dismissed.push(itemId);
+  state.fathom.items = state.fathom.items.filter(function(i){ return i.id !== itemId; });
+  try {
+    await db.from('settings').upsert(
+      { key: 'fathom_dismissed_' + state.currentUser.id, value: JSON.stringify(state.fathom.dismissed) },
+      { onConflict: 'key' }
+    );
+  } catch(e) { console.warn('[Fathom] Failed to persist dismissal:', e.message); }
+  renderFathomPanel();
+}
+
+// ── HOURLY AUTO-REFRESH (cached, doesn't hammer Fathom API) ──
+function checkFathomRefresh() {
+  if (!FATHOM_API_KEY) return;
+  if (!state.currentUser || !state.currentUser.id) return;
+  var key = 'fathom_last_fetch';
+  var last = parseInt(localStorage.getItem(key) || '0', 10);
+  if (Date.now() - last < 3600000) return; // 1h cache
+  localStorage.setItem(key, String(Date.now()));
+  loadFathomActionItems();
 }
 
 

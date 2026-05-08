@@ -16,6 +16,7 @@ const GROQ_MODEL = 'llama-3.3-70b-versatile'; // AI brain for the entire hub
 var CLAUDE_API_KEY = '';
 var CLAUDE_MODEL = 'claude-3-5-haiku-20241022';
 var CLAUDE_COST_CAP = 4.50; // monthly cap in USD
+var FATHOM_API_KEY = ''; // Per-user — loaded from settings.fathom_api_key_<userId> on auth
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -255,6 +256,12 @@ async function onAuthSuccess(authUser) {
   try {
     var ckr = await db.from('settings').select('value').eq('key','claude_api_key').single();
     if (ckr.data && ckr.data.value) CLAUDE_API_KEY = ckr.data.value;
+  } catch(e) {}
+  // Load Fathom API key (per-user — each member has their own)
+  try {
+    var fkr = await db.from('settings').select('value')
+      .eq('key', 'fathom_api_key_' + hubState.currentUser.id).maybeSingle();
+    if (fkr.data && fkr.data.value) FATHOM_API_KEY = fkr.data.value;
   } catch(e) {}
   updateNavUser();
   var app = document.getElementById('app');
@@ -597,6 +604,41 @@ async function callEmailScript(scriptUrl, action, payload) {
   return data;
 }
 window.callEmailScript = callEmailScript;
+
+// ── FATHOM API HELPER ──
+// Per-user Bearer-token auth. Each member registers their OWN Fathom key
+// in their Settings panel — see saveFathomKey() in taskflow.html.
+async function callFathomAPI(endpoint, params) {
+  // Lazy-load key from Supabase if not yet in memory
+  if (!FATHOM_API_KEY) {
+    var uid = (hubState && hubState.currentUser && hubState.currentUser.id) ||
+              (typeof state !== 'undefined' && state.currentUser && state.currentUser.id);
+    if (uid) {
+      try {
+        var r = await db.from('settings').select('value')
+          .eq('key', 'fathom_api_key_' + uid).maybeSingle();
+        if (r.data && r.data.value) FATHOM_API_KEY = r.data.value;
+      } catch(e) {}
+    }
+  }
+  if (!FATHOM_API_KEY) throw new Error('Fathom API key not set — add it in Settings.');
+
+  var url = 'https://api.fathom.video/v1' + endpoint;
+  if (params) {
+    var qs = Object.keys(params).map(function(k){ return k + '=' + encodeURIComponent(params[k]); }).join('&');
+    url += (url.indexOf('?') !== -1 ? '&' : '?') + qs;
+  }
+  var res = await fetch(url, {
+    headers: { 'Authorization': 'Bearer ' + FATHOM_API_KEY, 'Accept': 'application/json' }
+  });
+  if (!res.ok) {
+    var errBody = '';
+    try { errBody = await res.text(); } catch(e) {}
+    throw new Error('Fathom HTTP ' + res.status + (errBody ? ' — ' + errBody.slice(0, 120) : ''));
+  }
+  return await res.json();
+}
+window.callFathomAPI = callFathomAPI;
 
 // ── DRIVE FILE UPLOAD HELPER ──
 // Uploads a single File (from <input type=file>) to Google Drive via Apps Script.
